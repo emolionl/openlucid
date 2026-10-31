@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Your nights stay on your computer
+*.db
+*.sqlite
+*.edf
+data/
+
+# Web
+node_modules/
+dist/
+
+# Hugo
+website/public/
+website/resources/
+.hugo_build.lock
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
