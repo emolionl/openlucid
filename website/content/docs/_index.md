@@ -2,4 +2,4 @@
 title: "Docs"
 ---
 
-Everything you need to build and run Lucid, step by step.
+Everything you need to build and run OpenLucid, step by step.

@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
-    title="Lucid — the Diary Keeper",
+    title="OpenLucid — the Diary Keeper",
     description="Local API that logs sleep sessions, epochs, events and dream journals.",
     version="0.0.1",
 )

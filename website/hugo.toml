@@ -1,11 +1,11 @@
-baseURL = "https://example.org/"
+baseURL = "https://openlucid.nl/"
 languageCode = "en"
-title = "Lucid"
+title = "OpenLucid"
 disableKinds = ["taxonomy", "term"]
 
 [params]
   tagline = "An open-source dream machine you can build yourself"
-  description = "Lucid listens to your sleep through a Muse EEG headband and whispers a sound cue when you are probably dreaming. Free, local, open source. Educational, not medical advice."
+  description = "OpenLucid listens to your sleep through a Muse EEG headband and whispers a sound cue when you are probably dreaming. Free, local, open source. Educational, not medical advice."
 
 [markup.goldmark.renderer]
   unsafe = false

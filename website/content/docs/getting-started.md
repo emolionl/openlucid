@@ -4,7 +4,7 @@ description: "Make the app and the Diary Keeper wave at each other."
 weight: 1
 ---
 
-Lucid has three parts:
+OpenLucid has three parts:
 
 | Part | Folder | What it does |
 |---|---|---|

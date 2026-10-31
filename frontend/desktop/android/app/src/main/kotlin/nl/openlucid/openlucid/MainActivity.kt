@@ -1,4 +1,4 @@
-package com.emolio.lucid.lucid_desktop
+package nl.openlucid.openlucid
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -7,16 +7,16 @@ import 'package:http/http.dart' as http;
 const String diaryKeeperUrl = 'http://localhost:8000';
 
 void main() {
-  runApp(const LucidApp());
+  runApp(const OpenLucidApp());
 }
 
-class LucidApp extends StatelessWidget {
-  const LucidApp({super.key});
+class OpenLucidApp extends StatelessWidget {
+  const OpenLucidApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lucid',
+      title: 'OpenLucid',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo, brightness: Brightness.dark),
@@ -61,7 +61,7 @@ class _HelloScreenState extends State<HelloScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Lucid', style: Theme.of(context).textTheme.displaySmall),
+              Text('OpenLucid', style: Theme.of(context).textTheme.displaySmall),
               const SizedBox(height: 8),
               const Text('Hello. I will listen to your night.'),
               const SizedBox(height: 32),

@@ -1,6 +1,6 @@
 # Web app (Vue)
 
-The morning side of Lucid: your night's report, the dream journal and your own analysis, in the browser.
+The morning side of OpenLucid: your night's report, the dream journal and your own analysis, in the browser.
 
 ## Start it
 

@@ -24,7 +24,7 @@ async function wave() {
 
 <template>
   <main>
-    <h1>Lucid</h1>
+    <h1>OpenLucid</h1>
     <p>Your nights, in the morning.</p>
     <button :disabled="asking" @click="wave">👋 Wave at the Diary Keeper</button>
     <p class="reply">{{ reply }}</p>

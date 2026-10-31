@@ -1,5 +1,5 @@
-name: lucid_desktop
-description: "A new Flutter project."
+name: openlucid
+description: "OpenLucid: listens to your sleep through a Muse EEG headband and plays a sound cue during REM."
 publish_to: 'none'
 version: 0.1.0
 

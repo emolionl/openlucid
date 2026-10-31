@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = lucid_desktop
+PRODUCT_NAME = OpenLucid
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.emolio.lucid.lucidDesktop
+PRODUCT_BUNDLE_IDENTIFIER = nl.openlucid.openlucid
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.emolio.lucid. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Davor Radić and the OpenLucid contributors. MIT License.

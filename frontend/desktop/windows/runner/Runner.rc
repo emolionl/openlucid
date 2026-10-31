@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.emolio.lucid" "\0"
-            VALUE "FileDescription", "lucid_desktop" "\0"
+            VALUE "CompanyName", "Davor Radic" "\0"
+            VALUE "FileDescription", "OpenLucid" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "lucid_desktop" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.emolio.lucid. All rights reserved." "\0"
-            VALUE "OriginalFilename", "lucid_desktop.exe" "\0"
-            VALUE "ProductName", "lucid_desktop" "\0"
+            VALUE "InternalName", "openlucid" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Davor Radic and the OpenLucid contributors. MIT License." "\0"
+            VALUE "OriginalFilename", "openlucid.exe" "\0"
+            VALUE "ProductName", "OpenLucid" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

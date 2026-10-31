@@ -1,17 +1,17 @@
-# 🌙 Lucid
+# 🌙 OpenLucid
 
 **An open-source dream machine you can build yourself.**
 
 You put on a [Muse](https://choosemuse.com/) EEG headband and go to sleep. An app listens to your brainwaves. A small program on your own laptop guesses your sleep stage. When it is fairly sure you are dreaming, it plays a soft sound that you trained yourself, that evening, to link with the question *"Am I dreaming?"*. And if you realize you are, you can signal back from inside the dream with your eyes: left, right, left, right.
 
-Will it give you lucid dreams? Honest answer: maybe, sometimes. Sound cues during REM sleep (*targeted lucidity reactivation*) have helped some people in lab studies; at home the evidence is weaker. Lucid is a tool to find out, honestly, what works for you.
+Will it give you lucid dreams? Honest answer: maybe, sometimes. Sound cues during REM sleep (*targeted lucidity reactivation*) have helped some people in lab studies; at home the evidence is weaker. OpenLucid is a tool to find out, honestly, what works for you.
 
-> **Educational, not medical advice.** A Muse is a consumer gadget, not a medical device. Lucid does not diagnose or treat anything. Sound cues only: no electricity goes into anyone's head.
+> **Educational, not medical advice.** A Muse is a consumer gadget, not a medical device. OpenLucid does not diagnose or treat anything. Sound cues only: no electricity goes into anyone's head.
 
 ## What's in here
 
 ```
-lucid/
+openlucid/
 ├── backend/            The Diary Keeper: Python + FastAPI + SQLite, runs on your laptop
 ├── frontend/
 │   ├── desktop/        The app: Flutter (Windows, Android, macOS, Linux), talks to the Muse over Bluetooth

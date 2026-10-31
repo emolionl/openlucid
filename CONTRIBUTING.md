@@ -1,6 +1,6 @@
-# Contributing to Lucid
+# Contributing to OpenLucid
 
-Thank you for being here. Lucid is built to be understood by people who are new to programming, so questions are contributions too.
+Thank you for being here. OpenLucid is built to be understood by people who are new to programming, so questions are contributions too.
 
 ## Ways to help
 
@@ -12,8 +12,8 @@ Thank you for being here. Lucid is built to be understood by people who are new 
 ## Ground rules
 
 1. **Brain data stays local.** No feature may send EEG or dream journals to the internet without the user explicitly choosing to.
-2. **Sound and light cues only.** Lucid does not and will not drive electrical stimulation.
-3. **No medical claims.** Lucid is an educational and self-experimentation tool, not a medical device. Docs and UI text must not promise health effects.
+2. **Sound and light cues only.** OpenLucid does not and will not drive electrical stimulation.
+3. **No medical claims.** OpenLucid is an educational and self-experimentation tool, not a medical device. Docs and UI text must not promise health effects.
 4. **Honest about uncertainty.** If something is unvalidated (for example, sleep staging accuracy on a Muse), say so.
 5. **Be kind.** Everyone here was a beginner once.
 
