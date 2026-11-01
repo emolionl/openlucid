@@ -34,6 +34,32 @@ class FakeMoose implements EegSource {
   int _sampleIndex = 0;
   int _nextBlink = 3 * 256;
   int _nextLook = 9 * 256;
+  double _gaze = 0;
+  double _gazeTarget = 0;
+  int _gazeFrom = 0;
+
+  /// Far in the future: no random event planned.
+  static const _never = 1 << 40;
+
+  /// When true, Fake Moose only blinks and looks when told to (used by the eye check).
+  bool get scripted => _scripted;
+  bool _scripted = false;
+  set scripted(bool value) {
+    _scripted = value;
+    if (value) {
+      _nextBlink = _never;
+      _nextLook = _never;
+    }
+  }
+
+  /// Blink, after a human-like reaction time of about 0.25 s.
+  void blink() => _nextBlink = _sampleIndex + 64;
+
+  /// Look to one side and keep looking there: -1 left, 1 right, 0 straight ahead.
+  void look(int direction) {
+    _gazeTarget = 60.0 * direction;
+    _gazeFrom = _sampleIndex + 64;
+  }
 
   @override
   Stream<EegChunk> get chunks => _chunks.stream;
@@ -62,7 +88,8 @@ class FakeMoose implements EegSource {
       final t = _sampleIndex / sampleRate;
       final alpha = 8 * sin(2 * pi * 10 * t) * (0.6 + 0.4 * sin(2 * pi * 0.1 * t));
       final blink = _blinkAt(_sampleIndex);
-      final look = _lookAt(_sampleIndex);
+      if (_sampleIndex >= _gazeFrom) _gaze += (_gazeTarget - _gaze) * 0.08; // eyes move in about 50 ms
+      final look = _lookAt(_sampleIndex) + _gaze;
       for (var ch = 0; ch < 4; ch++) {
         // Slowly wandering background: a random walk that keeps getting pulled back to zero.
         _drift[ch] = 0.97 * _drift[ch] + 2.5 * (_random.nextDouble() - 0.5);
@@ -77,7 +104,7 @@ class FakeMoose implements EegSource {
 
   /// A blink: one smooth hump of about 120 µV lasting 0.3 s, every few seconds.
   double _blinkAt(int n) {
-    if (n >= _nextBlink + 77) _nextBlink = n + (3 + _random.nextInt(5)) * 256;
+    if (n >= _nextBlink + 77) _nextBlink = _scripted ? _never : n + (3 + _random.nextInt(5)) * 256;
     final k = n - _nextBlink;
     if (k < 0 || k >= 77) return 0;
     return 120 * sin(pi * k / 77);
@@ -85,7 +112,7 @@ class FakeMoose implements EegSource {
 
   /// A slow look to one side and back: AF7 goes up while AF8 goes down. The eyeball is a tiny battery.
   double _lookAt(int n) {
-    if (n >= _nextLook + 256) _nextLook = n + (8 + _random.nextInt(8)) * 256;
+    if (n >= _nextLook + 256) _nextLook = _scripted ? _never : n + (8 + _random.nextInt(8)) * 256;
     final k = n - _nextLook;
     if (k < 0 || k >= 256) return 0;
     return 60 * sin(2 * pi * k / 256);

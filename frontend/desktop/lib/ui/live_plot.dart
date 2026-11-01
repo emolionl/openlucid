@@ -11,9 +11,24 @@ import '../eeg/filters.dart';
 /// to a few tens of microvolts; an electrode in the air or barely touching swings far more.
 enum Contact { good, okay, poor }
 
+/// The goal: relaxed EEG on well-touching sensors wiggles this much or less (RMS, after the viewing filter).
+const double contactTargetMicrovolts = 25;
+
+/// At or above this, the sensor is as good as not touching.
+const double contactLostMicrovolts = 150;
+
+/// Contact quality from 0 (no contact) to 1 (on target), on a logarithmic scale:
+/// 25 µV or less is 100%, 50 µV about 61%, 100 µV about 23%, 150 µV or more 0%.
+double contactScore(double rmsMicrovolts) {
+  if (rmsMicrovolts <= contactTargetMicrovolts) return 1;
+  final span = log(contactLostMicrovolts / contactTargetMicrovolts);
+  return (1 - log(rmsMicrovolts / contactTargetMicrovolts) / span).clamp(0, 1).toDouble();
+}
+
 Contact contactFor(double rmsMicrovolts) {
-  if (rmsMicrovolts < 25) return Contact.good;
-  if (rmsMicrovolts < 60) return Contact.okay;
+  final score = contactScore(rmsMicrovolts);
+  if (score >= 0.8) return Contact.good;
+  if (score >= 0.4) return Contact.okay;
   return Contact.poor;
 }
 

@@ -54,6 +54,23 @@ void main() {
     });
   }
 
+  testWidgets('phone: the eye check opens from Tonight and fits', (tester) async {
+    await pumpAt(tester, const Size(360, 640));
+    await tester.tap(find.text('Start listening'));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('Eye check'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Can your headband see your eyes?'), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Stop'));
+    await tester.pump(const Duration(milliseconds: 100));
+  });
+
   testWidgets('settings: wave at the Diary Keeper, choose 50 or 60 Hz', (tester) async {
     await pumpAt(tester, const Size(390, 844));
     await tester.tap(find.text('Settings'));

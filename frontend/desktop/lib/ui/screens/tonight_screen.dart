@@ -4,6 +4,7 @@ import '../../app/headband.dart';
 import '../../eeg/muse_source.dart';
 import '../live_plot.dart';
 import '../theme.dart';
+import 'eye_check_screen.dart';
 
 /// Where a 10-20 electrode sits, in everyday words.
 const _whereIs = {
@@ -199,6 +200,17 @@ class _HeadbandCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 action,
+                if (listening)
+                  OutlinedButton.icon(
+                    onPressed: busy
+                        ? null
+                        : () => Navigator.of(context).push(MaterialPageRoute<void>(
+                              fullscreenDialog: true,
+                              builder: (_) => EyeCheckScreen(source: headband.source!),
+                            )),
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    label: const Text('Eye check'),
+                  ),
                 if (listening && headband.source is MuseSource)
                   TextButton.icon(
                     onPressed: busy ? null : headband.saveRaw,
@@ -257,7 +269,12 @@ class _ContactStrip extends StatelessWidget {
                 children: [
                   _Dot(buffer.rms(ch)),
                   const SizedBox(width: 6),
-                  Text(buffer.channels[ch], style: Theme.of(context).textTheme.labelMedium),
+                  Text(
+                    buffer.rms(ch) == null
+                        ? buffer.channels[ch]
+                        : '${buffer.channels[ch]} ${(contactScore(buffer.rms(ch)!) * 100).round()}%',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ],
               ),
             ),
@@ -287,22 +304,49 @@ class _ContactCard extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Contact', style: text.titleMedium),
+                Row(
+                  children: [
+                    Expanded(child: Text('Contact', style: text.titleMedium)),
+                    Text('target: under ${contactTargetMicrovolts.round()} µV', style: text.bodySmall),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'How much each sensor wiggles while you sit still. Less is better: 100% is on target, '
+                  '0% means it is not touching skin.',
+                  style: text.bodySmall,
+                ),
                 const SizedBox(height: 8),
                 for (var ch = 0; ch < buffer.channels.length; ch++)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _Dot(readings[ch]),
-                        const SizedBox(width: 10),
-                        SizedBox(width: 44, child: Text(buffer.channels[ch], style: text.labelLarge)),
-                        Expanded(child: Text(_whereIs[buffer.channels[ch]] ?? '', style: text.bodySmall)),
-                        Text(
-                          readings[ch] == null
-                              ? 'settling...'
-                              : '${_contactWords[contactFor(readings[ch]!)]} · ${readings[ch]!.round()} µV',
-                          style: text.bodySmall,
+                        Row(
+                          children: [
+                            _Dot(readings[ch]),
+                            const SizedBox(width: 10),
+                            SizedBox(width: 44, child: Text(buffer.channels[ch], style: text.labelLarge)),
+                            Expanded(child: Text(_whereIs[buffer.channels[ch]] ?? '', style: text.bodySmall)),
+                            Text(
+                              readings[ch] == null
+                                  ? 'settling...'
+                                  : '${_contactWords[contactFor(readings[ch]!)]} · ${readings[ch]!.round()} µV · '
+                                      '${(contactScore(readings[ch]!) * 100).round()}%',
+                              style: text.bodySmall,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: readings[ch] == null ? 0 : contactScore(readings[ch]!),
+                            minHeight: 6,
+                            color: readings[ch] == null ? null : _contactColors[contactFor(readings[ch]!)],
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          ),
                         ),
                       ],
                     ),

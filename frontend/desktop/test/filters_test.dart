@@ -39,7 +39,16 @@ void main() {
 
   test('contact rule of thumb', () {
     expect(contactFor(10), Contact.good);
-    expect(contactFor(40), Contact.okay);
+    expect(contactFor(50), Contact.okay);
     expect(contactFor(300), Contact.poor);
+  });
+
+  test('contact score: 100% on target, 0% when not touching', () {
+    expect(contactScore(10), 1);
+    expect(contactScore(25), 1);
+    expect(contactScore(50), closeTo(0.61, 0.01));
+    expect(contactScore(100), closeTo(0.23, 0.01));
+    expect(contactScore(150), 0);
+    expect(contactScore(400), 0);
   });
 }
