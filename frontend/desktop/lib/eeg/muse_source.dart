@@ -42,6 +42,16 @@ class MuseSource implements EegSource {
         } catch (_) {
           // Desktop platforms don't need runtime permissions.
         }
+        // A Muse that is still connected (for example after a hot restart of the app, which keeps
+        // the operating system's Bluetooth link open) stops advertising, so a scan won't see it.
+        // Ask the system for headbands it is already connected to.
+        try {
+          for (final device in await UniversalBle.getSystemDevices(withServices: [museService])) {
+            if (seen.add(device.deviceId)) controller.add(device);
+          }
+        } catch (_) {
+          // Not every platform can list system devices; the scan below still works.
+        }
         results = UniversalBle.scanStream.listen((device) {
           final name = device.name ?? '';
           if (name.toLowerCase().startsWith('muse') && seen.add(device.deviceId)) {
@@ -63,7 +73,10 @@ class MuseSource implements EegSource {
 
   @override
   Future<void> start() async {
-    await UniversalBle.connect(deviceId, timeout: const Duration(seconds: 20));
+    // Already connected (leftover link)? Then there is no "connected" event to wait for.
+    if (await UniversalBle.getConnectionState(deviceId) != BleConnectionState.connected) {
+      await UniversalBle.connect(deviceId, timeout: const Duration(seconds: 20));
+    }
     await UniversalBle.discoverServices(deviceId);
 
     final characteristics = museEegCharacteristics.values.toList();
