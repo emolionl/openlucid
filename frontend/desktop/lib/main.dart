@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -127,6 +128,19 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// Debugging aid: saves 10 seconds of raw Bluetooth notifications to a CSV file in ~/OpenLucid.
+  Future<void> _saveRaw(MuseSource muse) async {
+    setState(() => _status = 'Recording 10 seconds of raw data... keep still.');
+    final lines = await muse.captureRaw(const Duration(seconds: 10));
+    final home = Platform.environment['USERPROFILE'] ?? Platform.environment['HOME'] ?? '.';
+    final folder = Directory('$home${Platform.pathSeparator}OpenLucid')..createSync(recursive: true);
+    final stamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
+    final file = File('${folder.path}${Platform.pathSeparator}raw-$stamp.csv');
+    await file.writeAsString('${lines.join('\n')}\n');
+    final status = muse.statusText.isEmpty ? '' : '\nMuse status: ${muse.statusText}';
+    setState(() => _status = 'Saved ${lines.length - 1} notifications to ${file.path}$status');
+  }
+
   @override
   void dispose() {
     _scan?.cancel();
@@ -176,12 +190,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     selected: {_choice},
                     onSelectionChanged: listening || _busy ? null : (s) => setState(() => _choice = s.first),
                   ),
-                  if (listening)
+                  if (listening) ...[
                     FilledButton.icon(
                       onPressed: _busy ? null : _stopListening,
                       icon: const Icon(Icons.stop),
                       label: const Text('Stop'),
-                    )
+                    ),
+                    if (_source case final MuseSource muse)
+                      OutlinedButton.icon(
+                        onPressed: _busy ? null : () => _saveRaw(muse),
+                        icon: const Icon(Icons.save_alt),
+                        label: const Text('Save 10 s raw data'),
+                      ),
+                  ]
                   else if (_choice == DeviceChoice.fakeMoose)
                     FilledButton.icon(
                       onPressed: _busy ? null : () => _listen(FakeMoose()),

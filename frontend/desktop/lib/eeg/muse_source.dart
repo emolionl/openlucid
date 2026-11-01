@@ -82,10 +82,27 @@ class MuseSource implements EegSource {
     }
     await UniversalBle.discoverServices(deviceId);
 
+    // The Muse answers commands (like 's' for status) on the control characteristic, as small text pieces.
+    _subscriptions.add(
+      UniversalBle.characteristicValueStream(deviceId, museControl).listen((bytes) {
+        _capture(-1, bytes);
+        if (bytes.isNotEmpty) {
+          final length = bytes[0].clamp(0, bytes.length - 1);
+          statusText += String.fromCharCodes(bytes.sublist(1, 1 + length));
+        }
+      }),
+    );
+    try {
+      await UniversalBle.subscribeNotifications(deviceId, museService, museControl);
+    } catch (_) {
+      // Status replies are nice to have, not needed for streaming.
+    }
+
     final characteristics = museEegCharacteristics.values.toList();
     for (var channel = 0; channel < characteristics.length; channel++) {
       _subscriptions.add(
         UniversalBle.characteristicValueStream(deviceId, characteristics[channel]).listen((bytes) {
+          _capture(channel, bytes);
           if (bytes.length != 20) return;
           final complete = _assembler.add(channel, decodeMuseEegPacket(bytes));
           if (complete != null) _chunks.add(EegChunk(complete));
@@ -115,4 +132,36 @@ class MuseSource implements EegSource {
 
   Future<void> _send(String command) =>
       UniversalBle.write(deviceId, museService, museControl, museCommand(command), withoutResponse: true);
+
+  /// Everything the Muse said on its control channel since connecting (JSON pieces).
+  String statusText = '';
+
+  // Raw capture, for debugging: every notification exactly as it arrived.
+  final Stopwatch _captureClock = Stopwatch();
+  List<String>? _captureLines;
+  Duration _captureLength = Duration.zero;
+  Completer<List<String>>? _captureDone;
+
+  /// Records every Bluetooth notification for [length], as CSV lines:
+  /// milliseconds, channel (-1 = control, 0..3 = TP9, AF7, AF8, TP10), bytes in hex.
+  Future<List<String>> captureRaw(Duration length) {
+    _captureLines = ['ms,channel,hex'];
+    _captureLength = length;
+    _captureClock
+      ..reset()
+      ..start();
+    _captureDone = Completer();
+    return _captureDone!.future;
+  }
+
+  void _capture(int channel, List<int> bytes) {
+    final lines = _captureLines;
+    if (lines == null) return;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    lines.add('${_captureClock.elapsedMilliseconds},$channel,$hex');
+    if (_captureClock.elapsed >= _captureLength) {
+      _captureLines = null;
+      _captureDone?.complete(lines);
+    }
+  }
 }
