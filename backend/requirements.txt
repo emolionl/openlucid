@@ -1,5 +1,20 @@
-fastapi>=0.115,<1
+# fastapi 0.116.2 is the first that allows starlette 0.48, the first with the status names the code uses
+# (HTTP_413_CONTENT_TOO_LARGE, HTTP_422_UNPROCESSABLE_CONTENT).
+fastapi>=0.116.2,<1
+starlette>=0.48
 uvicorn[standard]>=0.30,<1
+# the `python_multipart` import name (app/storage.py) exists from 0.0.13; 0.0.18 fixes a parser slowdown (DoS)
+python-multipart>=0.0.18,<1
+pydantic-settings>=2.4,<3
+# database: SQLite is built in; PostgreSQL through psycopg 3
+sqlalchemy>=2.0.30,<3
+alembic>=1.13,<2
+psycopg[binary]>=3.2,<4
+# security
+argon2-cffi>=23.1,<26
+PyJWT>=2.8,<3
+# time zone names on Windows (zoneinfo needs this there)
+tzdata>=2024.1
 # for the tests
 httpx>=0.27,<1
 pytest>=8,<9

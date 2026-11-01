@@ -3,6 +3,10 @@
 __pycache__/
 .pytest_cache/
 
+# Secrets (keep the example)
+.env
+!.env.example
+
 # Your nights stay on your computer
 *.db
 *.sqlite

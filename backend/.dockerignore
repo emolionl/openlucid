@@ -1,0 +1,22 @@
+# Keep the image small and free of anything private.
+.venv/
+venv/
+data/
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.edf
+tests/
+scripts/
+.git/
+.gitignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md
+SPEC.md

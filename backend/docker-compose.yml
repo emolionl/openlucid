@@ -1,0 +1,71 @@
+# The Diary Keeper as a server: PostgreSQL 17 + the API.
+#   cp .env.example .env      then fill in POSTGRES_PASSWORD and OPENLUCID_SECRET_KEY
+#   docker compose up -d --build
+# Data lives in two named volumes (db-data and recordings); `docker compose down` keeps them,
+# `docker compose down -v` deletes them for good.
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: openlucid
+      POSTGRES_DB: openlucid
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # No `ports:` on purpose: only the API can reach the database, over the internal compose network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openlucid -d openlucid"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      OPENLUCID_MODE: server
+      OPENLUCID_DATA_DIR: /data
+      OPENLUCID_DATABASE_URL: postgresql+psycopg://openlucid:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/openlucid
+      OPENLUCID_SECRET_KEY: ${OPENLUCID_SECRET_KEY:?Set OPENLUCID_SECRET_KEY in .env (at least 32 characters)}
+      OPENLUCID_ALLOW_REGISTRATION: ${OPENLUCID_ALLOW_REGISTRATION:-true}
+      OPENLUCID_CORS_ORIGINS: ${OPENLUCID_CORS_ORIGINS:-}
+      OPENLUCID_ACCESS_TOKEN_MINUTES: ${OPENLUCID_ACCESS_TOKEN_MINUTES:-15}
+      OPENLUCID_REFRESH_TOKEN_DAYS: ${OPENLUCID_REFRESH_TOKEN_DAYS:-30}
+      OPENLUCID_MAX_UPLOAD_MB: ${OPENLUCID_MAX_UPLOAD_MB:-200}
+      OPENLUCID_CONSENT_VERSION: ${OPENLUCID_CONSENT_VERSION:-2026-11}
+      # The container runs the migrations itself just before uvicorn starts (see Dockerfile).
+      OPENLUCID_AUTO_MIGRATE: "false"
+      # Who may tell uvicorn the real client address (X-Forwarded-For); the login rate limit counts per address.
+      # A reverse proxy on the host reaches the container from the network's gateway (see `networks:` below),
+      # never from 127.0.0.1. A proxy in another container: put that container's address here instead.
+      # Never use "*": then anyone can fake their address and dodge the rate limit.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-172.30.250.1}
+    volumes:
+      - recordings:/data
+    ports:
+      - "${OPENLUCID_BIND:-127.0.0.1:8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+# A fixed address range, so the gateway (the address a reverse proxy on the host shows up with) is known.
+# If 172.30.250.0/24 is already used on your server, pick another range and set FORWARDED_ALLOW_IPS to its gateway.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.250.0/24
+          gateway: 172.30.250.1
+
+volumes:
+  db-data:
+  recordings:

@@ -62,6 +62,19 @@ npm run dev
 
 Got an answer? Checkpoint 00 is done. 🎉
 
+## The Diary Keeper (backend)
+
+The backend keeps your nights, 30-second epochs, events, dream journal and recording files, behind a login.
+It runs in two ways from the same code:
+
+- **Local mode** (the default): on your own laptop with SQLite. Nothing to install besides Python, and your data
+  stays in `backend/data/`.
+- **Server mode** (opt-in): PostgreSQL and the API in Docker, started with `docker compose up -d --build`, for a
+  few people on one server. The first account becomes the admin.
+
+Other people's EEG and sleep data is health data: if you run a server for others, read the privacy section first.
+Setup, every setting, tests and that privacy section are in [backend/README.md](backend/README.md).
+
 ## Roadmap
 
 Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always jump to a working version.
@@ -70,8 +83,8 @@ Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always
 |---|---|
 | 00 ✅ | App, web view and server say hello |
 | 01 ✅ | Any EEG source; Muse S over Bluetooth, Fake Moose, live view with contact score, eye check |
-| 02 | Record a whole night (30-second epochs, reconnects, EDF file) |
-| 03 | The Diary Keeper's REST API and database (sessions, epochs, events, journal) |
+| 02 ✅ | The Diary Keeper: multi-user backend with login, nights, epochs, events, journal, recordings; SQLite locally, PostgreSQL on a server |
+| 03 | Record a whole night in the app (30-second epochs, contact, reconnects, EDF file) and sync it to the Diary Keeper |
 | 04 | Sleep staging of a recorded night with [YASA](https://github.com/raphaelvallat/yasa), hypnogram |
 | 05 | Live staging and the "stable REM" rule |
 | 06 | Detect the left-right-left-right eye signal |
