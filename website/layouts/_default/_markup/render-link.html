@@ -3,8 +3,10 @@
 {{- $external := or (strings.HasPrefix $dest "http:") (strings.HasPrefix $dest "https:") (strings.HasPrefix $dest "mailto:") -}}
 {{- if and (not $external) (strings.HasSuffix (urls.Parse $dest).Path ".md") -}}
   {{- $name := path.Base (strings.TrimSuffix ".md" (urls.Parse $dest).Path) -}}
-  {{- if strings.Contains $dest "docs/journey/" -}}
+  {{- if strings.Contains $dest "journey/" -}}
     {{- $dest = printf "/journey/%s/" $name | relURL -}}
+  {{- else if strings.Contains $dest "agentic/" -}}
+    {{- $dest = printf "/learn/%s/" $name | relURL -}}
   {{- else if strings.Contains $dest "research/" -}}
     {{- $dest = printf "/research/%s/" $name | relURL -}}
   {{- else if strings.Contains $dest "video-scripts/" -}}

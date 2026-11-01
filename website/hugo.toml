@@ -39,6 +39,13 @@ disableKinds = ["taxonomy", "term"]
   [[module.mounts]]
     source = "../docs/research/README.md"
     target = "content/research/_index.md"
+  [[module.mounts]]
+    source = "../docs/agentic"
+    target = "content/learn"
+    excludeFiles = ["README.md", "examples/**"]
+  [[module.mounts]]
+    source = "../docs/agentic/README.md"
+    target = "content/learn/_index.md"
 
 [[menus.main]]
   name = "Journey"
@@ -56,11 +63,16 @@ disableKinds = ["taxonomy", "term"]
   weight = 3
 
 [[menus.main]]
+  name = "Learn"
+  pageRef = "/learn"
+  weight = 4
+
+[[menus.main]]
   name = "Docs"
   pageRef = "/docs"
-  weight = 4
+  weight = 5
 
 [[menus.main]]
   name = "GitHub"
   url = "https://github.com/emolionl/openlucid"
-  weight = 4
+  weight = 6
