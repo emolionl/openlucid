@@ -1,5 +1,6 @@
 """Tests for /nights: nights, summary, epochs and events (incl. idempotency and other users' 404)."""
 
+import json
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -733,3 +734,40 @@ def test_nan_in_a_number_field_is_a_clean_422(client, alice):
     response = client.post("/nights", content=raw, headers={**alice.headers, "Content-Type": "application/json"})
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "sample_rate"]
+
+
+# --- found by the end-to-end security probe ------------------------------------------------
+
+
+def nested(depth: int) -> dict:
+    """{"a": {"a": ... {} }} with `depth` levels."""
+    root: dict = {}
+    current = root
+    for _ in range(depth):
+        current["a"] = {}
+        current = current["a"]
+    return root
+
+
+def test_reasonably_nested_event_details_are_fine(client, alice, night):
+    response = client.post(url(night, "/events"), json={"events": [event(1, details=nested(10))]}, headers=alice.headers)
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize("depth", [40, 1500])
+def test_too_deeply_nested_details_are_422_not_500(client, alice, night, depth):
+    response = client.post(url(night, "/events"), json={"events": [event(1, details=nested(depth))]}, headers=alice.headers)
+    assert response.status_code == 422
+    assert "nested too deeply" in response.text
+
+
+def test_validation_errors_do_not_echo_the_submitted_data(client, alice, night):
+    secret_note = "my private dream about the lake"
+    # Python's json module writes NaN as a bare word, exactly what a careless client would send.
+    body = json.dumps({"events": [event(1, details={"text": secret_note, "bad": float("nan")})]})
+    response = client.post(
+        url(night, "/events"), content=body, headers={**alice.headers, "Content-Type": "application/json"}
+    )
+    assert response.status_code == 422
+    assert secret_note not in response.text
+    assert all(set(error) == {"loc", "msg", "type"} for error in response.json()["detail"])

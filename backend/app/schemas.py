@@ -43,6 +43,24 @@ def _to_utc(value: datetime) -> datetime:
     return value
 
 
+MAX_JSON_DEPTH = 32
+TOO_DEEP_MESSAGE = f"Request is nested too deeply (at most {MAX_JSON_DEPTH} levels)."
+
+
+def _too_deep(value: Any) -> bool:
+    """True if lists and objects inside `value` nest deeper than MAX_JSON_DEPTH (checked without recursion)."""
+    pending = [(value, 0)]
+    while pending:
+        item, depth = pending.pop()
+        if depth > MAX_JSON_DEPTH:
+            return True
+        if isinstance(item, dict):
+            pending.extend((child, depth + 1) for child in item.values())
+        elif isinstance(item, (list, tuple)):
+            pending.extend((child, depth + 1) for child in item)
+    return False
+
+
 def _contains_nul(value: Any) -> bool:
     """True if `value`, or any string, key or item inside it (at any depth), contains a NUL character."""
     pending = [value]
@@ -98,11 +116,13 @@ class OrmModel(BaseModel):
 
 
 class RequestModel(BaseModel):
-    """Base for request bodies: no NUL characters anywhere, also not deep inside lists or `details`."""
+    """Base for request bodies: not nested too deeply, and no NUL characters anywhere, also not deep inside lists or `details`."""
 
     @model_validator(mode="before")
     @classmethod
     def refuse_nul_characters(cls, data: Any) -> Any:
+        if _too_deep(data):
+            raise ValueError(TOO_DEEP_MESSAGE)
         if _contains_nul(data):
             raise ValueError(NUL_MESSAGE)
         return data

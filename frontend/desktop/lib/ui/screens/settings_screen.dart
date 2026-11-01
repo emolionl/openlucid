@@ -61,6 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Address',
                       helperText: 'On this laptop: http://localhost:8000 · On a phone: http://<laptop-ip>:8000',
+                      helperMaxLines: 3,
                     ),
                     onSubmitted: (value) => widget.settings.diaryKeeperUrl = value,
                   ),

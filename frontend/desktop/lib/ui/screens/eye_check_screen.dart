@@ -189,22 +189,34 @@ String _foreheadContact(SignalBuffer? buffer) {
   return parts.join(', ');
 }
 
-/// True when both forehead sensors are green (80% or more).
-bool _foreheadReady(SignalBuffer? buffer) {
+/// Whether both forehead sensors are good enough, with hysteresis so the answer doesn't flicker:
+/// it becomes ready at 80% and only stops being ready below 50% (a blink briefly lowers the score).
+bool _foreheadReady(SignalBuffer? buffer, {required bool wasReady}) {
   if (buffer == null) return true;
+  final threshold = wasReady ? 0.5 : 0.8;
   for (final name in const ['AF7', 'AF8']) {
     final ch = buffer.channels.indexOf(name);
     final rms = ch < 0 ? null : buffer.rms(ch);
-    if (rms == null || contactScore(rms) < 0.8) return false;
+    if (rms == null || contactScore(rms) < threshold) return false;
   }
   return true;
 }
 
-class _IntroView extends StatelessWidget {
+class _IntroView extends StatefulWidget {
   const _IntroView({required this.onStart, required this.buffer});
 
   final VoidCallback onStart;
   final SignalBuffer? buffer;
+
+  @override
+  State<_IntroView> createState() => _IntroViewState();
+}
+
+class _IntroViewState extends State<_IntroView> {
+  bool _ready = false;
+
+  VoidCallback get onStart => widget.onStart;
+  SignalBuffer? get buffer => widget.buffer;
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +250,7 @@ class _IntroView extends StatelessWidget {
           ListenableBuilder(
             listenable: buffer!,
             builder: (context, _) {
-              final ready = _foreheadReady(buffer);
+              final ready = _ready = _foreheadReady(buffer, wasReady: _ready);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

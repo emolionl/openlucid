@@ -31,3 +31,6 @@ Thumbs.db
 # Firebase
 .firebase/
 firebase-debug.log
+
+# End-to-end test evidence (screenshots, logs)
+test-results/

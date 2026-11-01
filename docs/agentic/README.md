@@ -16,6 +16,7 @@ OpenLucid was built in the open by one person working with an AI coding agent (C
 | [5. Trust, but verify](05-trust-but-verify.md) | What the lead (human or agent) checks before anything is published |
 | [6. When the agent is wrong](06-when-the-agent-is-wrong.md) | Wrong conclusions, wrong assumptions, blocked actions, and the simple question that solves the bug |
 | [7. Exercises](07-exercises.md) | Practice on this repository |
+| [8. End-to-end testing with agents](08-end-to-end-testing-with-agents.md) | Eight test agents from outside: one tool each, a safe order, unique test accounts, evidence folders, black-box security probes, Flutter integration_test versus AutoIt |
 
 **The numbers, honestly:** the backend (checkpoint 02) was built by 13 agents in six phases in about 72 minutes, using about 1.4 million tokens. Four reviewers found 14 real problems; all 14 were reproduced with a failing test and fixed. The result: 381 tests on SQLite, 380 on PostgreSQL. Before publishing, the lead re-ran the tests, read the security code, and tested the Docker deployment with a 22-step scenario.
 

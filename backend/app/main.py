@@ -3,13 +3,10 @@
 It runs locally (SQLite, files in ./data) or on a server (PostgreSQL). See SPEC.md.
 """
 
-import math
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any
 
 from fastapi import FastAPI, Request, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -25,26 +22,19 @@ from app.security import LoginGuard
 LOCALHOST_ORIGINS = r"http://(localhost|127\.0\.0\.1)(:\d+)?"
 
 
-def _json_safe(value: Any) -> Any:
-    """`value` with NaN and Infinity replaced by their names, which strict JSON cannot carry as numbers."""
-    if isinstance(value, float) and not math.isfinite(value):
-        return str(value)
-    if isinstance(value, dict):
-        return {key: _json_safe(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_json_safe(item) for item in value]
-    return value
-
-
 async def validation_error(_request: Request, error: RequestValidationError) -> JSONResponse:
-    """FastAPI's usual 422 answer, but safe when the rejected body contained NaN or Infinity.
+    """FastAPI's usual 422 answer, without echoing the rejected input back.
 
-    (Python's JSON parser accepts those words; without this the 422 itself would fail and become a 500.)
+    Only where (`loc`), what (`msg`) and which rule (`type`) failed. Echoing the input would repeat
+    health data in error responses and logs, and could itself fail: NaN and Infinity aren't valid JSON,
+    and a very deeply nested body breaks the JSON encoder (a 500 instead of a 422).
     """
-    return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-        content={"detail": _json_safe(jsonable_encoder(error.errors()))},
-    )
+    errors = [
+        {"loc": [part if isinstance(part, (str, int)) else str(part) for part in err.get("loc", ())],
+         "msg": str(err.get("msg", "")), "type": str(err.get("type", ""))}
+        for err in error.errors()
+    ]
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"detail": errors})
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

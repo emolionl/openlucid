@@ -16,3 +16,4 @@ Every entry ends with where the code stood at that moment, so you can check out 
 | [Day 1, part 4: contact doesn't stay](2026-11-01-day-01d-contact-does-not-stay.md) | The first eye checks fail because the forehead dried out again, and what the research standard for eye signals is |
 | [Day 1, part 5: blinks yes, left and right no](2026-11-01-day-01e-blinks-yes-left-right-no.md) | The first eye check with good contact: two wrong assumptions in our code, and a Muse S forehead that barely sees sideways eye movements |
 | [Day 2: the Diary Keeper grows up](2026-11-01-day-02-the-diary-keeper-grows-up.md) | A multi-user backend that also runs on a laptop, built and reviewed by a team of AI agents, tested on SQLite and PostgreSQL |
+| [Day 3: testing everything](2026-11-01-day-03-testing-everything.md) | Eight AI test agents test the Diary Keeper in Docker, the API docs, the website and both apps from outside: 122 checks, 16 bugs, and what could not be tested |
