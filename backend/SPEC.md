@@ -138,3 +138,14 @@ backend/
 - Run on SQLite by default: `pytest`.
 - Run on PostgreSQL: `python scripts/pg_test.py` (finds `initdb`/`pg_ctl` from `C:\Program Files\PostgreSQL\<ver>\bin` or PATH, creates a temporary cluster in a temp dir on a free port, runs pytest with `OPENLUCID_TEST_DATABASE_URL` pointing to it, then stops and removes it). Must not touch any existing PostgreSQL installation or service. The tests ignore `OPENLUCID_DATABASE_URL` and refuse a test database whose name does not end in `_test`, because every test drops all tables.
 - Every endpoint has tests for: happy path, validation errors, unauthenticated (401), **another user's resource (404)**.
+
+## Recording formats (binding from checkpoint 03)
+
+Nights are saved the way sleep research saves them; the reasoning and sources are in `docs/research/eeg-data-standards.md`.
+
+- Per night a **BIDS-EEG** folder: `sub-<random id>/ses-<YYYYMMDD>/eeg/` with `*_task-sleep_eeg.edf` (EDF+ continuous, all channels in one file, labels like `EEG AF7-Fpz`, unit `uV`, anonymous patient field), `*_eeg.json` (required BIDS fields: `EEGReference`, `SamplingFrequency`, `PowerLineFrequency`, `SoftwareFilters`, `TaskName`), `*_channels.tsv` (`name`, `type`, `units`, `reference`, `status`) and `*_events.tsv` (`onset`, `duration`, `trial_type`, `value`).
+- Hypnogram as EDF+ annotations with the standard AASM texts (`Sleep stage W`, `N1`, `N2`, `N3`, `R`, `?`) and as a text file with one stage per 30-second epoch and the mapping in the header (`W=0, N1=1, N2=2, N3=3, R=4`).
+- OpenLucid's own event texts: `OpenLucid cue`, `OpenLucid LRLR`, `OpenLucid marker`, `OpenLucid contact lost`, `OpenLucid reconnect`; plus the standard `Lights off` / `Lights on`.
+- A Dreamento-compatible export: `EEG L.edf` (AF7) and `EEG R.edf` (AF8), one signal per file.
+- The recordings API stores these files with `kind` `edf` (the EDF+ file) or `other` (sidecars, TSVs, exports); a later checkpoint may add a dedicated `bids` kind.
+
