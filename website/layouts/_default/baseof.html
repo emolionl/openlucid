@@ -25,7 +25,10 @@
   <header class="nav">
     <div class="nav-inner">
       <a class="brand" href="{{ "/" | relURL }}" aria-label="OpenLucid home"><img src="{{ "logo-mark-96.png" | relURL }}" alt=""><span>{{ site.Title }}</span></a>
-      <nav class="nav-links">
+      <button class="menu-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-menu">
+        <span class="menu-icon" aria-hidden="true"></span>
+      </button>
+      <nav class="nav-links" id="site-menu">
         {{ $current := . }}
         {{ range site.Menus.main }}
           {{ if eq .Name "GitHub" }}
@@ -50,6 +53,18 @@
   </footer>
 
   <script>
+    // Phone menu: the hamburger opens and closes the links; Escape or a tap on a link closes it.
+    const menuButton = document.querySelector('.menu-button');
+    const header = document.querySelector('.nav');
+    const setMenu = (open) => {
+      header.classList.toggle('menu-open', open);
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Close menu' : 'Menu');
+    };
+    menuButton.addEventListener('click', () => setMenu(!header.classList.contains('menu-open')));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+    document.querySelectorAll('#site-menu a').forEach((a) => a.addEventListener('click', () => setMenu(false)));
+
     // Fade sections in as they scroll into view.
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {

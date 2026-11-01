@@ -380,10 +380,6 @@ img { max-width: 100%; height: auto; }
 }
 
 @media (max-width: 600px) {
-  .nav-links { gap: 11px; font-size: 0.8rem; }
-  .nav-links .pill { padding: 5px 11px; }
-  .brand span { display: none; }
-  .brand img { width: 30px; height: 30px; }
   .hero { padding-top: 64px; }
   .section { padding: 72px 16px; }
   .grid.four { grid-template-columns: 1fr; }
@@ -466,4 +462,61 @@ img { max-width: 100%; height: auto; }
   .article-grid { display: block; max-width: var(--narrow); }
   .toc-side { display: none; }
   .toc-mobile { display: block; }
+}
+
+/* ---------- Hamburger menu (phones) ---------- */
+
+.menu-button { display: none; }
+
+@media (max-width: 720px) {
+  .menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -10px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .menu-button:focus-visible { outline: 2px solid var(--lavender); }
+
+  /* Three lines that turn into a cross when the menu is open. */
+  .menu-icon, .menu-icon::before, .menu-icon::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .menu-icon { position: relative; }
+  .menu-icon::before, .menu-icon::after { content: ""; position: absolute; left: 0; }
+  .menu-icon::before { top: -6px; }
+  .menu-icon::after { top: 6px; }
+  .menu-open .menu-icon { background: transparent; }
+  .menu-open .menu-icon::before { transform: translateY(6px) rotate(45deg); }
+  .menu-open .menu-icon::after { transform: translateY(-6px) rotate(-45deg); }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 8px 16px 20px;
+    background: var(--bg);
+    box-shadow: 0 24px 40px rgba(0, 0, 0, 0.45);
+    border-bottom: 1px solid var(--line);
+    font-size: 1.1rem;
+  }
+  .menu-open .nav-links { display: flex; }
+  .nav-links a { padding: 14px 4px; border-bottom: 1px solid var(--line); color: var(--text); }
+  .nav-links .pill { margin-top: 16px; justify-content: center; padding: 12px; border-bottom: 0; }
 }

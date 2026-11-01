@@ -2,6 +2,12 @@
 title: "Build your own eye-movement sensor (EOG) with an ESP32"
 date: 2026-11-01
 description: "Why eye signals are easy to measure, which cheap boards work, what it costs, how to stay safe, and how it plugs into OpenLucid."
+outcome: "Plan"
+tldr:
+  - "Eye signals are roughly ten times larger than brainwaves, so cheap hardware can record them."
+  - "First build: BioAmp EXG Pill + XIAO ESP32-C3 + LiPo + stick-on electrodes, about US$57 (ADS1115 recommended, +US$15)."
+  - "Battery only: nothing on your body may be connected to mains power."
+  - "Open questions: the Pill's supply voltage, and whether the ESP32-C3's own converter is good enough."
 ---
 
 > Educational, not medical advice. A home-built sensor is not a medical device and must not be used to diagnose or treat anything. Prices are what the seller showed on or around 2026-11-01, in the seller's currency, without shipping or tax. They change, so check before you buy.
@@ -10,7 +16,7 @@ The short answer to "can we build an EOG cheaply?" is **yes**. Eye-movement sign
 
 **Why we need it:** our first eye check with good contact showed that a Muse S forehead sees blinks clearly but barely sees left and right eye movements ([journey, day 1 part 5](../journey/2026-11-01-day-01e-blinks-yes-left-right-no.md)). Electrodes beside the eyes are where sideways movements are strongest.
 
-This page covers building one yourself. For the ready-made devices (Muse, ZMax, OpenBCI, BITalino and others) see [EEG and eye-movement options](eeg-and-eog-options.md).
+This page covers building one yourself. Where to find each part, with shops in the Netherlands and the EU, is on [EOG build: where to find the parts](eog-parts-where-to-buy.md). For the ready-made devices (Muse, ZMax, OpenBCI, BITalino and others) see [EEG and eye-movement options](eeg-and-eog-options.md).
 
 ## 1. Why EOG is the easy biosignal
 
@@ -34,7 +40,7 @@ The potential also drifts during the day and with lighting (Cornell 2005 notes),
 
 ## 2. The building blocks
 
-1. **Electrodes.** Disposable, pre-gelled snap pads (the kind used for ECG). SparkFun sells a 10-pack of 24 mm pads for US$9.25 ([SparkFun](https://www.sparkfun.com/disposable-surface-emg-ecg-ekg-electrode-24mm-10-pack.html)). Listings rarely say whether the pads are Ag/AgCl, so check: Ag/AgCl drifts less, which matters for slow eye signals. Placement for horizontal EOG: one pad just beside each **outer eye corner** (outer canthus). The reference goes on a bony spot such as the **forehead** or the **mastoid** (the bone behind the ear). Upside Down Labs puts it "on the bony part behind the earlobe" ([BioAmp EXG Pill docs](https://docs.upsidedownlabs.tech/hardware/bioamp/bioamp-exg-pill/index.html)). Clean the skin with soap or an alcohol wipe and let it dry. Less skin oil means lower, more stable contact resistance.
+1. **Electrodes.** Disposable, pre-gelled snap pads (the kind used for ECG). SparkFun sells a 10-pack of 24 mm pads for US$9.95 ([SparkFun](https://www.sparkfun.com/disposable-surface-emg-ecg-ekg-electrode-24mm-10-pack.html)). Listings rarely say whether the pads are Ag/AgCl, so check: Ag/AgCl drifts less, which matters for slow eye signals. Placement for horizontal EOG: one pad just beside each **outer eye corner** (outer canthus). The reference goes on a bony spot such as the **forehead** or the **mastoid** (the bone behind the ear). Upside Down Labs puts it "on the bony part behind the earlobe" ([BioAmp EXG Pill docs](https://docs.upsidedownlabs.tech/hardware/bioamp/bioamp-exg-pill/index.html)). Clean the skin with soap or an alcohol wipe and let it dry. Less skin oil means lower, more stable contact resistance.
 2. **Front-end amplifier.** This boosts microvolts to volts and rejects the mains hum that hits both electrodes equally. It is usually an *instrumentation amplifier* plus filters.
 3. **ADC (analog-to-digital converter).** Turns the amplified voltage into numbers. It can be the microcontroller's own ADC, a separate chip like the ADS1115, or built into a "biopotential front-end" chip (ADS1292R, ADS1299) that combines amplifier and ADC.
 4. **Microcontroller.** An ESP32 runs the timing and the radio.
@@ -53,7 +59,7 @@ The potential also drifts during the day and with lighting (Cornell 2005 notes),
 | **ADS1299 boards with ESP32** | TI's 8-channel EEG chip (as in OpenBCI Cyton) | 8 | 24-bit, 250 SPS default | Cerelog ESP-EEG uses ESP32 ([GitHub](https://github.com/Cerelog-ESP-EEG/ESP-EEG)); ironbci uses STM32 + BLE, not ESP32 ([GitHub](https://github.com/Ildaron/ironbci)); HackEEG is an Arduino Due shield | Cerelog: not listed. HackEEG: US$495+ ([Crowd Supply](https://crowdsupply.com/starcat/hackeeg)). Bare-chip DIY: not found | Not specifically | + Research-grade, EEG + EOG + EMG at once. − Far over budget. Cerelog is **not isolated** and USB-powered, so laptop on battery only |
 | **Discrete INA333 / INA128 + ADS1115** | Build your own: instrumentation amp chip, filters, 16-bit I²C ADC | 1–2 | ADS1115: 16-bit, 8–860 SPS, ±256 mV smallest range ([TI](https://www.ti.com/product/ADS1115)) | Yes (I²C) | INA333 chip ~US$1.19–4.75 ([LCSC](https://www.lcsc.com/product-image/C19450.html), TI); ADS1115 board US$14.95 ([Adafruit](https://www.adafruit.com/product/1085)) | Student EOG designs exist (e.g., AD622-based [UCSD REM-sleep EOG](https://isn.ucsd.edu/courses/beng186b/project/2022/reports/eogdesigntotrackremsleep_19207_6710856.pdf)) | + You choose the filters (you can keep it near DC). − Breadboard noise, more to get wrong; better as a second project |
 | **ESP32 ADC alone** | No amplifier | — | 12-bit, noisy | — | — | — | − Will not see a raw eye signal (see section 2) |
-| **BITalino (PLUX)** | Educational biosignal kit with a dedicated EOG sensor | several | (not checked here) | No, it has its own board with BT/BLE | Kit ~€149–189 (companion page); EOG sensor €60 ([PLUX](https://pluxbiosignals.com/products/electrooculography-eog-sensor)) | **Yes**, a dedicated EOG sensor | + The "known good" teaching reference. − Not ESP32, several times the price |
+| **BITalino (PLUX)** | Educational biosignal kit with a dedicated EOG sensor | several | (not checked here) | No, it has its own board with BT/BLE | Base board from €195 ([PLUX](https://www.pluxbiosignals.com/collections/bitalino)); EOG sensor €60 ([PLUX](https://pluxbiosignals.com/products/electrooculography-eog-sensor)) | **Yes**, a dedicated EOG sensor | + The "known good" teaching reference. − Not ESP32, several times the price |
 
 ## 4. Safety (read this before you put anything on your face)
 
@@ -73,9 +79,9 @@ The potential also drifts during the day and with lighting (Cornell 2005 notes),
 | BioAmp EXG Pill | US$34.49 ([Tindie](https://www.tindie.com/products/upsidedownlabs/bioamp-exg-pill-sensor-for-ecg-emg-eog-or-eeg/)) |
 | Seeed XIAO ESP32-C3 (BLE 5, on-board LiPo charger) | US$4.90 ([Seeed](https://www.seeedstudio.com/Seeed-XIAO-ESP32C3-p-5431.html)) |
 | 3.7 V 500 mAh LiPo with protection | US$7.95 ([Adafruit](https://www.adafruit.com/product/1578), out of stock that day; any protected cell works) |
-| Snap electrodes, 10-pack | US$9.25 ([SparkFun](https://www.sparkfun.com/disposable-surface-emg-ecg-ekg-electrode-24mm-10-pack.html)) |
-| **Core total** | **US$56.59** (roughly €50, plus shipping) |
-| Upgrade: ADS1115 16-bit ADC | +US$14.95 ([Adafruit](https://www.adafruit.com/product/1085)) → US$71.54 |
+| Snap electrodes, 10-pack | US$9.95 ([SparkFun](https://www.sparkfun.com/disposable-surface-emg-ecg-ekg-electrode-24mm-10-pack.html)) |
+| **Core total** | **US$57.29** (roughly €50, plus shipping) |
+| Upgrade: ADS1115 16-bit ADC | +US$14.95 ([Adafruit](https://www.adafruit.com/product/1085)) → US$72.24 |
 
 **Wiring in words.** Three electrode leads (IN+, IN−, REF) from the EXG Pill's cable go to the left outer canthus, the right outer canthus and the mastoid or forehead. The Pill's OUT goes, through a voltage divider (the board is 5 V by default), either to an ADC pin on the XIAO or, better, to input A0 of the ADS1115. The ADS1115 connects to the XIAO's I²C pins (SDA/SCL). The LiPo plugs into the XIAO's battery pads.
 

@@ -9,3 +9,4 @@ Background research behind OpenLucid's choices. Every page lists its sources; pr
 |---|---|
 | [EEG and eye-movement options](eeg-and-eog-options.md) | The sleep-lab standard (polysomnography, EOG beside the eyes), how lucid-dream research verifies the left-right eye signal, every realistic device with its price and data access, validation studies, and a budget for home, validation and lab setups |
 | [Build your own eye-movement sensor (EOG) with an ESP32](diy-eog-esp32.md) | Why eye signals are easy to measure, which cheap boards work, safety rules, a first build for about €50 (BioAmp EXG Pill + XIAO ESP32-C3), firmware outline, and how to validate it |
+| [EOG build: where to find the parts](eog-parts-where-to-buy.md) | Every part with shops in the Netherlands, the EU and worldwide, prices and stock as checked on 1 November 2026, and what could not be found |

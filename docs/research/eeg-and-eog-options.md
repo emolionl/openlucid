@@ -2,6 +2,12 @@
 title: "EEG and eye-movement options: research standard, devices and costs"
 date: 2026-11-01
 description: "What sleep labs use, what lucid-dream research uses, and which devices a home project can realistically choose, with prices."
+outcome: "Overview"
+tldr:
+  - "Sleep labs record eye movements with EOG: electrodes beside the outer corners of the eyes."
+  - "Lucid-dream research has verified the left-right eye signal this way since 1981."
+  - "The Muse S scores REM sleep well in an independent study, but nobody has published how well any consumer headband detects the left-right signal."
+  - "Budgets: home ~US$400–500, validation ~US$1,200–1,900, lab €10,000+."
 ---
 
 > Educational, not medical advice. None of the devices below are used here to diagnose or treat anything. Prices are approximate, in the currency the source used, and were checked around October–November 2026 unless a different date is given. Prices change; check the seller before buying.
