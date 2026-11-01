@@ -55,7 +55,7 @@ EEG combined with sleep is health data, a special category under the GDPR. If yo
 
 ## Not done yet
 
-- The Docker image is written and checked, but not built: Docker wasn't running on this computer.
+- ~~The Docker image is written and checked, but not built.~~ **Later that day:** Docker Desktop was running again (after a WSL hiccup), the image built, and the same 22-step story passed against Docker with PostgreSQL 17: the API runs as a non-root user, migrations run on start, and deleting an account removed its recording file from the Docker volume.
 - The app doesn't talk to the new backend yet. That's the next checkpoint: record a whole night and sync it.
 
 ## Code at the end of the day
