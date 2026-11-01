@@ -23,6 +23,9 @@ class FakeMoose implements EegSource {
   @override
   int get droppedPackets => 0;
 
+  @override
+  int get duplicatePackets => 0;
+
   final Random _random;
   final _chunks = StreamController<EegChunk>.broadcast();
   final _drift = List.filled(4, 0.0);

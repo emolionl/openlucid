@@ -56,23 +56,36 @@ MusePacket decodeMuseEegPacket(Uint8List data) {
 }
 
 /// The Muse sends each channel as its own notification. This puts the four channels of the same
-/// packet counter back together, and counts packets that never got complete.
+/// packet counter back together, counts packets that never got complete, and ignores packets
+/// that arrive twice (which happens when an old Bluetooth subscription is still alive).
 class MusePacketAssembler {
   MusePacketAssembler(this.channelCount);
 
   final int channelCount;
   final Map<int, List<List<double>?>> _pending = {};
+  final List<int> _recentlyEmitted = [];
   int dropped = 0;
+  int duplicates = 0;
 
   /// Returns all four channels once the last one of a counter arrives, otherwise null.
   List<List<double>>? add(int channel, MusePacket packet) {
+    if (_recentlyEmitted.contains(packet.counter)) {
+      duplicates++;
+      return null;
+    }
     final slots = _pending.putIfAbsent(packet.counter, () => List.filled(channelCount, null));
+    if (slots[channel] != null) {
+      duplicates++;
+      return null;
+    }
     slots[channel] = packet.microvolts;
     if (slots.any((s) => s == null)) {
       _forgetStale();
       return null;
     }
     _pending.remove(packet.counter);
+    _recentlyEmitted.add(packet.counter);
+    if (_recentlyEmitted.length > 64) _recentlyEmitted.removeAt(0);
     return slots.cast<List<double>>();
   }
 

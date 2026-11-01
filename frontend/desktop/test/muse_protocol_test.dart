@@ -50,6 +50,24 @@ void main() {
     expect(assembler.dropped, 0);
   });
 
+  test('ignores packets that arrive twice', () {
+    final assembler = MusePacketAssembler(4);
+    final p = MusePacket(9, List.filled(12, 1.0));
+    for (var ch = 0; ch < 4; ch++) {
+      assembler.add(ch, p);
+    }
+    // The whole packet again, as a leftover subscription would deliver it
+    for (var ch = 0; ch < 4; ch++) {
+      expect(assembler.add(ch, p), isNull);
+    }
+    // And one channel twice before the packet is complete
+    final q = MusePacket(10, List.filled(12, 2.0));
+    assembler.add(0, q);
+    expect(assembler.add(0, q), isNull);
+
+    expect(assembler.duplicates, 5);
+  });
+
   test('counts packets that never got complete', () {
     final assembler = MusePacketAssembler(4);
     for (var counter = 0; counter < 20; counter++) {

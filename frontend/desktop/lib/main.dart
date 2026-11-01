@@ -235,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Theme.of(context).colorScheme.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: LivePlot(buffer: _buffer!, microvoltsPerLane: _microvoltsPerLane),
+                        child: LivePlot(buffer: _buffer!, source: _source!, microvoltsPerLane: _microvoltsPerLane),
                       ),
               ),
             ],

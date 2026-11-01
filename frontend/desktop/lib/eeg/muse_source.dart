@@ -23,6 +23,9 @@ class MuseSource implements EegSource {
   @override
   int get droppedPackets => _assembler.dropped;
 
+  @override
+  int get duplicatePackets => _assembler.duplicates;
+
   final _chunks = StreamController<EegChunk>.broadcast();
   final _subscriptions = <StreamSubscription<dynamic>>[];
   final _assembler = MusePacketAssembler(museEegCharacteristics.length);

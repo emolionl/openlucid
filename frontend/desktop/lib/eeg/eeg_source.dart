@@ -32,6 +32,9 @@ abstract class EegSource {
   /// How many packets went missing so far (Bluetooth hiccups, slipping headbands, ...).
   int get droppedPackets;
 
+  /// How many packets arrived twice and were ignored (for example a leftover Bluetooth subscription).
+  int get duplicatePackets;
+
   Future<void> start();
 
   Future<void> stop();

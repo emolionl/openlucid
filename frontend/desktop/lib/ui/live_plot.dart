@@ -30,6 +30,8 @@ class SignalBuffer extends ChangeNotifier {
   final List<DisplayFilter> _filters;
   int _writeAt = 0;
   int _received = 0;
+  final Stopwatch _clock = Stopwatch()..start();
+  final List<(int, int)> _arrivals = []; // (milliseconds, total samples so far)
 
   int get capacity => _data.first.length;
 
@@ -41,7 +43,21 @@ class SignalBuffer extends ChangeNotifier {
       _writeAt = (_writeAt + 1) % capacity;
       _received++;
     }
+    final now = _clock.elapsedMilliseconds;
+    _arrivals.add((now, _received));
+    while (_arrivals.length > 2 && now - _arrivals.first.$1 > 3000) {
+      _arrivals.removeAt(0);
+    }
     notifyListeners();
+  }
+
+  /// Samples per second actually arriving, over the last three seconds. Should match [sampleRate].
+  double? get measuredRate {
+    if (_arrivals.length < 2) return null;
+    final (t0, n0) = _arrivals.first;
+    final (t1, n1) = _arrivals.last;
+    if (t1 - t0 < 1000) return null;
+    return (n1 - n0) * 1000 / (t1 - t0);
   }
 
   /// Sample [i] of channel [ch], oldest first.
@@ -63,9 +79,10 @@ class SignalBuffer extends ChangeNotifier {
 
 /// Draws each channel in its own lane, like a sleep lab's paper strip.
 class LivePlot extends StatelessWidget {
-  const LivePlot({super.key, required this.buffer, this.microvoltsPerLane = 200});
+  const LivePlot({super.key, required this.buffer, required this.source, this.microvoltsPerLane = 200});
 
   final SignalBuffer buffer;
+  final EegSource source;
 
   /// How many microvolts fit in one lane, top to bottom. Larger values are clipped.
   final double microvoltsPerLane;
@@ -74,16 +91,17 @@ class LivePlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return CustomPaint(
-      painter: _LivePlotPainter(buffer, microvoltsPerLane, colors.primary, colors.onSurfaceVariant),
+      painter: _LivePlotPainter(buffer, source, microvoltsPerLane, colors.primary, colors.onSurfaceVariant),
       size: Size.infinite,
     );
   }
 }
 
 class _LivePlotPainter extends CustomPainter {
-  _LivePlotPainter(this.buffer, this.range, this.lineColor, this.labelColor) : super(repaint: buffer);
+  _LivePlotPainter(this.buffer, this.source, this.range, this.lineColor, this.labelColor) : super(repaint: buffer);
 
   final SignalBuffer buffer;
+  final EegSource source;
   final double range;
   final Color lineColor;
   final Color labelColor;
@@ -127,6 +145,18 @@ class _LivePlotPainter extends CustomPainter {
         ..layout()
         ..paint(canvas, Offset(rms == null ? 4 : 20, laneHeight * ch + 4));
     }
+
+    // Health of the stream itself, top right.
+    final rate = buffer.measuredRate;
+    final health = TextPainter(
+      text: TextSpan(
+        text: '${rate == null ? '…' : rate.round()} samples/s (expected ${buffer.sampleRate.round()})'
+            '  ·  duplicates ${source.duplicatePackets}  ·  lost ${source.droppedPackets}',
+        style: TextStyle(color: labelColor, fontSize: 12),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    health.paint(canvas, Offset(size.width - health.width - 8, 4));
   }
 
   @override
