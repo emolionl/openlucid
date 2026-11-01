@@ -1,17 +1,31 @@
 {{ define "main" }}
-<h1>{{ .Title }}</h1>
-{{ .Content }}
-{{ $pages := .Pages }}
-{{ if eq .Section "journey" }}{{ $pages = .Pages.ByDate }}{{ end }}
-{{ if not (eq .Section "journey") }}
-<ul class="cards">
-  {{ range $pages }}
-  <li>
-    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-    {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
-    {{ with .Description }}<p>{{ . }}</p>{{ end }}
-  </li>
+<section class="page">
+  <h1 class="page-title">{{ .Title }}</h1>
+  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+  {{ if eq .Section "journey" }}
+    {{/* On GitHub the journey's README lists the days in a table; here the cards do that job. */}}
+    <div class="list-cards">
+      {{ range .Pages.ByDate }}
+      <a class="link-card" href="{{ .RelPermalink }}">
+        <div class="kicker">{{ .Date.Format "2 January 2006" }}</div>
+        <h3>{{ .Title }}</h3>
+        <p>{{ .Description }}</p>
+        <span class="more">Read</span>
+      </a>
+      {{ end }}
+    </div>
+  {{ else }}
+    <div class="prose">{{ .Content }}</div>
+    <div class="list-cards">
+      {{ range .Pages }}
+      <a class="link-card" href="{{ .RelPermalink }}">
+        {{ with .Params.status }}<div class="kicker">{{ . }}</div>{{ end }}
+        <h3>{{ .Title }}</h3>
+        <p>{{ .Description }}</p>
+        <span class="more">Read</span>
+      </a>
+      {{ end }}
+    </div>
   {{ end }}
-</ul>
-{{ end }}
+</section>
 {{ end }}

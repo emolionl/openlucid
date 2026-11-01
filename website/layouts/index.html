@@ -1,3 +1,135 @@
 {{ define "main" }}
-{{ .Content }}
+
+<section class="hero">
+  <img class="hero-logo" src="{{ "icon-512.png" | relURL }}" alt="" width="132" height="132" style="border-radius: 30px;">
+  <p class="eyebrow">Free · Open source · Build it yourself</p>
+  <h1 class="headline">Know when<br><span class="gradient-text">you're dreaming.</span></h1>
+  <p class="lede">OpenLucid listens to your sleep through an EEG headband and whispers a soft sound when you are probably dreaming. So the question <em>"Am I dreaming?"</em> can follow you inside.</p>
+  <div class="buttons">
+    <a class="button" href="{{ "docs/getting-started/" | relURL }}">Get started</a>
+    <a class="more" href="{{ "journey/" | relURL }}">Follow the build</a>
+  </div>
+  <p class="fineprint">Educational, not medical advice.</p>
+</section>
+
+<div class="device-stage reveal">
+  <div class="phone" role="img" aria-label="The OpenLucid app showing live brainwaves and the label REM">
+    <div class="screen">
+      <div class="screen-head">
+        <img src="{{ "logo-mark-96.png" | relURL }}" alt="">
+        <div>
+          <div class="screen-title">Tonight</div>
+          <div class="screen-sub">Muse S · 256 samples/s</div>
+        </div>
+      </div>
+      <div class="contacts"><span>TP9</span><span>AF7</span><span>AF8</span><span>TP10</span></div>
+      <div class="waves">{{ partial "waves.html" . }}</div>
+      <div class="stage-chip">REM · stable for 5 min</div>
+    </div>
+  </div>
+</div>
+
+<section class="section alt">
+  <div class="section-inner">
+    <h2 class="section-title reveal">One night, four steps.</h2>
+    <p class="section-lede reveal">A small crew works through the night so you don't have to.</p>
+    <div class="grid four">
+      <div class="tile reveal">
+        <svg viewBox="0 0 40 40"><path d="M6 22c0-8 6-14 14-14s14 6 14 14"/><circle cx="9" cy="24" r="3"/><circle cx="31" cy="24" r="3"/></svg>
+        <div class="step">Step 1</div>
+        <h3>The headband listens</h3>
+        <p>A consumer EEG headband picks up the tiny electrical whisper of your brain, all night long.</p>
+      </div>
+      <div class="tile reveal">
+        <svg viewBox="0 0 40 40"><path d="M4 26h6l4-12 6 18 5-14 3 8h8"/></svg>
+        <div class="step">Step 2</div>
+        <h3>It recognizes REM</h3>
+        <p>Every 30 seconds, open-source sleep science guesses your stage: awake, deep sleep, or dreaming.</p>
+      </div>
+      <div class="tile reveal">
+        <svg viewBox="0 0 40 40"><path d="M8 16v8h6l8 6V10l-8 6z"/><path d="M27 15c2 3 2 7 0 10M31 12c4 5 4 11 0 16"/></svg>
+        <div class="step">Step 3</div>
+        <h3>A whisper</h3>
+        <p>During stable REM it plays a soft sound you trained that evening to mean: <em>am I dreaming?</em></p>
+      </div>
+      <div class="tile reveal">
+        <svg viewBox="0 0 40 40"><path d="M3 20s6-9 17-9 17 9 17 9-6 9-17 9S3 20 3 20z"/><path d="M14 20l3-3 3 6 3-6 3 3"/></svg>
+        <div class="step">Step 4</div>
+        <h3>You signal back</h3>
+        <p>Realize you're dreaming? Look left-right-left-right. Your eyes still move in REM, and the app writes it down.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <p class="statement reveal">Your brain data never leaves your house. <span class="muted">No cloud. No account. No electricity into anyone's head.</span></p>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="section-inner">
+    <div class="grid three">
+      <div class="tile reveal">
+        <h3>Local</h3>
+        <p>Everything runs on your own laptop and phone. Your nights are files you own.</p>
+      </div>
+      <div class="tile reveal">
+        <h3>Open source</h3>
+        <p>Every line of code is public under the MIT license. Read it, change it, share it, teach with it.</p>
+      </div>
+      <div class="tile reveal">
+        <h3>No headband yet?</h3>
+        <p>Fake Moose, a built-in simulated headband, lets you try everything before you buy anything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="honest reveal">
+    <h2 class="section-title">Will it work?<br><span class="gradient-text">Maybe.</span></h2>
+    <p>Sound cues during REM sleep have helped some people become lucid in sleep labs. At home, with a consumer headband, the evidence is weaker and still being studied. OpenLucid doesn't promise you lucid dreams. It gives you an honest way to find out what works for you.</p>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="section-inner">
+    <h2 class="section-title reveal">Built in public.</h2>
+    <p class="section-lede reveal">Every step, including the wrong turns, written for people who are new to all of this.</p>
+    <div class="link-cards">
+      {{ with site.GetPage "/journey" }}
+        {{ range first 2 .Pages.ByDate.Reverse }}
+        <a class="link-card reveal" href="{{ .RelPermalink }}">
+          <div class="kicker">Journey · {{ .Date.Format "2 Jan 2006" }}</div>
+          <h3>{{ .Title }}</h3>
+          <p>{{ .Description }}</p>
+          <span class="more">Read</span>
+        </a>
+        {{ end }}
+      {{ end }}
+      {{ with site.GetPage "/videos/openlucid-explainer" }}
+        <a class="link-card reveal" href="{{ .RelPermalink }}">
+          <div class="kicker">Video script</div>
+          <h3>{{ .Title }}</h3>
+          <p>{{ .Description }}</p>
+          <span class="more">Read the script</span>
+        </a>
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="honest reveal">
+    <h2 class="section-title">Start tonight.</h2>
+    <p>No programming experience needed. Begin with the simulated headband, and add a real one when you're ready.</p>
+    <div class="buttons" style="margin-top: 28px;">
+      <a class="button" href="{{ "docs/getting-started/" | relURL }}">Get started</a>
+      <a class="more" href="{{ site.Params.repo }}">View on GitHub</a>
+    </div>
+  </div>
+</section>
+
 {{ end }}

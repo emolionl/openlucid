@@ -1,9 +1,12 @@
 {{ define "main" }}
-<p class="crumb"><a href="{{ .Parent.RelPermalink }}">← {{ .Parent.Title }}</a></p>
-<h1>{{ .Title }}</h1>
-<p class="meta">
-  {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
-  {{ with .Params.status }} · <span class="tag">{{ . }}</span>{{ end }}
-</p>
-{{ .Content }}
+<article class="page">
+  {{ with .Parent }}{{ if not .IsHome }}<p class="crumb"><a href="{{ .RelPermalink }}">‹ {{ .Title }}</a></p>{{ end }}{{ end }}
+  <h1 class="page-title">{{ .Title }}</h1>
+  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+  <p class="meta">
+    {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
+    {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
+  </p>
+  <div class="prose">{{ .Content }}</div>
+</article>
 {{ end }}
