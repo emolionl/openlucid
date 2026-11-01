@@ -7,12 +7,10 @@ import 'muse_protocol.dart';
 
 /// Moose, the real one: a Muse headband over Bluetooth Low Energy.
 class MuseSource implements EegSource {
-  MuseSource(this.deviceId, {String? deviceName}) : name = deviceName ?? 'Muse';
+  MuseSource(this.deviceId, {String? deviceName}) : _name = deviceName ?? 'Muse';
 
   final String deviceId;
-
-  @override
-  final String name;
+  final String _name;
 
   @override
   List<String> get channels => museEegCharacteristics.keys.toList();
@@ -98,6 +96,31 @@ class MuseSource implements EegSource {
       // Status replies are nice to have, not needed for streaming.
     }
 
+    // Choose a preset first, with pauses, and check the Muse's answer: sent back to back without
+    // waiting, commands can get lost, and the Muse quietly keeps streaming in its own default mode.
+    await _send('h');
+    await Future.delayed(museCommandGap);
+    await _send('v6');
+    await Future.delayed(museCommandGap);
+    firmware = museFirmware(statusText);
+    for (final candidate in musePresets) {
+      final before = statusText.length;
+      await _send(candidate);
+      await Future.delayed(musePresetAnswerTime);
+      final answer = lastMuseResultCode(statusText.substring(before));
+      if (answer == 0) {
+        preset = candidate;
+        break;
+      }
+      // No answer at all means the control channel isn't talking to us; keep the classic preset.
+      if (answer == null) {
+        preset = '$candidate (not confirmed)';
+        break;
+      }
+      await _send('h');
+      await Future.delayed(museCommandGap);
+    }
+
     final characteristics = museEegCharacteristics.values.toList();
     for (var channel = 0; channel < characteristics.length; channel++) {
       _subscriptions.add(
@@ -111,10 +134,23 @@ class MuseSource implements EegSource {
       await UniversalBle.subscribeNotifications(deviceId, museService, characteristics[channel]);
     }
 
-    for (final command in museStartSequence) {
-      await _send(command);
-    }
+    await _send('s');
+    await Future.delayed(museCommandGap);
+    await _send('d');
   }
+
+  /// Firmware version reported by the headband, if it answered.
+  String? firmware;
+
+  /// The preset the headband accepted, such as "p21".
+  String? preset;
+
+  @override
+  String get name => [
+        _name,
+        if (firmware != null) 'firmware $firmware',
+        if (preset != null) preset,
+      ].join(' · ');
 
   @override
   Future<void> stop() async {

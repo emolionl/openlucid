@@ -82,7 +82,21 @@ Ten minutes of wearing changed almost nothing. Three sensors are stuck at nearly
 1. **Check with the manufacturer's own app.** If the official Muse app shows good contact on all four sensors while ours doesn't, the problem is in our code. If the Muse app also shows poor contact, it's the contact.
 2. **The wet test.** Dampen the skin under the three silent sensors. If they come to life, it's contact. If they still only hum, something else is wrong.
 
-*To be continued.*
+### A clue from an older app
+
+Before running those tests, we remembered an earlier Flutter app (for mybliss.space) that had the same trouble with a Muse S and was made to work. Comparing its Muse code with ours showed three differences:
+
+| | The app that worked | OpenLucid so far |
+|---|---|---|
+| Timing | waits 200–400 ms between commands | sent `h`, `p21`, `s`, `d` back to back |
+| Checking | asks for the firmware version, sends a preset, and **reads the answer** (`"rc":0` means accepted); tries other presets if refused | sent `p21` and never checked |
+| Order | control channel, choose preset, then subscribe to EEG, then `s` and `d` | subscribed to EEG first, then all commands at once |
+
+Commands go to the Muse "without response", so nothing tells the sender when one is lost. If `p21` gets lost, the headband keeps streaming in its own default mode, and the data channels may not carry four clean EEG signals. That would explain three sensors that look strangely alike.
+
+We copied the careful approach, and the app now shows which firmware and preset the headband accepted. **Lesson:** when talking to hardware, never assume a command arrived. Ask, wait, and check the answer.
+
+*To be continued: the next measurement tells us whether this was it.*
 
 ## What this changes in OpenLucid
 

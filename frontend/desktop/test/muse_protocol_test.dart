@@ -33,6 +33,14 @@ void main() {
     expect(decoded.microvolts[3], closeTo(0.488, 0.001)); // one unit up
   });
 
+  test('reads the Muse\'s answers on the control channel', () {
+    expect(lastMuseResultCode(''), isNull);
+    expect(lastMuseResultCode('{"rc":0}'), 0);
+    expect(lastMuseResultCode('{"ap":"headset","sp":"Blackcomb","rc":0}{"rc":1}'), 1);
+    expect(museFirmware('{"ap":"headset","fw":"1.3.4","hw":"15.4","rc":0}'), '1.3.4');
+    expect(museFirmware('{"rc":0}'), isNull);
+  });
+
   test('refuses packets of the wrong size', () {
     expect(() => decodeMuseEegPacket(Uint8List(19)), throwsFormatException);
   });

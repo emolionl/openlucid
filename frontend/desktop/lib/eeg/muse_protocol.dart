@@ -27,8 +27,26 @@ Uint8List museCommand(String command) {
   return Uint8List.fromList([letters.length + 1, ...letters, 0x0a]);
 }
 
-/// The commands that start a stream, in order.
-const List<String> museStartSequence = ['h', 'p21', 's', 'd'];
+/// Presets to try, in order, until the Muse accepts one ("rc":0). p21 is the classic four-channel EEG
+/// preset (Muse 2, Muse S); the others cover firmware that refuses it. Learned from a Flutter app that
+/// runs on a Muse S (mybliss-hrv).
+const List<String> musePresets = ['p21', 'p50', 'p1106', 'p1098', 'p53', 'p23'];
+
+/// The Muse needs a moment between commands; sent back to back, some get lost.
+const Duration museCommandGap = Duration(milliseconds: 250);
+
+/// How long to wait for the Muse to answer a preset command.
+const Duration musePresetAnswerTime = Duration(milliseconds: 600);
+
+/// The Muse answers commands with small JSON pieces on the control channel, such as {"rc":0}.
+/// Returns the last result code in [text]: 0 means accepted, anything else means refused. Null if none yet.
+int? lastMuseResultCode(String text) {
+  final matches = RegExp(r'"rc"\s*:\s*(\d+)').allMatches(text);
+  return matches.isEmpty ? null : int.parse(matches.last.group(1)!);
+}
+
+/// The firmware version from the Muse's answer to 'v6', such as "1.3.4". Null if not found.
+String? museFirmware(String text) => RegExp(r'"fw"\s*:\s*"([^"]+)"').firstMatch(text)?.group(1);
 
 class MusePacket {
   MusePacket(this.counter, this.microvolts);
