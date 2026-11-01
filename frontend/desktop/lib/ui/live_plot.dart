@@ -79,10 +79,9 @@ class SignalBuffer extends ChangeNotifier {
 
 /// Draws each channel in its own lane, like a sleep lab's paper strip.
 class LivePlot extends StatelessWidget {
-  const LivePlot({super.key, required this.buffer, required this.source, this.microvoltsPerLane = 200});
+  const LivePlot({super.key, required this.buffer, this.microvoltsPerLane = 200});
 
   final SignalBuffer buffer;
-  final EegSource source;
 
   /// How many microvolts fit in one lane, top to bottom. Larger values are clipped.
   final double microvoltsPerLane;
@@ -91,17 +90,16 @@ class LivePlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return CustomPaint(
-      painter: _LivePlotPainter(buffer, source, microvoltsPerLane, colors.primary, colors.onSurfaceVariant),
+      painter: _LivePlotPainter(buffer, microvoltsPerLane, colors.primary, colors.onSurfaceVariant),
       size: Size.infinite,
     );
   }
 }
 
 class _LivePlotPainter extends CustomPainter {
-  _LivePlotPainter(this.buffer, this.source, this.range, this.lineColor, this.labelColor) : super(repaint: buffer);
+  _LivePlotPainter(this.buffer, this.range, this.lineColor, this.labelColor) : super(repaint: buffer);
 
   final SignalBuffer buffer;
-  final EegSource source;
   final double range;
   final Color lineColor;
   final Color labelColor;
@@ -146,17 +144,6 @@ class _LivePlotPainter extends CustomPainter {
         ..paint(canvas, Offset(rms == null ? 4 : 20, laneHeight * ch + 4));
     }
 
-    // Health of the stream itself, top right.
-    final rate = buffer.measuredRate;
-    final health = TextPainter(
-      text: TextSpan(
-        text: '${rate == null ? '…' : rate.round()} samples/s (expected ${buffer.sampleRate.round()})'
-            '  ·  duplicates ${source.duplicatePackets}  ·  lost ${source.droppedPackets}',
-        style: TextStyle(color: labelColor, fontSize: 12),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    health.paint(canvas, Offset(size.width - health.width - 8, 4));
   }
 
   @override

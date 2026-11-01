@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.6.0
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.5
   universal_ble: ^3.2.0
 
 dev_dependencies:
