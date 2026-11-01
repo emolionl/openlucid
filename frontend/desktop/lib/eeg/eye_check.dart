@@ -3,7 +3,8 @@ import 'dart:math';
 import 'filters.dart';
 
 /// The eye check: a guided 18-second test that tells you whether your forehead sensors can see
-/// your eyes. Blinks should move AF7 and AF8 the same way; looking left and right should move them
+/// your eyes. Blinks should show up clearly on both AF7 and AF8 (in which direction depends on the headband:
+/// on a Muse S they often go opposite ways); looking left and right should move them
 /// in opposite directions (the eyeball is a tiny battery: front positive, back negative).
 ///
 /// That left-right pattern is exactly the signal a lucid dreamer sends from inside a dream,
@@ -86,7 +87,10 @@ EyeCheckResult evaluateEyeCheck(List<double> af7, List<double> af8, double sampl
     return sqrt(sum / (to - from));
   }
 
-  final noise = max(rms(a, at(1), at(2.8)), rms(b, at(1), at(2.8)));
+  // Resting wiggle: the quieter of the two "eyes still" moments. The first one often isn't quiet yet,
+  // because people are still settling in when the check starts.
+  double restAt(double from, double to) => max(rms(a, at(from), at(to)), rms(b, at(from), at(to)));
+  final noise = min(restAt(0.8, 2.8), restAt(9.2, 10.8));
 
   // The largest swing away from [base] in a window, keeping its sign.
   double peak(List<double> x, int from, int to, double base) {
@@ -118,7 +122,9 @@ EyeCheckResult evaluateEyeCheck(List<double> af7, List<double> af8, double sampl
       // against where the signal was just before the prompt, so a drifting sensor doesn't hide it.
       final pa = peak(a, at(step.at), at(step.at + 1.5), mean(a, at(step.at - 0.4), at(step.at)));
       final pb = peak(b, at(step.at), at(step.at + 1.5), mean(b, at(step.at - 0.4), at(step.at)));
-      if (pa.sign == pb.sign && min(pa.abs(), pb.abs()) > blinkFloor) blinksSeen++;
+      // Both sensors must respond clearly. The direction is not checked: it depends on where the
+      // headband's reference sits (measured on a Muse S, 2026-11-01: AF7 +303 µV, AF8 -465 µV).
+      if (min(pa.abs(), pb.abs()) > blinkFloor) blinksSeen++;
     } else if (step.action == EyeAction.lookLeft || step.action == EyeAction.lookRight) {
       looksAsked++;
       // Compare where the signal was just before the prompt with where it settles after it.

@@ -103,10 +103,17 @@ class _EyeCheckScreenState extends State<EyeCheckScreen> {
   Future<void> _save() async {
     try {
       final documents = await getApplicationDocumentsDirectory();
-      final folder = Directory('${documents.path}${Platform.pathSeparator}OpenLucid')
-        ..createSync(recursive: true);
-      final stamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
-      final file = File('${folder.path}${Platform.pathSeparator}eyecheck-$stamp.csv');
+      final folder = Directory(
+        '${documents.path}${Platform.pathSeparator}OpenLucid',
+      )..createSync(recursive: true);
+      final stamp = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .split('.')
+          .first;
+      final file = File(
+        '${folder.path}${Platform.pathSeparator}eyecheck-$stamp.csv',
+      );
       final rate = widget.source.sampleRate;
       final lines = <String>[
         '# OpenLucid eye check, ${widget.source.name}, $rate samples/s',
@@ -148,7 +155,11 @@ class _EyeCheckScreenState extends State<EyeCheckScreen> {
                         'This headband has no forehead sensors (AF7 and AF8), so it cannot see your eyes.',
                       )
                     : _result != null
-                    ? _ResultView(result: _result!, savedTo: _savedTo, onAgain: _start)
+                    ? _ResultView(
+                        result: _result!,
+                        savedTo: _savedTo,
+                        onAgain: _start,
+                      )
                     : _clock.isRunning
                     ? _PromptView(
                         step: _step,
@@ -171,7 +182,9 @@ String _foreheadContact(SignalBuffer? buffer) {
   for (final name in const ['AF7', 'AF8']) {
     final ch = buffer.channels.indexOf(name);
     final rms = ch < 0 ? null : buffer.rms(ch);
-    parts.add('$name ${rms == null ? '?' : '${(contactScore(rms) * 100).round()}%'}');
+    parts.add(
+      '$name ${rms == null ? '?' : '${(contactScore(rms) * 100).round()}%'}',
+    );
   }
   return parts.join(', ');
 }
@@ -215,7 +228,7 @@ class _IntroView extends StatelessWidget {
         Text(
           'For 18 seconds, follow the words on the screen: keep still, blink three times, then look left '
           'and right. Move only your eyes, not your head.\n\n'
-          'Blinks should show up on both forehead sensors in the same direction. Looking left and right should '
+          'Blinks should show up clearly on both forehead sensors. Looking left and right should '
           'move them in opposite directions: that is the signal a lucid dreamer can send from inside a dream.',
           style: text.bodyLarge,
           textAlign: TextAlign.center,
@@ -239,7 +252,9 @@ class _IntroView extends StatelessWidget {
                     Text(
                       'The forehead sensors are not touching well enough to see your eyes. Dampen your forehead, '
                       'press the band gently, and wait until both are 80% or more.',
-                      style: text.bodyMedium?.copyWith(color: const Color(0xFFFFC107)),
+                      style: text.bodyMedium?.copyWith(
+                        color: const Color(0xFFFFC107),
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -306,7 +321,11 @@ class _PromptView extends StatelessWidget {
 }
 
 class _ResultView extends StatelessWidget {
-  const _ResultView({required this.result, required this.savedTo, required this.onAgain});
+  const _ResultView({
+    required this.result,
+    required this.savedTo,
+    required this.onAgain,
+  });
 
   final EyeCheckResult result;
   final String? savedTo;
@@ -316,11 +335,17 @@ class _ResultView extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final ok = result.passed;
+    final blinksOk = result.blinksSeen >= result.blinksAsked - 1;
+    final looksOk = result.looksSeen >= result.looksAsked - 1;
     final tips = <String>[
-      if (result.blinksSeen < result.blinksAsked - 1)
+      if (!blinksOk)
         'Blinks were hard to see: the forehead sensors may not be touching well. Dampen the forehead and press the band gently.',
-      if (result.looksSeen < result.looksAsked - 1)
-        'Left and right were hard to see: look further to the side and hold it until the next word, without turning your head.',
+      if (blinksOk && !looksOk)
+        'Your headband sees your blinks, so the sensors are touching. It barely sees left and right: '
+            'its forehead sensors sit close to the middle, where sideways eye movements hardly reach. '
+            'Sleep labs put eye electrodes beside the eyes for exactly this reason.',
+      if (!blinksOk && !looksOk)
+        'Left and right were hard to see too: look further to the side and hold it until the next word, without turning your head.',
       if (result.looksSeen > 0 && !result.directionsConsistent)
         'Left and right did not move the sensors in a consistent direction. Try again, moving only your eyes.',
     ];
