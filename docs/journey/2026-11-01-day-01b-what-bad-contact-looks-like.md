@@ -1,6 +1,6 @@
 ---
 title: "Day 1, part 2: what bad contact looks like"
-date: 2026-11-01T15:00:00+01:00
+date: 2026-11-01T12:00:00+01:00
 description: "The headband on a head, still chaos. A debugging log with real numbers, one wrong conclusion, and what every EEG programmer needs to know about contact."
 weight: 2
 ---
