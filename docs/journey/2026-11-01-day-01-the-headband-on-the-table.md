@@ -53,7 +53,7 @@ Building for Android hit one more snag: the newest version of the Bluetooth libr
 - ✅ Fake Moose streams and draws
 - ✅ The Muse S connects and streams 256 samples per second with nothing lost
 - ✅ The app builds for Windows and Android
-- ⏳ **Still to do:** wear the headband, see a blink on the forehead electrodes, and tag `checkpoint-01`
+- ✅ Later that day: worn on the head, blinks seen on both forehead sensors, and `checkpoint-01` tagged (see parts 2–5)
 
 ## Code at the end of the day
 

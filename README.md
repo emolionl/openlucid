@@ -68,8 +68,8 @@ Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always
 
 | Checkpoint | What it adds |
 |---|---|
-| 00 | App, web view and server say hello |
-| 01 | Connect to the Muse over Bluetooth, live signal on screen, Fake Moose replay mode |
+| 00 ✅ | App, web view and server say hello |
+| 01 ✅ | Any EEG source; Muse S over Bluetooth, Fake Moose, live view with contact score, eye check |
 | 02 | Record a whole night (30-second epochs, reconnects, EDF file) |
 | 03 | The Diary Keeper's REST API and database (sessions, epochs, events, journal) |
 | 04 | Sleep staging of a recorded night with [YASA](https://github.com/raphaelvallat/yasa), hypnogram |

@@ -53,3 +53,15 @@ Why? The forehead sensors of the Muse S sit close to the middle of the forehead 
 1. **Save the data before you judge.** The check failed three times; only the saved recording showed why.
 2. **Measure, don't assume.** Both wrong rules came from what we *expected* a headband to do.
 3. **A failing test can be the right answer.** The point of the eye check is to tell the truth about the hardware, not to pass.
+
+## Checkpoint 01
+
+With this, the first milestone is done and tagged as `checkpoint-01`: any EEG source, a Muse S over Bluetooth, Fake Moose, a live view with a contact score, and an eye check that tells the truth. Measured on our Muse S Gen 2: **blinks yes, left and right no.**
+
+```bash
+git clone https://github.com/emolionl/openlucid
+cd openlucid
+git checkout checkpoint-01
+```
+
+Next: a home-built eye sensor (EOG) beside the eyes, researched on the [research page](../research/diy-eog-esp32.md).
