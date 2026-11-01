@@ -8,6 +8,16 @@ import 'screens/settings_screen.dart';
 import 'screens/tonight_screen.dart';
 import 'theme.dart';
 
+class _Logo extends StatelessWidget {
+  const _Logo({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) =>
+      Image.asset('assets/logo-mark-256.png', width: size, height: size, semanticLabel: 'OpenLucid');
+}
+
 class _Destination {
   const _Destination(this.label, this.icon, this.selectedIcon);
 
@@ -75,8 +85,15 @@ class _AppShellState extends State<AppShell> {
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: size == WindowSize.expanded
-                  ? Text('🌙 OpenLucid', style: Theme.of(context).textTheme.titleLarge)
-                  : const Text('🌙', style: TextStyle(fontSize: 26)),
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _Logo(size: 32),
+                        const SizedBox(width: 10),
+                        Text('OpenLucid', style: Theme.of(context).textTheme.titleLarge),
+                      ],
+                    )
+                  : const _Logo(size: 36),
             ),
             destinations: [
               for (final d in _destinations)

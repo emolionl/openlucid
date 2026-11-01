@@ -103,11 +103,23 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    // Phones have no side rail with the logo, so the header carries it.
+    final phone = windowSizeOf(context) == WindowSize.compact;
+    return Row(
       children: [
-        Text('Tonight', style: text.headlineMedium),
-        Text('Put on your headband and check the contact.', style: text.bodyMedium),
+        if (phone) ...[
+          Image.asset('assets/logo-mark-256.png', width: 40, height: 40, semanticLabel: 'OpenLucid'),
+          const SizedBox(width: 12),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tonight', style: text.headlineMedium),
+              Text('Put on your headband and check the contact.', style: text.bodyMedium),
+            ],
+          ),
+        ),
       ],
     );
   }

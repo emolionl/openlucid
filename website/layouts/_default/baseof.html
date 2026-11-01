@@ -4,13 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ if .IsHome }}{{ site.Title }} — {{ site.Params.tagline }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
-  <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ site.Params.description }}{{ end }}">
+  {{ $description := .Description | default site.Params.description }}
+  <meta name="description" content="{{ $description }}">
+  <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="any">
+  <link rel="icon" type="image/png" href="{{ "favicon-32.png" | relURL }}" sizes="32x32">
+  <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
+  <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
+  <meta name="theme-color" content="#0C1124">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ site.Title }}">
+  <meta property="og:title" content="{{ if .IsHome }}{{ site.Title }} — {{ site.Params.tagline }}{{ else }}{{ .Title }}{{ end }}">
+  <meta property="og:description" content="{{ $description }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:image" content="{{ "og-image.png" | absURL }}">
+  <meta name="twitter:card" content="summary_large_image">
   <style>
-    :root { color-scheme: dark; --bg: #12142a; --text: #e6e8f2; --muted: #a3a8c3; --accent: #8c98ff; }
+    :root { color-scheme: dark; --bg: #0c1124; --text: #e6e8f2; --muted: #a3a8c3; --accent: #8c98ff; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     header, main, footer { max-width: 760px; margin: 0 auto; padding: 0 16px; }
     header { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; }
     header a { color: var(--text); text-decoration: none; font-weight: 600; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 1.15rem; }
     nav a { margin-left: 18px; font-weight: 400; color: var(--muted); }
     a { color: var(--accent); }
     h1 { font-size: 2.2rem; line-height: 1.2; }
@@ -31,7 +45,7 @@
 </head>
 <body>
   <header>
-    <a href="{{ "/" | relURL }}">🌙 {{ site.Title }}</a>
+    <a class="brand" href="{{ "/" | relURL }}"><img src="{{ "logo-mark-96.png" | relURL }}" alt="" width="32" height="32">{{ site.Title }}</a>
     <nav>{{ range site.Menus.main }}<a href="{{ .URL | relURL }}">{{ .Name }}</a>{{ end }}</nav>
   </header>
   <main>{{ block "main" . }}{{ end }}</main>

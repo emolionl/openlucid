@@ -1,4 +1,6 @@
-# 🌙 OpenLucid
+<p align="center"><img src="branding/logo-mark-512.png" alt="OpenLucid logo: a crescent moon with a yellow zigzag" width="140"></p>
+
+<h1 align="center">OpenLucid</h1>
 
 **An open-source dream machine you can build yourself.**
 
@@ -18,7 +20,8 @@ openlucid/
 │   └── web/            The morning view: Vue, your night's report and dream journal in the browser
 ├── website/            The project website (openlucid.nl): Hugo, static, hosted on Firebase
 ├── docs/journey/       The build diary: every step we took, including the wrong turns
-└── promotion/          Video scripts and the animated series "Are You Dreaming?"
+├── promotion/          Video scripts and the animated series "Are You Dreaming?"
+└── branding/           The logo and the script that makes every icon size
 ```
 
 **Follow the build:** start with [the journey](docs/journey/README.md). It's written for beginners, and the mistakes are in there too.
