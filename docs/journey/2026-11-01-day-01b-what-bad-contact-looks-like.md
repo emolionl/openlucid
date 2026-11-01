@@ -66,9 +66,23 @@ AF8 lost almost all of its hum. **If the reference were the problem, AF8 would b
 
 Wetting your skin helps at the start, but nobody stays wet all night. The Muse S is made to be worn dry: after **5–10 minutes** your skin warms up and gets slightly moist on its own, and contact improves. What matters more is **firm, even pressure**: the strap snug, forehead sensors flat above the eyebrows, ear sensors on bare skin behind the ears.
 
-### Measurement 3, after 10 minutes of wearing
+### Measurement 3, after 10 minutes of wearing (14:57)
 
-*Waiting for the measurement.*
+| Sensor | Stuck at the limits | Mains hum | Verdict |
+|---|---|---|---|
+| TP9 | 18.5% | 37% | no contact, still identical to TP10 |
+| AF7 | 18.0% | 37% | no contact |
+| AF8 | 1.5% | 28% | touching skin, humming again |
+| TP10 | 18.1% | 38% | no contact |
+
+Ten minutes of wearing changed almost nothing. Three sensors are stuck at nearly the **same** percentage (18.0, 18.1, 18.5), and the two ear sensors still match each other. That makes us less sure it's only the skin: it could also be a setting this headband model handles differently from the ones the open-source decoders were written for.
+
+**We don't know yet.** Instead of guessing a third time, we planned two tests that tell the possibilities apart:
+
+1. **Check with the manufacturer's own app.** If the official Muse app shows good contact on all four sensors while ours doesn't, the problem is in our code. If the Muse app also shows poor contact, it's the contact.
+2. **The wet test.** Dampen the skin under the three silent sensors. If they come to life, it's contact. If they still only hum, something else is wrong.
+
+*To be continued.*
 
 ## What this changes in OpenLucid
 
