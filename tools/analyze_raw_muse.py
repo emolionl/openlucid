@@ -91,9 +91,15 @@ def main(path):
         railed = np.mean((raw <= 0) | (raw >= 4095)) * 100
         mains = (band_share(uv, 48, 52) + band_share(uv, 98, 102)) * 100
         alpha = band_share(uv, 8, 12) * 100
+        # The Muse sends 12 samples per Bluetooth packet, 21.3 packets per second. A floating input picks up
+        # the headband's own radio bursts at exactly that rate.
+        packet_rate = band_share(uv, 20.8, 21.8) * 100
+        fast = band_share(uv, 60, 128) * 100
         twins = [names[j] for j in range(len(names)) if j != i and matrix[i, j] > 0.9]
         if mains > 20 and (railed > 5 or mains > 50):
             verdict = "NO CONTACT: the sensor is an antenna for the mains hum"
+        elif railed > 5 and (fast > 20 or packet_rate > 3):
+            verdict = "NO CONTACT: a floating input, picking up the headband's own radio (21.3 Hz) and fast noise"
         elif railed > 5:
             verdict = "SETTLING: little hum, but a big slow drift pushes it off the scale; contact is forming"
         elif twins:
@@ -101,7 +107,7 @@ def main(path):
         else:
             verdict = "touching skin"
         print(f"   {name:5} ({WHERE[name]})")
-        print(f"         stuck at the limits {railed:5.1f}%   mains hum {mains:5.1f}% of power   alpha 8-12 Hz {alpha:5.1f}%")
+        print(f"         stuck at the limits {railed:5.1f}%   mains hum {mains:5.1f}%   radio 21.3 Hz {packet_rate:5.1f}%   above 60 Hz {fast:5.1f}%   alpha 8-12 Hz {alpha:5.1f}%")
         if twins:
             print(f"         looks identical to: {', '.join(twins)} (sensors in different places should not match)")
         print(f"         -> {verdict}")

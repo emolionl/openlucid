@@ -96,7 +96,22 @@ Commands go to the Muse "without response", so nothing tells the sender when one
 
 We copied the careful approach, and the app now shows which firmware and preset the headband accepted. **Lesson:** when talking to hardware, never assume a command arrived. Ask, wait, and check the answer.
 
-*To be continued: the next measurement tells us whether this was it.*
+### Measurement 4, with the careful start (15:05)
+
+| Sensor | Stuck at the limits | Mains hum | Radio, 21.3 Hz | Above 60 Hz | Verdict |
+|---|---|---|---|---|---|
+| TP9 | 20.0% (always at the bottom) | 2.9% | 6.0% | 41% | floating input |
+| AF7 | 20.8% | 3.2% | 6.9% | 37% | floating input |
+| AF8 | 2.3% | 6.2% | 2.0% | 2% | touching skin |
+| TP10 | 20.4% | 2.8% | 5.7% | 38% | floating input |
+
+The mains hum was gone, but the three sensors were still stuck at the limits, now with a new rhythm: **exactly 21.3 Hz**. That number is a giveaway: the Muse sends 12 samples per Bluetooth packet, 256 ÷ 12 = 21.3 packets per second. Brains don't keep time with Bluetooth. A **floating input**, an electrode connected to nothing, does: it picks up the headband's own radio bursts. AF8 meanwhile looked like a real signal, smooth and slow.
+
+**Honest conclusion:** the careful start is better code, but probably not the fix. Whether the hum vanished because of the code or because something around us changed, we can't tell from one measurement. What four measurements in a row do say: **the same three sensors never touched skin, and AF8 always did.**
+
+**Lesson:** the frequency of a disturbance tells you where it comes from. 50 Hz: the walls. 21.3 Hz: the headband's own radio. 8–12 Hz with your eyes closed: finally, a brain.
+
+*Next: the manufacturer's app, to see whether it agrees about those three sensors.*
 
 ## What this changes in OpenLucid
 
