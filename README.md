@@ -16,8 +16,12 @@ openlucid/
 ├── frontend/
 │   ├── desktop/        The app: Flutter (Windows, Android, macOS, Linux), talks to the Muse over Bluetooth
 │   └── web/            The morning view: Vue, your night's report and dream journal in the browser
-└── website/            The project website: Hugo, static
+├── website/            The project website (openlucid.nl): Hugo, static, hosted on Firebase
+├── docs/journey/       The build diary: every step we took, including the wrong turns
+└── promotion/          Video scripts and the animated series "Are You Dreaming?"
 ```
+
+**Follow the build:** start with [the journey](docs/journey/README.md). It's written for beginners, and the mistakes are in there too.
 
 Everything runs locally. Your brain data never leaves your computer.
 

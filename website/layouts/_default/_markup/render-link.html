@@ -1,0 +1,15 @@
+{{- /* Links between Markdown files work on GitHub; turn them into website links here. */ -}}
+{{- $dest := .Destination -}}
+{{- $external := or (strings.HasPrefix $dest "http:") (strings.HasPrefix $dest "https:") (strings.HasPrefix $dest "mailto:") -}}
+{{- if and (not $external) (strings.HasSuffix (urls.Parse $dest).Path ".md") -}}
+  {{- $name := path.Base (strings.TrimSuffix ".md" (urls.Parse $dest).Path) -}}
+  {{- if strings.Contains $dest "docs/journey/" -}}
+    {{- $dest = printf "/journey/%s/" $name | relURL -}}
+  {{- else if strings.Contains $dest "video-scripts/" -}}
+    {{- $dest = printf "/videos/%s/" $name | relURL -}}
+  {{- else -}}
+    {{- with .PageInner.GetPage (urls.Parse $dest).Path -}}{{- $dest = .RelPermalink -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+<a href="{{ $dest | safeURL }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ if $external }} rel="noopener"{{ end }}>{{ .Text | safeHTML }}</a>
+{{- /* keep */ -}}

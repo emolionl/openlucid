@@ -1,4 +1,9 @@
 {{ define "main" }}
+<p class="crumb"><a href="{{ .Parent.RelPermalink }}">← {{ .Parent.Title }}</a></p>
 <h1>{{ .Title }}</h1>
+<p class="meta">
+  {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
+  {{ with .Params.status }} · <span class="tag">{{ . }}</span>{{ end }}
+</p>
 {{ .Content }}
 {{ end }}

@@ -1,5 +1,17 @@
 {{ define "main" }}
 <h1>{{ .Title }}</h1>
 {{ .Content }}
-<ul>{{ range .Pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} — {{ . }}{{ end }}</li>{{ end }}</ul>
+{{ $pages := .Pages }}
+{{ if eq .Section "journey" }}{{ $pages = .Pages.ByDate }}{{ end }}
+{{ if not (eq .Section "journey") }}
+<ul class="cards">
+  {{ range $pages }}
+  <li>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
+    {{ with .Description }}<p>{{ . }}</p>{{ end }}
+  </li>
+  {{ end }}
+</ul>
+{{ end }}
 {{ end }}

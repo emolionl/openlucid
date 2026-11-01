@@ -13,3 +13,7 @@ Will it give you lucid dreams? Honest answer: maybe, sometimes. Sound cues durin
 - **No headband?** A replay mode lets you try everything with a recorded night.
 
 [Get started →](docs/getting-started/)
+
+## Built in public
+
+OpenLucid is being built step by step, mistakes included. Follow along in **[the journey](journey/)**, read the scripts for our **[videos](videos/)**, or look at every line of code on **[GitHub](https://github.com/emolionl/openlucid)**.
