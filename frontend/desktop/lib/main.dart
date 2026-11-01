@@ -57,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<EegChunk>? _stream;
   String _status = 'Not listening.';
   bool _busy = false;
+  double _microvoltsPerLane = 200;
 
   Future<void> _wave() async {
     setState(() => _asking = true);
@@ -197,6 +198,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(_status, key: const Key('status')),
+              if (listening)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Wrap(
+                    spacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      const Text('Scale per lane:'),
+                      DropdownButton<double>(
+                        value: _microvoltsPerLane,
+                        items: [
+                          for (final uv in const [50.0, 100.0, 200.0, 500.0, 1000.0])
+                            DropdownMenuItem(value: uv, child: Text('${uv.round()} µV')),
+                        ],
+                        onChanged: (uv) => setState(() => _microvoltsPerLane = uv!),
+                      ),
+                      const Text('Filtered for viewing: 0.5–40 Hz, 50 Hz hum removed. Dot = contact (green good, red poor).'),
+                    ],
+                  ),
+                ),
               if (!listening && _choice == DeviceChoice.muse)
                 for (final device in _found)
                   ListTile(
@@ -214,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Theme.of(context).colorScheme.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: LivePlot(buffer: _buffer!),
+                        child: LivePlot(buffer: _buffer!, microvoltsPerLane: _microvoltsPerLane),
                       ),
               ),
             ],
