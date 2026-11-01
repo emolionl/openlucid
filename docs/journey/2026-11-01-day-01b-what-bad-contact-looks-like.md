@@ -3,6 +3,12 @@ title: "Day 1, part 2: what bad contact looks like"
 date: 2026-11-01T12:00:00+01:00
 description: "The headband on a head, still chaos. A debugging log with real numbers, one wrong conclusion, and what every EEG programmer needs to know about contact."
 weight: 2
+outcome: "Solved: it was contact"
+tldr:
+  - "Our code was fine: every packet arrived and was decoded correctly."
+  - "A sensor that doesn't touch skin acts as an antenna and catches the 50 Hz hum from the walls."
+  - "Our first explanation (the reference sensor) was wrong."
+  - "Dampening only the forehead fixed only the forehead: contact, not code."
 ---
 
 Every programmer who touches EEG runs into this, and most tutorials skip it: **the hardest part is not the code, it's the contact between a sensor and skin.** This is our log, measurement by measurement, including the conclusion we got wrong.

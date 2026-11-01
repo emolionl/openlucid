@@ -3,6 +3,11 @@ title: "Day 1, part 3: can the headband see my eyes?"
 date: 2026-11-01T13:00:00+01:00
 description: "A contact score with a clear target, and a guided eye check that tells you whether the forehead sensors can see blinks and left-right eye movements."
 weight: 3
+outcome: "Built"
+tldr:
+  - "Contact score with a clear target: under 25 µV of wiggle is 100%."
+  - "Eye check: an 18-second guided test for blinks and left/right eye movements."
+  - "Tested with a Fake Moose that follows the prompts (passes) and one that ignores them (fails)."
 ---
 
 ## Why the eyes come first

@@ -3,6 +3,11 @@ title: "Day 1, part 4: contact doesn't stay, and what research says about eyes"
 date: 2026-11-01T14:00:00+01:00
 description: "The first real eye checks fail because the forehead dried out again. Why that matters for a whole night, and what the research standard for eye signals is."
 weight: 4
+outcome: "Open problem"
+tldr:
+  - "Contact faded within about 15 minutes as the skin dried."
+  - "The eye check now checks contact first and saves its recording."
+  - "Research: the gold standard for eye signals is EOG, with electrodes beside the eyes."
 ---
 
 ## The first eye checks with a real headband

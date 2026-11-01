@@ -3,6 +3,12 @@ title: "Day 1, part 5: blinks yes, left and right no"
 date: 2026-11-01T15:00:00+01:00
 description: "The first eye check with good contact. Two wrong assumptions in our own code, and a real finding: a Muse S forehead barely sees sideways eye movements."
 weight: 5
+outcome: "Finding"
+tldr:
+  - "With good contact: blinks 3 of 3, left and right 0 of 4."
+  - "Two wrong assumptions in our own code, found in the saved recording and fixed."
+  - "A Muse S forehead barely sees sideways eye movements, so we need sensors beside the eyes."
+  - "Checkpoint 01 is tagged."
 ---
 
 ## The setup

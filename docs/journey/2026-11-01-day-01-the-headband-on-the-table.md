@@ -3,6 +3,12 @@ title: "Day 1: the headband on the table"
 date: 2026-11-01
 description: "A real Muse S over Bluetooth, Fake Moose, a confusing first signal, filters, and an app that fits on a phone."
 weight: 1
+outcome: "Connected"
+tldr:
+  - "The app works with any EEG source: the Muse first, Fake Moose for everyone without one."
+  - "The Muse S connects over Bluetooth on Windows; Windows pairing is not needed."
+  - "The first signal was chaos, and the headband was lying on the table."
+  - "Lesson: check the simplest explanation first."
 ---
 
 ## Goal

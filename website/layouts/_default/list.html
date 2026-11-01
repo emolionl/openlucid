@@ -3,17 +3,25 @@
   <h1 class="page-title">{{ .Title }}</h1>
   {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
   {{ if eq .Section "journey" }}
-    {{/* On GitHub the journey's README lists the days in a table; here the cards do that job. */}}
-    <div class="list-cards">
+    {{/* On GitHub the journey's README lists the days in a table; here a timeline with the conclusions
+         does that job, so the overview alone tells the story. */}}
+    <ol class="timeline">
       {{ range .Pages.ByDate }}
-      <a class="link-card" href="{{ .RelPermalink }}">
-        <div class="kicker">{{ .Date.Format "2 January 2006" }}</div>
-        <h3>{{ .Title }}</h3>
-        <p>{{ .Description }}</p>
-        <span class="more">Read</span>
-      </a>
+      <li class="timeline-item">
+        <div class="timeline-dot" aria-hidden="true"></div>
+        <a class="timeline-card" href="{{ .RelPermalink }}">
+          <div class="kicker">{{ .Date.Format "2 January 2006" }}{{ with .Params.outcome }} · <span class="outcome">{{ . }}</span>{{ end }}</div>
+          <h3>{{ .Title }}</h3>
+          {{ with .Params.tldr }}
+            <ul>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ul>
+          {{ else }}
+            <p>{{ .Description }}</p>
+          {{ end }}
+          <span class="more">Read the full story</span>
+        </a>
+      </li>
       {{ end }}
-    </div>
+    </ol>
   {{ else }}
     <div class="prose">{{ .Content }}</div>
     <div class="list-cards">

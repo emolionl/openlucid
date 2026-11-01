@@ -3,6 +3,12 @@ title: "Day 0: a name and a skeleton"
 date: 2026-10-31
 description: "Why open source, why local, the folder layout, and an app that waves at a server."
 weight: 0
+outcome: "Done"
+tldr:
+  - "Open source (MIT), everything local, sound cues only, no medical claims."
+  - "The name: OpenLucid."
+  - "Four parts: backend (FastAPI), app (Flutter), web view (Vue), website (Hugo)."
+  - "Checkpoint 00: the app and the server wave at each other."
 ---
 
 ## The idea

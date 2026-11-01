@@ -1,12 +1,39 @@
 {{ define "main" }}
-<article class="page">
-  {{ with .Parent }}{{ if not .IsHome }}<p class="crumb"><a href="{{ .RelPermalink }}">‹ {{ .Title }}</a></p>{{ end }}{{ end }}
-  <h1 class="page-title">{{ .Title }}</h1>
-  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
-  <p class="meta">
-    {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
-    {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
-  </p>
-  <div class="prose">{{ .Content }}</div>
-</article>
+{{ $toc := .TableOfContents }}
+{{ $sections := len (findRE "<li>" $toc) }}
+{{ $withToc := ge $sections 3 }}
+<div class="{{ if $withToc }}article-grid{{ else }}page{{ end }}">
+  <article class="{{ if $withToc }}article-main{{ end }}">
+    {{ with .Parent }}{{ if not .IsHome }}<p class="crumb"><a href="{{ .RelPermalink }}">‹ {{ .Title }}</a></p>{{ end }}{{ end }}
+    <h1 class="page-title">{{ .Title }}</h1>
+    <p class="meta">
+      {{ with .Params.outcome }}<span class="outcome">{{ . }}</span>{{ end }}
+      {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
+      {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
+    </p>
+    {{ with .Params.tldr }}
+    <section class="tldr" aria-label="In short">
+      <h2>In short</h2>
+      <ul>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ul>
+    </section>
+    {{ else }}
+      {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+    {{ end }}
+    {{ if $withToc }}
+    <details class="toc-mobile">
+      <summary>On this page</summary>
+      {{ $toc }}
+    </details>
+    {{ end }}
+    <div class="prose">{{ .Content }}</div>
+  </article>
+  {{ if $withToc }}
+  <aside class="toc-side" aria-label="On this page">
+    <div class="toc-sticky">
+      <p class="toc-title">On this page</p>
+      {{ $toc }}
+    </div>
+  </aside>
+  {{ end }}
+</div>
 {{ end }}

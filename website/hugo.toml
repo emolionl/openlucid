@@ -11,6 +11,11 @@ disableKinds = ["taxonomy", "term"]
 [markup.goldmark.renderer]
   unsafe = false
 
+[markup.tableOfContents]
+  startLevel = 2
+  endLevel = 2
+  ordered = false
+
 # The journey and the video scripts live elsewhere in the repository (so they read well on GitHub too);
 # Hugo mounts them into the website.
 [module]
