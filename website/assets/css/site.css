@@ -327,6 +327,7 @@ img { max-width: 100%; height: auto; }
 .prose h3 { margin: 36px 0 10px; font-size: 1.3rem; letter-spacing: -0.02em; }
 .prose p, .prose li { color: #d8dbef; }
 .prose li { margin: 6px 0; }
+.prose p, .prose li { overflow-wrap: anywhere; }
 .prose strong { color: var(--text); }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 
@@ -379,7 +380,8 @@ img { max-width: 100%; height: auto; }
 }
 
 @media (max-width: 600px) {
-  .nav-links { gap: 14px; }
+  .nav-links { gap: 11px; font-size: 0.8rem; }
+  .nav-links .pill { padding: 5px 11px; }
   .brand span { display: none; }
   .brand img { width: 30px; height: 30px; }
   .hero { padding-top: 64px; }

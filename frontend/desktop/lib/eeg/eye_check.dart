@@ -66,7 +66,11 @@ EyeCheckResult evaluateEyeCheck(List<double> af7, List<double> af8, double sampl
   List<double> slow(List<double> x) {
     final hp = Biquad.highPass(0.1, sampleRate);
     final lp = Biquad.lowPass(8, sampleRate);
-    return [for (final v in x) lp.process(hp.process(v))];
+    // Raw EEG starts hundreds of microvolts away from zero. Feeding that jump into a slow filter
+    // leaves a fading tail for seconds, so subtract the starting level first.
+    final n = min(x.length, (0.5 * sampleRate).round());
+    final start = n == 0 ? 0.0 : x.take(n).reduce((p, q) => p + q) / n;
+    return [for (final v in x) lp.process(hp.process(v - start))];
   }
 
   final a = slow(af7), b = slow(af8);
@@ -84,11 +88,11 @@ EyeCheckResult evaluateEyeCheck(List<double> af7, List<double> af8, double sampl
 
   final noise = max(rms(a, at(1), at(2.8)), rms(b, at(1), at(2.8)));
 
-  // The largest swing in a window, keeping its sign.
-  double peak(List<double> x, int from, int to) {
+  // The largest swing away from [base] in a window, keeping its sign.
+  double peak(List<double> x, int from, int to, double base) {
     var best = 0.0;
     for (var i = from; i < to; i++) {
-      if (x[i].abs() > best.abs()) best = x[i];
+      if ((x[i] - base).abs() > best.abs()) best = x[i] - base;
     }
     return best;
   }
@@ -110,9 +114,10 @@ EyeCheckResult evaluateEyeCheck(List<double> af7, List<double> af8, double sampl
   for (final step in eyeCheckSteps) {
     if (step.action == EyeAction.blink) {
       blinksAsked++;
-      // People need a moment to react; a blink lasts about a third of a second.
-      final pa = peak(a, at(step.at), at(step.at + 1.5));
-      final pb = peak(b, at(step.at), at(step.at + 1.5));
+      // People need a moment to react; a blink lasts about a third of a second. Measure the swing
+      // against where the signal was just before the prompt, so a drifting sensor doesn't hide it.
+      final pa = peak(a, at(step.at), at(step.at + 1.5), mean(a, at(step.at - 0.4), at(step.at)));
+      final pb = peak(b, at(step.at), at(step.at + 1.5), mean(b, at(step.at - 0.4), at(step.at)));
       if (pa.sign == pb.sign && min(pa.abs(), pb.abs()) > blinkFloor) blinksSeen++;
     } else if (step.action == EyeAction.lookLeft || step.action == EyeAction.lookRight) {
       looksAsked++;

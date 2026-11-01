@@ -20,6 +20,7 @@ openlucid/
 │   └── web/            The morning view: Vue, your night's report and dream journal in the browser
 ├── website/            The project website (openlucid.nl): Hugo, static, hosted on Firebase
 ├── docs/journey/       The build diary: every step we took, including the wrong turns
+├── docs/research/      What science knows, which devices exist, what they cost (with sources)
 ├── promotion/          Video scripts and the animated series "Are You Dreaming?"
 └── branding/           The logo and the script that makes every icon size
 ```

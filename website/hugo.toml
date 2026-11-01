@@ -27,6 +27,13 @@ disableKinds = ["taxonomy", "term"]
   [[module.mounts]]
     source = "../promotion/video-scripts"
     target = "content/videos"
+  [[module.mounts]]
+    source = "../docs/research"
+    target = "content/research"
+    excludeFiles = ["README.md"]
+  [[module.mounts]]
+    source = "../docs/research/README.md"
+    target = "content/research/_index.md"
 
 [[menus.main]]
   name = "Journey"
@@ -39,9 +46,14 @@ disableKinds = ["taxonomy", "term"]
   weight = 2
 
 [[menus.main]]
+  name = "Research"
+  pageRef = "/research"
+  weight = 3
+
+[[menus.main]]
   name = "Docs"
   pageRef = "/docs"
-  weight = 3
+  weight = 4
 
 [[menus.main]]
   name = "GitHub"

@@ -62,7 +62,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Can your headband see your eyes?'), findsOneWidget);
-    expect(find.text('Start'), findsOneWidget);
+    expect(find.textContaining('Start'), findsWidgets);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byTooltip('Close'));

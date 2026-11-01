@@ -206,7 +206,7 @@ class _HeadbandCard extends StatelessWidget {
                         ? null
                         : () => Navigator.of(context).push(MaterialPageRoute<void>(
                               fullscreenDialog: true,
-                              builder: (_) => EyeCheckScreen(source: headband.source!),
+                              builder: (_) => EyeCheckScreen(source: headband.source!, buffer: headband.buffer),
                             )),
                     icon: const Icon(Icons.visibility_outlined, size: 18),
                     label: const Text('Eye check'),
