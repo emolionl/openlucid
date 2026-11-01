@@ -111,7 +111,29 @@ The mains hum was gone, but the three sensors were still stuck at the limits, no
 
 **Lesson:** the frequency of a disturbance tells you where it comes from. 50 Hz: the walls. 21.3 Hz: the headband's own radio. 8–12 Hz with your eyes closed: finally, a brain.
 
-*Next: the manufacturer's app, to see whether it agrees about those three sensors.*
+### Measurement 5: the experiment that settled it (15:11)
+
+Instead of the manufacturer's app, a simpler test: **dampen the forehead, but not the ears.** Change one thing in one place, and see whether only that place changes.
+
+| Sensor | Before (15:05) | After a damp forehead (15:11) |
+|---|---|---|
+| AF7, left forehead | 20.8% stuck at the limits: floating | **0.0%: touching skin** |
+| AF8, right forehead | 2.3%: touching skin | **0.0%: touching skin** |
+| TP9, left ear (still dry) | 20.0%: no contact | 22.8%: no contact |
+| TP10, right ear (still dry) | 20.4%: no contact | 22.4%: no contact |
+
+The forehead sensors came to life; the dry ear sensors stayed silent. **It was contact, not code.** If our code had been wrong, a wet forehead would not have changed anything.
+
+**Lesson:** the best experiment changes one thing, in one place, and predicts where the effect will show up. A controlled experiment beats any amount of staring at code.
+
+## What we learned on day 1, in one list
+
+1. Rule out your own code first: packet sizes, counters, sample rate, jumps at packet boundaries.
+2. A sensor that doesn't touch skin is an antenna. It catches the walls (50 Hz) or the headband's own radio (21.3 Hz), and sticks to the edge of its range.
+3. Two floating sensors look alike. Sensors in different places should never match.
+4. One measurement is a guess. Ours was wrong once.
+5. Change one thing in one place. That's how we found the answer.
+6. For OpenLucid the **forehead sensors matter most**: they sit right above the eyes and catch the eye movements of REM sleep, and the left-right signal from inside a dream. The ear sensors are welcome extras; the app should use the best sensors it has, and say which.
 
 ## What this changes in OpenLucid
 

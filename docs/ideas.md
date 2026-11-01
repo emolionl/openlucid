@@ -12,6 +12,7 @@ Things we want to build or teach, but not yet. Add yours.
 - **Settling phase** before a night: wait for good contact and say which sensor is still settling.
 - **Contact quality recorded all night**, shown in the morning report.
 - **"Identical channels" warning** in the contact check.
+- **Use the best sensors available.** The forehead sensors (AF7, AF8) carry what OpenLucid needs most (eye movements, the left-right signal); if the ear sensors stay poor during the night, carry on with the forehead and say so in the report.
 - **Other headbands:** OpenBCI, ZMax, BrainBit, and the Muse S Athena (MS-03, different protocol).
 
 ## Related work to read and cite
