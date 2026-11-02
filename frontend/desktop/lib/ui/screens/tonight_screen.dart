@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/headband.dart';
 import '../../eeg/muse_source.dart';
+import '../../night/night_recorder.dart';
 import '../live_plot.dart';
 import '../theme.dart';
 import 'eye_check_screen.dart';
@@ -331,7 +332,7 @@ class _NightCard extends StatelessWidget {
     String clock(int s) => '${s ~/ 3600}:${((s ~/ 60) % 60).toString().padLeft(2, '0')}';
     final epochs = night.epochs;
     final last = epochs.isEmpty ? null : epochs.last;
-    final moved = epochs.where((e) => (e.movement ?? 0) > 5).length;
+    final moved = epochs.where((e) => (e.movement ?? 0) > NightRecorder.movementThreshold).length;
     final turned = epochs.where((e) => e.positionChanged).length;
     final good = epochs.where((e) => e.quality == 'good').length;
     final dot = Icon(Icons.fiber_manual_record, size: 14, color: headband.connectionLost ? Colors.orange : Colors.red);

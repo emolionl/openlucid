@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openlucid/eeg/eeg_source.dart';
@@ -143,6 +144,35 @@ void main() {
         entity.copySync(target.path);
       }
     }
+  });
+
+  test('a still head with a gyroscope offset is not movement; a turn is', () async {
+    // The first real night: the Muse gyroscope reads about (-5.6, -2.1, -3.1) deg/s while lying still.
+    final source = HandFedSource();
+    final recorder = await NightRecorder.start(source: source, root: tmp, subjectId: 'still', mainsHz: 50);
+    Future<void> second(double Function(int i) gyroX) async {
+      source.eeg.add(EegChunk(source.moose.generate(256)));
+      source.motionController
+        ..add(MotionChunk(MotionKind.accelerometer, [List.filled(52, 0.36), List.filled(52, 0.12), List.filled(52, 0.92)]))
+        ..add(MotionChunk(MotionKind.gyroscope, [
+          [for (var i = 0; i < 52; i++) gyroX(i)],
+          List.filled(52, -2.1),
+          List.filled(52, -3.1),
+        ]));
+      await Future<void>.delayed(Duration.zero);
+    }
+
+    for (var s = 0; s < 30; s++) {
+      await second((i) => -5.6 + (i.isEven ? 0.1 : -0.1)); // still, with a little sensor noise
+    }
+    for (var s = 0; s < 30; s++) {
+      await second((i) => -5.6 + 30 * sin(2 * pi * i / 52)); // turning the head back and forth
+    }
+    await recorder.stop();
+
+    expect(recorder.epochs, hasLength(2));
+    expect(recorder.epochs[0].movement, lessThan(NightRecorder.movementThreshold));
+    expect(recorder.epochs[1].movement, greaterThan(NightRecorder.movementThreshold));
   });
 
   test('a dropout becomes a marked gap, so the file stays in step with the clock', () async {

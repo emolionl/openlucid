@@ -23,6 +23,7 @@ import sys
 
 import mne
 
+MOVEMENT_DEG_S = 2  # same threshold as the app (NightRecorder.movementThreshold)
 REQUIRED_SIDECAR = ["EEGReference", "SamplingFrequency", "PowerLineFrequency", "SoftwareFilters", "TaskName"]
 
 
@@ -73,7 +74,7 @@ def main(session: pathlib.Path) -> int:
         quality = {}
         for r in rows:
             quality[r["quality"]] = quality.get(r["quality"], 0) + 1
-        moved = sum(1 for r in rows if r["movement_deg_s"] not in ("n/a", "") and float(r["movement_deg_s"]) > 5)
+        moved = sum(1 for r in rows if r["movement_deg_s"] not in ("n/a", "") and float(r["movement_deg_s"]) > MOVEMENT_DEG_S)
         turned = sum(1 for r in rows if r["position_changed"] == "1")
         print(f"Epochs     {len(rows)} of 30 s: " + ", ".join(f"{n} {q}" for q, n in sorted(quality.items())))
         print(f"Movement   {moved} epochs with movement, {turned} changes of position")

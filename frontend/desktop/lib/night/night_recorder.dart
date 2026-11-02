@@ -26,7 +26,9 @@ class EpochSummary {
   /// Contact score 0..1 per EEG channel (same score as the live view).
   final Map<String, double> contact;
 
-  /// Mean rotation speed of the head in degrees per second (from the gyroscope); null without one.
+  /// How much the head rotated, in degrees per second: the variation of the gyroscope around its own
+  /// average during the epoch. Using the variation, not the raw speed, cancels the gyroscope's built-in
+  /// offset (on the first real night about 6.6 deg/s while lying perfectly still). Null without a gyroscope.
   final double? movement;
   final bool positionChanged;
 
@@ -44,8 +46,9 @@ class EpochSummary {
 class NightRecorder {
   NightRecorder._(this.source, this.folder, this.baseName, this.startedAt, this.mainsHz, this.deviceInfo);
 
-  /// Movement above this mean rotation speed (degrees per second) during an epoch counts as movement.
-  static const double movementThreshold = 5;
+  /// Movement above this (degrees per second, see [EpochSummary.movement]) during an epoch counts as
+  /// movement. Lying still measured 0.24 on the first real night; turning over 10 to 40.
+  static const double movementThreshold = 2;
 
   /// A change in gravity direction of more than this many degrees counts as a change of position.
   static const double positionChangeDegrees = 30;
@@ -76,7 +79,8 @@ class NightRecorder {
   late final List<DisplayFilter> _filters;
   late final List<double> _sumSquares;
   int _epochSamples = 0;
-  double _gyroSum = 0;
+  final List<double> _gyroSum = [0, 0, 0];
+  final List<double> _gyroSumSquares = [0, 0, 0];
   int _gyroCount = 0;
   final List<double> _accelSum = [0, 0, 0];
   int _accelCount = 0;
@@ -221,8 +225,10 @@ class NightRecorder {
     _epochSamples += eegRecord.isEmpty ? 0 : eegRecord.first.length;
     if (gyro.isNotEmpty) {
       for (var i = 0; i < gyro.first.length; i++) {
-        final x = gyro[0][i], y = gyro[1][i], z = gyro[2][i];
-        _gyroSum += sqrt(x * x + y * y + z * z);
+        for (var axis = 0; axis < 3; axis++) {
+          _gyroSum[axis] += gyro[axis][i];
+          _gyroSumSquares[axis] += gyro[axis][i] * gyro[axis][i];
+        }
         _gyroCount++;
       }
     }
@@ -292,9 +298,12 @@ class NightRecorder {
         motionRecord.add(g);
         if (hadGyro) realGyro.add(g);
       }
-      // Movement samples beyond one second's worth pile up if the two clocks drift; keep at most 2 s.
+      // If the headband's two clocks drift, movement samples slowly pile up. Trim only what is more
+      // than 2 s ahead of the EEG still waiting to be written: when writing falls behind (busy disk,
+      // the burst after a reconnect), the backlog is real data that belongs to those EEG seconds.
+      final allowed = (_eegBuffered ~/ max(1, _eegRate) + 2) * _motionRate;
       for (final buffer in [..._accel, ..._gyro]) {
-        if (buffer.length > 2 * _motionRate) buffer.removeRange(0, buffer.length - _motionRate);
+        if (buffer.length > allowed) buffer.removeRange(0, buffer.length - allowed);
       }
     }
 
@@ -328,7 +337,14 @@ class NightRecorder {
     _epochSamples = 0;
 
     double? movement;
-    if (_gyroCount > 0) movement = _gyroSum / _gyroCount;
+    if (_gyroCount > 0) {
+      var variance = 0.0;
+      for (var axis = 0; axis < 3; axis++) {
+        final mean = _gyroSum[axis] / _gyroCount;
+        variance += max(0, _gyroSumSquares[axis] / _gyroCount - mean * mean);
+      }
+      movement = sqrt(variance);
+    }
     var positionChanged = false;
     if (_accelCount > 0) {
       final gravity = [for (final s in _accelSum) s / _accelCount];
@@ -340,7 +356,8 @@ class NightRecorder {
         _stableGravity = gravity;
       }
     }
-    _gyroSum = 0;
+    _gyroSum.setAll(0, [0, 0, 0]);
+    _gyroSumSquares.setAll(0, [0, 0, 0]);
     _gyroCount = 0;
     _accelSum.setAll(0, [0, 0, 0]);
     _accelCount = 0;

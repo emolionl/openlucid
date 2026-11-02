@@ -66,3 +66,15 @@ What is *not* tested yet: the real Muse's movement channels and the reconnect wi
 - Laptop on the charger, next to the bed. If the lid will be closed: set "When I close the lid" to "Do nothing" while plugged in. The app keeps Windows awake, not a closed lid.
 - Muse charged, Muse app on the phone closed. Moisten the sensors (see [Day 1d](2026-11-01-day-01d-contact-does-not-stay.md)).
 - Tonight → Muse → connect → check contact → **Start night**. In the morning: **Stop night**. Then run `python tools/check_night.py <the night's folder>`.
+
+## Later that evening: what the first real recording showed
+
+The app recorded for more than two hours without stopping. The Muse dropped out six times; each time the app marked a gap of about 15 seconds and reconnected by itself. That part works. Two numbers in `epochs.tsv` looked wrong, and the raw EDF file (checked with MNE) explained both:
+
+**Contact 0 everywhere: correct.** 15 to 28% of all samples sat at the Muse's limit of ±1000 µV, the wiggles were about 200 µV per second (target: under 25), and the channels came in identical pairs (TP9 with AF7, AF8 with TP10). That's the floating-sensor pattern from [Day 1b](2026-11-01-day-01b-what-bad-contact-looks-like.md): the sensors weren't touching skin. The recorder told the truth.
+
+**Every epoch "movement": a bug, mistake 5.** The movement score was the average rotation speed from the gyroscope. But a gyroscope has an offset: this Muse reads about (−5.6, −2.1, −3.1) degrees per second while lying perfectly still, which adds up to 6.6. Every epoch was above the threshold of 5. Now the score is the *variation* around the epoch's own average, which cancels the offset: lying still gives 0.24, a real movement 10 to 40. The threshold is 2.
+
+**Mistake 6, found by the test for mistake 5.** To guard against clock drift, the recorder threw away movement samples once more than 2 seconds piled up. When writing falls behind (a busy disk, or the burst of data after a reconnect), that paired EEG from one moment with movement from a later one. Now it keeps as much movement as there is EEG still waiting, plus 2 seconds. This was most likely also the reason for the flaky test in mistake 3.
+
+The raw data of that recording is fine; only its epoch summaries carry the old movement score, and they can be recalculated from the EDF.
