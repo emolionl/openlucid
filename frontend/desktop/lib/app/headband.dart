@@ -8,7 +8,9 @@ import 'package:universal_ble/universal_ble.dart';
 import '../eeg/eeg_source.dart';
 import '../eeg/fake_moose.dart';
 import '../eeg/muse_source.dart';
+import '../night/night_recorder.dart';
 import '../ui/live_plot.dart';
+import 'keep_awake.dart';
 import 'settings.dart';
 
 enum DeviceChoice { fakeMoose, muse }
@@ -30,7 +32,29 @@ class Headband extends ChangeNotifier {
   StreamSubscription<BleDevice>? _scan;
   StreamSubscription<EegChunk>? _stream;
 
+  /// The night being recorded, if any.
+  NightRecorder? night;
+  bool keepingAwake = false;
+  int reconnects = 0;
+  bool connectionLost = false;
+  Timer? _nightTicker;
+  StreamSubscription<bool>? _connection;
+
   bool get listening => source != null;
+  bool get recording => night != null;
+
+  /// Tests point this at a temporary folder.
+  @visibleForTesting
+  static Future<Directory> Function()? nightsFolderOverride;
+
+  /// Where nights are kept: Documents/OpenLucid/nights, one BIDS dataset.
+  static Future<Directory> nightsFolder() async {
+    final override = nightsFolderOverride;
+    if (override != null) return override();
+    final documents = await getApplicationDocumentsDirectory();
+    final s = Platform.pathSeparator;
+    return Directory('${documents.path}${s}OpenLucid${s}nights');
+  }
   bool get scanning => _scan != null;
 
   void choose(DeviceChoice value) {
@@ -102,9 +126,99 @@ class Headband extends ChangeNotifier {
     }
   }
 
+  /// Starts recording a night from the headband that is already streaming.
+  Future<void> startNight() async {
+    final current = source;
+    if (current == null || recording) return;
+    busy = true;
+    notifyListeners();
+    try {
+      final muse = current is MuseSource ? current : null;
+      night = await NightRecorder.start(
+        source: current,
+        root: await nightsFolder(),
+        subjectId: settings.subjectId,
+        mainsHz: settings.mainsHz,
+        deviceInfo: {
+          'manufacturer': muse != null ? 'InteraXon' : 'OpenLucid (simulated)',
+          'model': muse != null ? 'Muse S Gen 2 (MS-02)' : current.name,
+          if (muse?.firmware != null) 'firmware': '${muse!.firmware} preset ${muse.preset ?? 'n/a'}',
+        },
+      );
+      keepingAwake = KeepAwake.enable();
+      reconnects = 0;
+      connectionLost = false;
+      _connection = current.connection.listen(_onConnection);
+      _nightTicker = Timer.periodic(const Duration(seconds: 5), (_) => notifyListeners());
+      status = 'Recording the night. Sleep well.';
+    } catch (error) {
+      night = null;
+      status = 'Could not start the night: $error';
+    } finally {
+      busy = false;
+      notifyListeners();
+    }
+  }
+
+  /// Stops the night and writes the files. Returns the folder of the night.
+  Future<String?> stopNight() async {
+    final current = night;
+    if (current == null) return null;
+    busy = true;
+    notifyListeners();
+    _nightTicker?.cancel();
+    _nightTicker = null;
+    await _connection?.cancel();
+    _connection = null;
+    try {
+      await current.stop();
+      status = 'Night saved: ${current.folder.path}';
+    } catch (error) {
+      status = 'Problem while saving the night: $error';
+    } finally {
+      night = null;
+      KeepAwake.disable();
+      keepingAwake = false;
+      busy = false;
+      notifyListeners();
+    }
+    return current.folder.path;
+  }
+
+  // During a night a lost Bluetooth link is not the end: mark it and keep trying to connect again.
+  // The recorder fills the missing seconds as a marked gap, so the night stays one continuous file.
+  void _onConnection(bool connected) {
+    final recorder = night;
+    final muse = source;
+    if (recorder == null || connected || connectionLost || muse is! MuseSource) return;
+    connectionLost = true;
+    recorder.addEvent('OpenLucid disconnected', type: 'disconnected');
+    status = 'Lost the headband. Trying to connect again...';
+    notifyListeners();
+    _reconnectLoop(muse);
+  }
+
+  Future<void> _reconnectLoop(MuseSource muse) async {
+    while (night != null && connectionLost) {
+      await Future<void>.delayed(const Duration(seconds: 10));
+      if (night == null) return;
+      try {
+        await muse.reconnect();
+        connectionLost = false;
+        reconnects++;
+        night?.addEvent('OpenLucid reconnected', type: 'reconnected');
+        status = 'Connected again. Recording the night.';
+      } catch (_) {
+        status = 'Lost the headband. Still trying to connect again...';
+      }
+      notifyListeners();
+    }
+  }
+
   Future<void> stop() async {
     final current = source;
     if (current == null) return;
+    if (recording) await stopNight();
     busy = true;
     notifyListeners();
     await current.stop();
@@ -142,6 +256,10 @@ class Headband extends ChangeNotifier {
 
   @override
   void dispose() {
+    night?.stop();
+    KeepAwake.disable();
+    _nightTicker?.cancel();
+    _connection?.cancel();
     _scan?.cancel();
     _stream?.cancel();
     source?.stop();

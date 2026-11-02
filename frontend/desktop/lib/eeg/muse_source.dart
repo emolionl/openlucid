@@ -31,6 +31,17 @@ class MuseSource implements EegSource {
   @override
   Stream<EegChunk> get chunks => _chunks.stream;
 
+  final _motion = StreamController<MotionChunk>.broadcast();
+
+  @override
+  Stream<MotionChunk> get motion => _motion.stream;
+
+  @override
+  double get motionRate => museMotionRate;
+
+  @override
+  Stream<bool> get connection => UniversalBle.connectionStream(deviceId);
+
   /// Finds headbands nearby. Muse devices advertise a name starting with "Muse".
   static Stream<BleDevice> scan() {
     final controller = StreamController<BleDevice>();
@@ -134,6 +145,24 @@ class MuseSource implements EegSource {
       await UniversalBle.subscribeNotifications(deviceId, museService, characteristics[channel]);
     }
 
+    // Movement sensors: same 20-byte packets, 3 samples of x, y, z. Optional: a headband without them still works.
+    for (final (uuid, kind, scale) in [
+      (museAccelerometer, MotionKind.accelerometer, museAccelerometerScale),
+      (museGyroscope, MotionKind.gyroscope, museGyroscopeScale),
+    ]) {
+      _subscriptions.add(
+        UniversalBle.characteristicValueStream(deviceId, uuid).listen((bytes) {
+          if (bytes.length != 20) return;
+          _motion.add(MotionChunk(kind, decodeMuseMotionPacket(bytes, scale).samples));
+        }),
+      );
+      try {
+        await UniversalBle.subscribeNotifications(deviceId, museService, uuid);
+      } catch (_) {
+        // This model doesn't offer the sensor; the night is recorded without it.
+      }
+    }
+
     await _send('s');
     await Future.delayed(museCommandGap);
     await _send('d');
@@ -151,6 +180,18 @@ class MuseSource implements EegSource {
         if (firmware != null) 'firmware $firmware',
         if (preset != null) preset,
       ].join(' · ');
+
+  /// After the Bluetooth link dropped (out of range, the band slipped off a charging laptop's reach):
+  /// connects again and repeats the start sequence. The chunk streams stay the same, so whoever
+  /// listens (the night recorder) just sees a pause.
+  Future<void> reconnect() async {
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    _subscriptions.clear();
+    statusText = '';
+    await start();
+  }
 
   @override
   Future<void> stop() async {

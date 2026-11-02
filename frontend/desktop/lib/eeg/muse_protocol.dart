@@ -14,6 +14,13 @@ const Map<String, String> museEegCharacteristics = {
   'TP10': '273e0006-4c4d-454d-96be-f03bac821358',
 };
 
+/// Movement sensors (muse-lsl constants): 3 axes, 3 samples per packet, 52 Hz.
+const String museAccelerometer = '273e000a-4c4d-454d-96be-f03bac821358';
+const String museGyroscope = '273e0009-4c4d-454d-96be-f03bac821358';
+const double museMotionRate = 52;
+const double museAccelerometerScale = 0.0000610352; // g per unit
+const double museGyroscopeScale = 0.0074768; // degrees per second per unit
+
 const double museSampleRate = 256;
 const int museSamplesPerPacket = 12;
 
@@ -114,4 +121,30 @@ class MusePacketAssembler {
       dropped++;
     }
   }
+}
+
+class MuseMotionPacket {
+  MuseMotionPacket(this.counter, this.samples);
+
+  final int counter;
+
+  /// samples[axis][i], 3 axes by 3 samples, already scaled (g or degrees per second).
+  final List<List<double>> samples;
+}
+
+/// Decodes one 20-byte accelerometer or gyroscope notification: a 2-byte counter, then
+/// 3 samples of (x, y, z), each a signed 16-bit big-endian number, multiplied by [scale].
+MuseMotionPacket decodeMuseMotionPacket(Uint8List data, double scale) {
+  if (data.length != 20) {
+    throw FormatException('A Muse movement packet has 20 bytes, got ${data.length}.');
+  }
+  final view = ByteData.sublistView(data);
+  final counter = view.getUint16(0, Endian.big);
+  final samples = List.generate(3, (_) => List<double>.filled(3, 0));
+  for (var i = 0; i < 3; i++) {
+    for (var axis = 0; axis < 3; axis++) {
+      samples[axis][i] = view.getInt16(2 + (i * 3 + axis) * 2, Endian.big) * scale;
+    }
+  }
+  return MuseMotionPacket(counter, samples);
 }

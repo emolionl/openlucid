@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,5 +28,15 @@ class Settings extends ChangeNotifier {
   set mainsHz(int value) {
     _prefs.setInt('mainsHz', value);
     notifyListeners();
+  }
+
+  /// A random, anonymous code for this person, used in file names (BIDS "sub-<code>"). Never a name.
+  String get subjectId {
+    final existing = _prefs.getString('subjectId');
+    if (existing != null) return existing;
+    final random = Random.secure();
+    final code = List.generate(8, (_) => random.nextInt(16).toRadixString(16)).join();
+    _prefs.setString('subjectId', code);
+    return code;
   }
 }

@@ -47,7 +47,11 @@ class TonightScreen extends StatelessWidget {
             const _Header(),
             const SizedBox(height: 12),
             _HeadbandCard(headband: headband, compact: true),
-            if (headband.buffer != null) ...[
+            if (headband.listening) ...[
+              const SizedBox(height: 12),
+              _NightCard(headband: headband, compact: true),
+            ],
+            if (headband.buffer != null && !headband.recording) ...[
               const SizedBox(height: 12),
               _ContactStrip(buffer: headband.buffer!),
             ],
@@ -81,6 +85,10 @@ class TonightScreen extends StatelessWidget {
                     const _Header(),
                     const SizedBox(height: 16),
                     _HeadbandCard(headband: headband, compact: false),
+                    if (headband.listening) ...[
+                      const SizedBox(height: 16),
+                      _NightCard(headband: headband, compact: false),
+                    ],
                     if (headband.buffer != null) ...[
                       const SizedBox(height: 16),
                       _ContactCard(buffer: headband.buffer!),
@@ -141,7 +149,7 @@ class _HeadbandCard extends StatelessWidget {
     final Widget action;
     if (listening) {
       action = FilledButton.tonalIcon(
-        onPressed: busy ? null : headband.stop,
+        onPressed: busy || headband.recording ? null : headband.stop,
         icon: const Icon(Icons.stop_rounded),
         label: const Text('Stop'),
       );
@@ -243,6 +251,162 @@ class _HeadbandCard extends StatelessWidget {
                 ),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Start a night, or follow the one being recorded.
+class _NightCard extends StatelessWidget {
+  const _NightCard({required this.headband, required this.compact});
+
+  final Headband headband;
+
+  /// Phones: just a button, or one line while recording, so the live signal keeps its room.
+  final bool compact;
+
+  Future<void> _confirmStop(BuildContext context) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stop the night?'),
+        content: const Text('The recording ends and the files are written. You can start a new night afterwards.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep recording')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Stop the night')),
+        ],
+      ),
+    );
+    if (sure == true) await headband.stopNight();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final night = headband.night;
+    final busy = headband.busy;
+
+    if (night == null && compact) {
+      return FilledButton.icon(
+        key: const Key('startNight'),
+        onPressed: busy ? null : headband.startNight,
+        icon: const Icon(Icons.bedtime_outlined),
+        label: const Text('Start night'),
+      );
+    }
+
+    if (night == null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Night', style: text.titleMedium),
+              const SizedBox(height: 4),
+              Text(
+                'Records the whole night on this computer: brain signal and movement, in the formats sleep '
+                'research uses (EDF+, BIDS). Keep the laptop plugged in and close to the bed.',
+                style: text.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FilledButton.icon(
+                  key: const Key('startNight'),
+                  onPressed: busy ? null : headband.startNight,
+                  icon: const Icon(Icons.bedtime_outlined),
+                  label: const Text('Start night'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final seconds = night.recordsWritten;
+    String clock(int s) => '${s ~/ 3600}:${((s ~/ 60) % 60).toString().padLeft(2, '0')}';
+    final epochs = night.epochs;
+    final last = epochs.isEmpty ? null : epochs.last;
+    final moved = epochs.where((e) => (e.movement ?? 0) > 5).length;
+    final turned = epochs.where((e) => e.positionChanged).length;
+    final good = epochs.where((e) => e.quality == 'good').length;
+    final dot = Icon(Icons.fiber_manual_record, size: 14, color: headband.connectionLost ? Colors.orange : Colors.red);
+    final stopButton = FilledButton.tonalIcon(
+      key: const Key('stopNight'),
+      onPressed: busy ? null : () => _confirmStop(context),
+      icon: const Icon(Icons.wb_sunny_outlined),
+      label: const Text('Stop night'),
+    );
+
+    if (compact) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              dot,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  headband.connectionLost
+                      ? 'Reconnecting... ${clock(seconds)}'
+                      : '${clock(seconds)} · ${epochs.length} epochs · $turned turns',
+                  key: const Key('nightClock'),
+                  style: text.bodyMedium,
+                ),
+              ),
+              stopButton,
+            ],
+          ),
+        ),
+      );
+    }
+
+    Widget row(IconData icon, String label, String value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text(label, style: text.bodyMedium)),
+              Text(value, style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        );
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                dot,
+                const SizedBox(width: 8),
+                Expanded(child: Text(headband.connectionLost ? 'Headband lost, reconnecting' : 'Recording', style: text.titleMedium)),
+                Text(clock(seconds), key: const Key('nightClock'), style: text.titleMedium),
+              ],
+            ),
+            const SizedBox(height: 8),
+            row(Icons.timelapse, 'Epochs of 30 s', '${epochs.length}'),
+            row(Icons.check_circle_outline, 'Good epochs', epochs.isEmpty ? '-' : '${(100 * good / epochs.length).round()}%'),
+            row(Icons.directions_run, 'Epochs with movement', '$moved'),
+            row(Icons.screen_rotation_alt, 'Changes of position', '$turned'),
+            if (last != null) row(Icons.sensors, 'Last epoch', last.quality),
+            if (headband.reconnects > 0) row(Icons.bluetooth_connected, 'Reconnected', '${headband.reconnects}x'),
+            if (!headband.keepingAwake)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text('Could not keep this device awake: switch off sleep mode in its settings.',
+                    style: text.bodySmall?.copyWith(color: Colors.orange)),
+              ),
+            const SizedBox(height: 12),
+            Align(alignment: Alignment.centerLeft, child: stopButton),
           ],
         ),
       ),

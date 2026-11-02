@@ -8,6 +8,8 @@ import 'eeg_source.dart';
 /// It is not a real recording. It produces signals that *look* like a relaxed, awake person
 /// with closed eyes: background noise, a 10 Hz alpha rhythm, a blink now and then on the
 /// forehead channels, and once in a while a slow look left and right, mirrored on AF7 and AF8.
+/// It also simulates head movement: gravity on the accelerometer, a quiet gyroscope, and now and
+/// then turning over onto another side (a burst of rotation, then gravity in a new direction).
 class FakeMoose implements EegSource {
   FakeMoose({int seed = 7}) : _random = Random(seed);
 
@@ -49,6 +51,7 @@ class FakeMoose implements EegSource {
     if (value) {
       _nextBlink = _never;
       _nextLook = _never;
+      _nextTurn = _never;
     }
   }
 
@@ -64,6 +67,59 @@ class FakeMoose implements EegSource {
   @override
   Stream<EegChunk> get chunks => _chunks.stream;
 
+  final _motion = StreamController<MotionChunk>.broadcast();
+
+  @override
+  Stream<MotionChunk> get motion => _motion.stream;
+
+  @override
+  double get motionRate => 52;
+
+  final _connection = StreamController<bool>.broadcast();
+
+  @override
+  Stream<bool> get connection => _connection.stream;
+
+  // Simulated head orientation: the direction gravity points in, as seen by the headband.
+  static const _orientations = [
+    [0.0, 0.0, 1.0], // on the back
+    [1.0, 0.0, 0.0], // on one side
+    [-1.0, 0.0, 0.0], // on the other side
+  ];
+  int _orientation = 0;
+  List<double> _gravity = [0.0, 0.0, 1.0];
+  int _motionIndex = 0;
+  int _turnUntil = -1; // motion sample index until which the head is turning
+  int _nextTurn = 52 * 60 * 8; // first turn after about 8 minutes
+
+  /// Turn over onto another side now (takes about 2 seconds).
+  void turnOver() {
+    _orientation = (_orientation + 1 + _random.nextInt(_orientations.length - 1)) % _orientations.length;
+    _turnUntil = _motionIndex + 104;
+  }
+
+  /// The next [count] movement samples: (accelerometer [axis][i] in g, gyroscope [axis][i] in degrees/s).
+  (List<List<double>>, List<List<double>>) generateMotion(int count) {
+    final accel = List.generate(3, (_) => List<double>.filled(count, 0));
+    final gyro = List.generate(3, (_) => List<double>.filled(count, 0));
+    for (var i = 0; i < count; i++) {
+      if (!_scripted && _motionIndex >= _nextTurn) {
+        turnOver();
+        _nextTurn = _motionIndex + 52 * 60 * (6 + _random.nextInt(10));
+      }
+      final turning = _motionIndex < _turnUntil;
+      final target = _orientations[_orientation];
+      for (var axis = 0; axis < 3; axis++) {
+        // While turning, gravity swings towards the new direction; otherwise it stays put.
+        _gravity[axis] += (target[axis] - _gravity[axis]) * (turning ? 0.05 : 0.0);
+        accel[axis][i] = _gravity[axis] + 0.01 * (_random.nextDouble() - 0.5);
+        gyro[axis][i] = (turning ? 60.0 : 0.0) * (axis == 1 ? 1 : 0.3) + 0.4 * (_random.nextDouble() - 0.5);
+      }
+      _motionIndex++;
+    }
+    return (accel, gyro);
+  }
+
   @override
   Future<void> start() async {
     _clock = Stopwatch()..start();
@@ -71,7 +127,15 @@ class FakeMoose implements EegSource {
     _timer = Timer.periodic(const Duration(milliseconds: 47), (_) {
       final due = (_clock!.elapsedMicroseconds * sampleRate / 1e6).floor() - _sampleIndex;
       if (due > 0) _chunks.add(EegChunk(generate(due)));
+      final dueMotion = (_clock!.elapsedMicroseconds * motionRate / 1e6).floor() - _motionIndex;
+      if (dueMotion > 0) {
+        final (accel, gyro) = generateMotion(dueMotion);
+        _motion
+          ..add(MotionChunk(MotionKind.accelerometer, accel))
+          ..add(MotionChunk(MotionKind.gyroscope, gyro));
+      }
     });
+    _connection.add(true);
   }
 
   @override
@@ -79,6 +143,7 @@ class FakeMoose implements EegSource {
     _timer?.cancel();
     _timer = null;
     _clock?.stop();
+    _connection.add(false);
   }
 
   /// The next [count] samples of every channel, in microvolts.

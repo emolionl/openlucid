@@ -1,0 +1,3 @@
+# Tools to inspect recordings the way researchers do.
+mne>=1.8,<2
+numpy>=2,<3

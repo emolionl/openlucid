@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:openlucid/app/headband.dart';
 import 'package:openlucid/main.dart' as app;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -249,5 +250,54 @@ void main() {
     await tester.tap(find.text('Stop'));
     await pumpUntil(tester, find.text('Start listening'));
     log('test 4 took ${t.elapsedMilliseconds} ms');
+  });
+
+  testWidgets('5. A short night with Fake Moose: start, record 35 s, stop, files on disk, listed in Nights', (tester) async {
+    final t = Stopwatch()..start();
+    final root = Directory.systemTemp.createTempSync('openlucid-e2e-night-');
+    Headband.nightsFolderOverride = () async => root;
+    await launch(tester);
+
+    await tester.tap(find.text('Fake Moose'));
+    await tester.pump();
+    await tester.tap(find.text('Start listening'));
+    await pumpUntil(tester, find.byKey(const Key('startNight')));
+    await tester.tap(find.byKey(const Key('startNight')));
+    await pumpUntil(tester, find.byKey(const Key('stopNight')));
+    expect(find.text('Recording the night. Sleep well.'), findsOneWidget);
+    final stopListening = tester.widget<ButtonStyleButton>(find.ancestor(of: find.text('Stop'), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
+    expect(stopListening.onPressed, isNull, reason: 'during a night, the headband cannot be stopped by one tap');
+
+    await pumpFor(tester, const Duration(seconds: 35));
+    await shot(tester, '05-night-recording');
+    final clock = tester.widget<Text>(find.byKey(const Key('nightClock'))).data!;
+    log('night clock after 35 s: $clock, epochs row: ${find.text('1').evaluate().length}');
+    expect(clock, '0:00');
+
+    await tester.tap(find.byKey(const Key('stopNight')));
+    await pumpUntil(tester, find.text('Stop the night?'));
+    await tester.tap(find.text('Stop the night'));
+    await pumpUntil(tester, find.byKey(const Key('startNight')));
+    final status = tester.widget<Text>(find.byKey(const Key('status'))).data!;
+    log(status);
+    expect(status, startsWith('Night saved: '));
+
+    final edf = root.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('_eeg.edf')).toList();
+    expect(edf, hasLength(1));
+    final header = String.fromCharCodes(edf.single.readAsBytesSync().sublist(236, 244)).trim();
+    log('EDF ${edf.single.path}: $header records');
+    expect(int.parse(header), inInclusiveRange(33, 40));
+    // ignore: avoid_print
+    print('E2E_NIGHT_FOLDER=${edf.single.parent.parent.path}');
+
+    await tester.tap(find.text('Nights'));
+    await pumpUntil(tester, find.textContaining('1 epochs'));
+    await shot(tester, '05-nights-list');
+
+    await tester.tap(find.text('Tonight'));
+    await pumpUntil(tester, find.text('Stop'));
+    await tester.tap(find.text('Stop'));
+    await pumpUntil(tester, find.text('Start listening'));
+    log('test 5 took ${t.elapsedMilliseconds} ms');
   });
 }

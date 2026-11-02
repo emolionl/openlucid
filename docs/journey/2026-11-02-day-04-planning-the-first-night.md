@@ -7,7 +7,7 @@ outcome: "Plan"
 tldr:
   - "Everybody moves in their sleep, turns over and lies on their side. That's normal, and the recording has to cope with it."
   - "The Muse S has an accelerometer and a gyroscope (52 samples per second). OpenLucid will record them next to the EEG."
-  - "Movement is marked, not deleted: every 30-second epoch gets a movement score, a sleeping position and a quality label."
+  - "Movement is marked, not deleted: every 30-second epoch gets a movement score, a position-change flag and a quality label."
   - "The first night is recorded locally and saved in the research standard (BIDS-EEG with EDF+). Syncing to the server comes next."
 ---
 
@@ -30,9 +30,11 @@ For the recording, movement does three things:
 | Label | Meaning | How |
 |---|---|---|
 | Movement score | How much the head moved | The gyroscope's rotation speed plus changes in the accelerometer, per epoch |
-| Position | Back, left side, right side, front, upright | The direction of gravity in the accelerometer |
+| Position change | The head turned to a new position (more than 30 degrees) | The direction of gravity in the accelerometer, compared with the last steady position |
 | Quality | `good`, `okay`, `poor`, `gap` | Contact score per sensor, movement, and missing data |
-| Events | `OpenLucid movement`, `OpenLucid contact lost`, `OpenLucid reconnect` | Written as EDF+ annotations and in the events table |
+| Events | `OpenLucid movement`, `OpenLucid position change`, `OpenLucid contact lost`, `OpenLucid disconnected` / `reconnected`, `OpenLucid gap` | Written as EDF+ annotations and in the events table |
+
+Why "position change" and not "lying on the left side": we don't know yet which way the Muse's axes point when it's on the head. Naming positions (back, left, right) needs a short calibration first: lie on your back for ten seconds, then on each side. That's a later step; tonight the raw accelerometer is saved, so the positions can be worked out afterwards.
 
 Analysis tools can then choose: score only clean epochs, treat movement epochs as "unknown", or count position changes.
 

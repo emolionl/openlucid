@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openlucid/app/headband.dart';
@@ -87,8 +89,13 @@ void main() {
 
   testWidgets('placeholders for nights and journal', (tester) async {
     await pumpAt(tester, const Size(390, 844));
+    Headband.nightsFolderOverride = () async => Directory('${Directory.systemTemp.path}/openlucid-no-nights-here');
     await tester.tap(find.text('Nights'));
-    await tester.pumpAndSettle();
+    // Reading the folder is real file access: give it real time, then draw again.
+    for (var i = 0; i < 20 && find.text('No nights yet').evaluate().isEmpty; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump();
+    }
     expect(find.text('No nights yet'), findsOneWidget);
 
     await tester.tap(find.text('Journal'));

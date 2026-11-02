@@ -49,7 +49,7 @@ class _AppShellState extends State<AppShell> {
 
   Widget _page() => switch (_index) {
         0 => TonightScreen(headband: widget.headband),
-        1 => const NightsScreen(),
+        1 => NightsScreen(headband: widget.headband),
         2 => const JournalScreen(),
         _ => SettingsScreen(settings: widget.settings),
       };
