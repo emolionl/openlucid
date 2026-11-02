@@ -1,0 +1,58 @@
+# Builds the downloads when a version tag is pushed (for example: git tag v0.4.0-preview && git push --tags)
+# and attaches them to the GitHub release. Tags with a dash (v0.4.0-preview) become pre-releases.
+# Free on GitHub for public repositories.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: # a manual test run: builds, keeps the zip as a workflow artifact, publishes nothing
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows build
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: frontend/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.35.7
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { 'dev' }
+          $zip = "OpenLucid-$version-windows-x64.zip"
+          Copy-Item -Recurse build/windows/x64/runner/Release OpenLucid
+          Compress-Archive -Path OpenLucid -DestinationPath $zip
+          "ZIP=frontend/desktop/$zip" | Out-File -Append $env:GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-zip
+          path: ${{ env.ZIP }}
+
+      - name: Attach to the release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            $pre = if ($tag.Contains('-')) { '--prerelease' } else { '' }
+            gh release create $tag --title "OpenLucid $($tag.TrimStart('v'))" --generate-notes $pre
+          }
+          gh release upload $tag $env:ZIP --clobber
