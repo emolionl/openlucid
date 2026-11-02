@@ -52,7 +52,8 @@ jobs:
           $tag = $env:GITHUB_REF_NAME
           gh release view $tag *> $null
           if ($LASTEXITCODE -ne 0) {
-            $pre = if ($tag.Contains('-')) { '--prerelease' } else { '' }
-            gh release create $tag --title "OpenLucid $($tag.TrimStart('v'))" --generate-notes $pre
+            $extra = @()
+            if ($tag.Contains('-')) { $extra += '--prerelease' }
+            gh release create $tag --title "OpenLucid $($tag.TrimStart('v'))" --generate-notes @extra
           }
           gh release upload $tag $env:ZIP --clobber

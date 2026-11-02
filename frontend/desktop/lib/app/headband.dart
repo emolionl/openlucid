@@ -117,6 +117,11 @@ class Headband extends ChangeNotifier {
       source = newSource;
       buffer = newBuffer;
       status = 'Connected to ${newSource.name}.';
+      // Watch the link from the moment we're connected, not just once a night starts recording —
+      // otherwise a drop during the pre-night contact check goes unnoticed and nothing reconnects.
+      reconnects = 0;
+      connectionLost = false;
+      _connection = newSource.connection.listen(_onConnection);
     } catch (error) {
       await _stream?.cancel();
       status = 'Could not connect: $error';
@@ -146,9 +151,9 @@ class Headband extends ChangeNotifier {
         },
       );
       keepingAwake = KeepAwake.enable();
+      // Connection watching already started in _listen(); just keep the counters from carrying over
+      // a pre-night reconnect into tonight's event log.
       reconnects = 0;
-      connectionLost = false;
-      _connection = current.connection.listen(_onConnection);
       _nightTicker = Timer.periodic(const Duration(seconds: 5), (_) => notifyListeners());
       status = 'Recording the night. Sleep well.';
     } catch (error) {
@@ -168,8 +173,8 @@ class Headband extends ChangeNotifier {
     notifyListeners();
     _nightTicker?.cancel();
     _nightTicker = null;
-    await _connection?.cancel();
-    _connection = null;
+    // Connection watching is not night-specific anymore (see _listen()); leave it running so a
+    // disconnect right after stopping still gets picked up for the live view.
     try {
       await current.stop();
       status = 'Night saved: ${current.folder.path}';
@@ -185,29 +190,29 @@ class Headband extends ChangeNotifier {
     return current.folder.path;
   }
 
-  // During a night a lost Bluetooth link is not the end: mark it and keep trying to connect again.
-  // The recorder fills the missing seconds as a marked gap, so the night stays one continuous file.
+  // A lost Bluetooth link is not the end, whether or not a night is being recorded: mark it (if a
+  // night is running, the recorder fills the missing seconds as a marked gap, so the night stays
+  // one continuous file) and keep trying to connect again until stop() is called.
   void _onConnection(bool connected) {
-    final recorder = night;
     final muse = source;
-    if (recorder == null || connected || connectionLost || muse is! MuseSource) return;
+    if (connected || connectionLost || muse is! MuseSource) return;
     connectionLost = true;
-    recorder.addEvent('OpenLucid disconnected', type: 'disconnected');
+    night?.addEvent('OpenLucid disconnected', type: 'disconnected');
     status = 'Lost the headband. Trying to connect again...';
     notifyListeners();
     _reconnectLoop(muse);
   }
 
   Future<void> _reconnectLoop(MuseSource muse) async {
-    while (night != null && connectionLost) {
+    while (source == muse && connectionLost) {
       await Future<void>.delayed(const Duration(seconds: 10));
-      if (night == null) return;
+      if (source != muse) return;
       try {
         await muse.reconnect();
         connectionLost = false;
         reconnects++;
         night?.addEvent('OpenLucid reconnected', type: 'reconnected');
-        status = 'Connected again. Recording the night.';
+        status = recording ? 'Connected again. Recording the night.' : 'Connected again.';
       } catch (_) {
         status = 'Lost the headband. Still trying to connect again...';
       }
@@ -221,6 +226,9 @@ class Headband extends ChangeNotifier {
     if (recording) await stopNight();
     busy = true;
     notifyListeners();
+    await _connection?.cancel();
+    _connection = null;
+    connectionLost = false;
     await current.stop();
     await _stream?.cancel();
     source = null;
