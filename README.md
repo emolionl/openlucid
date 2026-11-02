@@ -65,7 +65,7 @@ flutter build windows --release   # the same build as the download
 ```powershell
 cd backend
 python -m venv .venv
-.\.venv\Scriptsctivate
+.\.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -76,7 +76,7 @@ Open <http://localhost:8000/health>. It should say *"The Diary Keeper is awake."
 
 ```powershell
 python -m venv tools\.venv
-.	ools\.venv\Scriptsctivate
+.\tools\.venv\Scripts\activate
 pip install -r tools/requirements.txt
 python tools/check_night.py "<the night's folder>"
 ```
