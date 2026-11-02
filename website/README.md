@@ -1,6 +1,6 @@
 # Website (Hugo)
 
-The project website, a plain static Hugo site with no external theme. Live at <https://openlucid.web.app> (and openlucid.nl once the domain points there).
+The project website, a plain static Hugo site with no external theme. Live at <https://openlucid.nl> (also reachable at <https://openlucid.web.app>).
 
 The journey (`../docs/journey`) and the video scripts (`../promotion/video-scripts`) are mounted into the site by `hugo.toml`, so they are written once and read well both on GitHub and on the website. Links between Markdown files are turned into website links by `layouts/_default/_markup/render-link.html`.
 

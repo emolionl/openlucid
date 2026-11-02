@@ -1,18 +1,38 @@
 ---
 title: "Getting started"
-description: "Make the app and the Diary Keeper wave at each other."
+description: "Download the app, or run OpenLucid from the code: the app, the Diary Keeper server and the tools."
 weight: 1
 ---
 
-OpenLucid has three parts:
+## The quick way: download
+
+On Windows, download the app from the [download page](../../download/), unzip it and double-click `openlucid.exe`. Nothing else is needed to try it with Fake Moose or record a night with a Muse.
+
+## From the code
+
+OpenLucid has these parts:
 
 | Part | Folder | What it does |
 |---|---|---|
-| The Diary Keeper | `backend/` | A small server on your laptop that writes down everything about your night |
-| The app | `frontend/desktop/` | Connects to the headband, listens all night, plays the sound cue |
-| The morning view | `frontend/web/` | Your night's report and dream journal in the browser |
+| The app | `frontend/desktop/` | Connects to the headband, shows the signal, records the night (later: plays the sound cue) |
+| The Diary Keeper | `backend/` | An optional server on your own computer: accounts, nights, journal |
+| The morning view | `frontend/web/` | Your night and dream journal in the browser |
+| Tools | `tools/` | Python scripts that check recordings with MNE, the way researchers do |
 
-## 1. Start the Diary Keeper
+### The app
+
+Install [Flutter](https://docs.flutter.dev/get-started/install), then:
+
+```bash
+cd frontend/desktop
+flutter run -d windows        # or: -d android, -d macos, -d linux
+```
+
+To make a stand-alone Windows build like the download: `flutter build windows --release`. The result is in `build/windows/x64/runner/Release`.
+
+### The Diary Keeper
+
+You need Python 3.11 or newer.
 
 ```bash
 cd backend
@@ -22,23 +42,15 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Open <http://localhost:8000/health>. It should say *"The Diary Keeper is awake."*
+Open <http://localhost:8000/health>. It should say *"The Diary Keeper is awake."* With Docker and PostgreSQL instead: see `backend/README.md`.
 
-## 2. Wave from the app
-
-```bash
-cd frontend/desktop
-flutter run -d windows
-```
-
-Press **Wave at the Diary Keeper**.
-
-## 3. Or wave from the browser
+### Check a recorded night
 
 ```bash
-cd frontend/web
-npm install
-npm run dev
+python -m venv tools/.venv
+tools\.venv\Scripts\activate
+pip install -r tools/requirements.txt
+python tools/check_night.py "<your night's folder>"
 ```
 
-If you get an answer, you've finished checkpoint 00. 🎉
+The night's folder is shown on the Nights screen in the app (the folder icon opens it).

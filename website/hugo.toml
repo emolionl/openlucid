@@ -48,6 +48,11 @@ disableKinds = ["taxonomy", "term"]
     target = "content/learn/_index.md"
 
 [[menus.main]]
+  name = "Download"
+  pageRef = "/download"
+  weight = 0
+
+[[menus.main]]
   name = "Journey"
   pageRef = "/journey"
   weight = 1
