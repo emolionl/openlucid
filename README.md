@@ -8,7 +8,24 @@ You put on a [Muse](https://choosemuse.com/) EEG headband and go to sleep. An ap
 
 Will it give you lucid dreams? Honest answer: maybe, sometimes. Sound cues during REM sleep (*targeted lucidity reactivation*) have helped some people in lab studies; at home the evidence is weaker. OpenLucid is a tool to find out, honestly, what works for you.
 
+**Website:** [openlucid.nl](https://openlucid.nl) · **Download:** [Windows preview](https://github.com/emolionl/openlucid/releases) · **Build diary:** [the journey](https://openlucid.nl/journey/)
+
 > **Educational, not medical advice.** A Muse is a consumer gadget, not a medical device. OpenLucid does not diagnose or treat anything. Sound cues only: no electricity goes into anyone's head.
+
+## Download
+
+The goal is to make this as easy as possible: download, unzip, double-click.
+
+| Part | Platform | Status |
+|---|---|---|
+| The app | Windows | **Preview**: [download the zip](https://github.com/emolionl/openlucid/releases), unzip, run `openlucid.exe` |
+| The app | Android | Builds from the code; not tested with a headband yet |
+| The app | iPhone and iPad, Mac, Linux | Later, from the same Flutter code |
+| The Diary Keeper (server) | Any computer with Python 3.11+, or Docker | Works; you start it yourself (below) |
+
+Windows may say "Windows protected your PC" because the app isn't signed yet: click **More info**, then **Run anyway**.
+
+What the preview does: live brainwaves, a contact check per sensor, an eye check, and **recording a whole night** (EEG plus head movement, saved locally as EDF+ in a BIDS-EEG folder). Sleep stages and sound cues come next.
 
 ## What's in here
 
@@ -18,9 +35,11 @@ openlucid/
 ├── frontend/
 │   ├── desktop/        The app: Flutter (Windows, Android, macOS, Linux), talks to the Muse over Bluetooth
 │   └── web/            The morning view: Vue, your night's report and dream journal in the browser
+├── tools/              Python scripts that check recordings with MNE, the way researchers do
 ├── website/            The project website (openlucid.nl): Hugo, static, hosted on Firebase
 ├── docs/journey/       The build diary: every step we took, including the wrong turns
 ├── docs/research/      What science knows, which devices exist, what they cost (with sources)
+├── docs/agentic/       Lessons on building software with AI agents, using this project as the example
 ├── promotion/          Video scripts and the animated series "Are You Dreaming?"
 └── branding/           The logo and the script that makes every icon size
 ```
@@ -29,38 +48,40 @@ openlucid/
 
 Everything runs locally. Your brain data never leaves your computer.
 
-## Quick start (checkpoint 00: make them wave at each other)
+## Run it from the code
 
-You need [Python 3.11+](https://www.python.org/downloads/), and for the app [Flutter](https://docs.flutter.dev/get-started/install) or for the browser view [Node.js](https://nodejs.org/).
+You need [Flutter](https://docs.flutter.dev/get-started/install) for the app and [Python 3.11+](https://www.python.org/downloads/) for the Diary Keeper and the tools.
 
-**1. Start the Diary Keeper** (Windows PowerShell; on macOS/Linux use `source .venv/bin/activate`):
+**The app:**
+
+```bash
+cd frontend/desktop
+flutter run -d windows            # or -d android, -d macos, -d linux
+flutter build windows --release   # the same build as the download
+```
+
+**The Diary Keeper** (Windows PowerShell; on macOS/Linux use `source .venv/bin/activate`):
 
 ```powershell
 cd backend
 python -m venv .venv
-.\.venv\Scripts\activate
+.\.venv\Scriptsctivate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
 Open <http://localhost:8000/health>. It should say *"The Diary Keeper is awake."*
 
-**2. Wave from the app** (in a second terminal):
+**Check a recorded night** with MNE:
 
-```bash
-cd frontend/desktop
-flutter run -d windows
+```powershell
+python -m venv tools\.venv
+.	ools\.venv\Scriptsctivate
+pip install -r tools/requirements.txt
+python tools/check_night.py "<the night's folder>"
 ```
 
-**3. Or wave from the browser:**
-
-```bash
-cd frontend/web
-npm install
-npm run dev
-```
-
-Got an answer? Checkpoint 00 is done. 🎉
+**The morning view** (browser): `cd frontend/web`, `npm install`, `npm run dev`.
 
 ## The Diary Keeper (backend)
 
@@ -84,14 +105,14 @@ Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always
 | 00 ✅ | App, web view and server say hello |
 | 01 ✅ | Any EEG source; Muse S over Bluetooth, Fake Moose, live view with contact score, eye check |
 | 02 ✅ | The Diary Keeper: multi-user backend with login, nights, epochs, events, journal, recordings; SQLite locally, PostgreSQL on a server |
-| 03 | Record a whole night in the app (30-second epochs, contact, reconnects, EDF file) and sync it to the Diary Keeper |
+| 03 🔨 | Record a whole night in the app ✅ (EDF+ in BIDS-EEG, movement, 30-second epochs, contact, reconnects; Windows preview 0.3.0), then sync it to the Diary Keeper |
 | 04 | Sleep staging of a recorded night with [YASA](https://github.com/raphaelvallat/yasa), hypnogram |
 | 05 | Live staging and the "stable REM" rule |
 | 06 | Detect the left-right-left-right eye signal |
 | 07 | Sound cues: evening training, playback during stable REM |
 | 08 | Morning report and dream journal |
 | 09 | Export and honest analysis of your own nights |
-| 10 | One-click installer |
+| 10 | One-click installers for every platform |
 
 ## Contributing
 
