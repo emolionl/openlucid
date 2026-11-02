@@ -13,9 +13,9 @@ OpenLucid should be something you can try tonight without being a programmer. So
 
 ## Windows (preview)
 
-**[Download OpenLucid for Windows](https://github.com/emolionl/openlucid/releases/latest)** (64-bit, about 12 MB)
+**[Download OpenLucid for Windows](https://github.com/emolionl/openlucid/releases)** (64-bit, about 12 MB)
 
-1. Download the `.zip` file from the latest release and unzip it anywhere, for example in your Documents folder.
+1. Download the `.zip` file from the newest release (for example `OpenLucid-0.3.0-preview-windows-x64.zip`) and unzip it anywhere, for example in your Documents folder.
 2. Open the `OpenLucid` folder and double-click `openlucid.exe`.
 3. Windows may warn you with "Windows protected your PC", because the app isn't signed yet (signing certificates cost money; it's on the list). Click **More info**, then **Run anyway**. If you'd rather not, you can build the app yourself from the code (below).
 4. Try it with **Fake Moose**, the built-in simulated headband, or connect a **Muse** (Muse 2016, Muse 2 or Muse S) over Bluetooth.
