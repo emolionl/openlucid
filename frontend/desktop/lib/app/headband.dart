@@ -226,7 +226,8 @@ class Headband extends ChangeNotifier {
     if (recording) await stopNight();
     busy = true;
     notifyListeners();
-    await _connection?.cancel();
+    // Not awaited: cancelling a subscription can wait for a pending event, and the headband must stop now.
+    unawaited(_connection?.cancel());
     _connection = null;
     connectionLost = false;
     await current.stop();

@@ -14,7 +14,8 @@ permissions:
 jobs:
   windows:
     name: Windows build
-    runs-on: windows-latest
+    # windows-2022: Flutter 3.35 finds its Visual Studio; newer images have a version it does not know yet.
+    runs-on: windows-2022
     defaults:
       run:
         working-directory: frontend/desktop
