@@ -3,7 +3,7 @@ title: "Are You Dreaming? Episode 1 — The Bell"
 date: 2026-11-04
 description: "A Tibetan monk practices dream yoga, hears the monastery bell ring impossibly inside his own dream, and recognizes it. Soft watercolor, mountain light. Shot-by-shot script for Higgsfield."
 weight: 4
-status: "Script, draft 1, ready for Higgsfield test render"
+status: "Script, draft 2 — two Character elements built in Higgsfield, ready for shot 1"
 ---
 
 **Format:** animated, soft watercolor, ~2 minutes as scripted below (the series target is 6–10 minutes; this is a complete first cut that can be extended with more coverage shots before final production).
@@ -16,13 +16,19 @@ status: "Script, draft 1, ready for Higgsfield test render"
 
 Each shot below is one Higgsfield prompt, written to the **MCSLA** formula (Model · Camera · Subject · Look · Action) in Text-to-Video order: subject and appearance, then environment and atmosphere, then the one primary action, then a named camera preset, then style and color grade. One primary action per shot; generate and review them in order, shot 1 through 14, the same way we built the site's step lists — finish one, confirm it looks right, then move to the next.
 
-**Reusable blocks** (paste verbatim into every shot that uses them, so the character and look stay consistent across separate generations — Higgsfield has no memory between prompts):
+**Characters built first, not described each time.** Higgsfield's Cinema Studio has a real character-consistency feature (Elements, category Character), not just repeated text — create the character once from a reference image, and reference it by `@handle` in every later shot instead of re-describing it. We built both characters before writing a single video prompt:
 
-- **Identity block (young monk):** *"A Tibetan Buddhist monk in early adulthood, shaved head, deep maroon and saffron monastic robes, calm composed expression, weathered hands."*
-- **Identity block (elder teacher):** *"An elderly Tibetan Buddhist monk, white eyebrows, deep maroon and saffron robes, serene weathered face."*
-- **Style block:** *"Soft watercolor animation style, visible paper grain and pigment bleed at the edges, warm dawn or dusk mountain light, muted palette of maroon, ochre, indigo and snow-white, gentle hand-painted motion, no harsh outlines."*
+1. Generated one reference portrait of each monk in Image mode (Nano Banana Pro, ~2 credits each), using the identity description as a plain text-to-image prompt.
+2. On the result, used the image's **"..." → Create element → Image element** menu, set Category to **Character**, named it, and let Higgsfield auto-generate the handle.
+3. Both are now saved in **My Elements → Characters** and reusable in any project:
+   - **@char_young-monk** — "Young Monk," the episode's protagonist.
+   - **@char_elder-teacher** — "Elder Teacher," his teacher.
 
-Aspect ratio and lens are set in the Higgsfield UI, not in the prompt text. No negative prompts — every line below states what should be in frame, not what to avoid.
+In the shot prompts below, `@char_young-monk` and `@char_elder-teacher` replace the old approach of pasting an identical description into every shot. Reference them exactly as written — Higgsfield resolves the handle to the saved character's actual appearance, which is more reliable than text repeated across separate generations.
+
+**Style** isn't a Character or Location, so it stays as a repeated text block below, but note that **Camera, Film setup, Color palette and Lighting are separate dropdown fields in the Higgsfield UI, not prompt text** — when generating, set those menus to match (a consistent color palette / lighting choice across shots will hold the look more reliably than prose alone) in addition to describing the camera move in words. Aspect ratio and lens are also UI settings, not prompt text. No negative prompts — every line below states what should be in frame, not what to avoid.
+
+- **Style block (for the prompt text):** *"Soft watercolor animation style, visible paper grain and pigment bleed at the edges, warm dawn or dusk mountain light, muted palette of maroon, ochre, indigo and snow-white, gentle hand-painted motion, no harsh outlines."*
 
 ---
 
@@ -34,44 +40,44 @@ Aspect ratio and lens are set in the Higgsfield UI, not in the prompt text. No n
 **VO:** "Centuries before anyone wrote the words 'lucid dream,' there was a practice for exactly this: catching yourself, inside the dream, and knowing it."
 
 **Shot 2 — the lesson (≈6s)**
-> [Identity block, young monk], seated cross-legged before [Identity block, elder teacher], in a dim candlelit monastery hall, butter lamps burning, faint thangka paintings on the walls behind them. The teacher raises one hand in a slow instructive gesture; the young monk listens with eyes closed, focused. Camera: static, slight handheld breathing. Style: [Style block].
+> @char_young-monk, seated cross-legged before @char_elder-teacher, in a dim candlelit monastery hall, butter lamps burning, faint thangka paintings on the walls behind them. The teacher raises one hand in a slow instructive gesture; the young monk listens with eyes closed, focused. Camera: static, slight handheld breathing. Style: [Style block].
 
 **VO:** "This is dream yoga — milam — one of the Six Yogas carried into Tibet by the teacher Nāropa, a thousand years ago. Its first instruction is simple to say and hard to do: recognize the dream, while you are still inside it."
 
 **Shot 3 — the bell (≈5s)**
-> Close on an elderly monk's weathered hand lifting a small brass temple bell in the same candlelit hall, shallow focus background. The hand rings the bell once; the sound is visualized as a faint rippling wave in the air. Camera: crash zoom in on the bell. Style: [Style block].
+> Close on @char_elder-teacher's weathered hand lifting a small brass temple bell in the same candlelit hall, shallow focus background. The hand rings the bell once; the sound is visualized as a faint rippling wave in the air. Camera: crash zoom in on the bell. Style: [Style block].
 
 **VO:** "Every evening, a bell calls the monastery to practice. Tonight, it will mean something else."
 
 ## Act 2 — Entering the dream
 
 **Shot 4 — settling to sleep (≈5s)**
-> [Identity block, young monk] lying down on a simple sleeping mat in a small stone cell, robe folded beside him, one window open to moonlight and distant peaks. He closes his eyes; his breathing visibly slows; the light in the room dims to deep blue. Camera: slow pan down from the window to his face. Style: [Style block].
+> @char_young-monk lying down on a simple sleeping mat in a small stone cell, robe folded beside him, one window open to moonlight and distant peaks. He closes his eyes; his breathing visibly slows; the light in the room dims to deep blue. Camera: slow pan down from the window to his face. Style: [Style block].
 
 **VO:** "Before sleep, the practice is intention: tell yourself, again and again, that tonight you will know you are dreaming."
 
 **Shot 5 — the dream begins (≈5s)**
-> [Identity block, young monk] walking down a monastery corridor identical to the waking world, but the proportions are subtly too long, doors repeating further away than they should. He walks forward; the corridor seems to lengthen ahead of him. Camera: dolly in, following from behind. Style: [Style block], slightly heightened color saturation to signal the dream state.
+> @char_young-monk walking down a monastery corridor identical to the waking world, but the proportions are subtly too long, doors repeating further away than they should. He walks forward; the corridor seems to lengthen ahead of him. Camera: dolly in, following from behind. Style: [Style block], slightly heightened color saturation to signal the dream state.
 
 **VO:** "In the dream, the monastery is almost right."
 
 **Shot 6 — a dream sign (≈5s)**
-> Close on [Identity block, young monk]'s hand reaching for a wooden door in the same corridor; through a window beside it, prayer flags hang perfectly still despite visible wind-blur in the trees beyond. He touches the door and it dissolves into watercolor pigment at his fingertips instead of opening. Camera: static close-up. Style: [Style block], ink-bleed dissolve effect on the door.
+> Close on @char_young-monk's hand reaching for a wooden door in the same corridor; through a window beside it, prayer flags hang perfectly still despite visible wind-blur in the trees beyond. He touches the door and it dissolves into watercolor pigment at his fingertips instead of opening. Camera: static close-up. Style: [Style block], ink-bleed dissolve effect on the door.
 
 **VO:** "A door that isn't a door. A flag that doesn't move. Dream signs — if you know to look for them."
 
 **Shot 7 — the bell returns (≈6s)**
-> [Identity block, young monk] standing mid-corridor, turning his head, no bell visible anywhere in frame. A bell tolls as if from everywhere at once; the sound-ripple visual from the temple bell repeats, now distorted and overlapping. Camera: 360 orbit around the monk as he turns, searching for the source. Style: [Style block].
+> @char_young-monk standing mid-corridor, turning his head, no bell visible anywhere in frame. A bell tolls as if from everywhere at once; the sound-ripple visual from the temple bell repeats, now distorted and overlapping. Camera: 360 orbit around the monk as he turns, searching for the source. Style: [Style block].
 
 **VO:** "Then: the bell. Ringing from nowhere, from everywhere. The same signal he set for himself, hours ago, awake."
 
 **Shot 8 — recognition (≈5s)**
-> Close on [Identity block, young monk]'s face in the dream corridor, background softly dissolving at the edges. His eyes widen; a slow, calm smile of recognition crosses his face; the color palette shifts from muted dream-blue to a vivid watercolor bloom. Camera: slow push in on the face. Style: [Style block], color bloom transition mid-shot.
+> Close on @char_young-monk's face in the dream corridor, background softly dissolving at the edges. His eyes widen; a slow, calm smile of recognition crosses his face; the color palette shifts from muted dream-blue to a vivid watercolor bloom. Camera: slow push in on the face. Style: [Style block], color bloom transition mid-shot.
 
 **VO:** "And he knows. Not a trick of the mind — the dream itself. He is dreaming, and he is still here."
 
 **Shot 9 — the dream opens (≈6s)**
-> [Identity block, young monk] standing, now fully aware, as the corridor dissolves into open sky and mountain peaks rendered in loose, saturated watercolor, no longer bound by architecture. He raises his arms slightly; the world reshapes gently around his attention; prayer flags fly free in impossibly vivid color. Camera: crane up, revealing the full dreamscape. Style: [Style block], the most saturated, painterly moment of the episode.
+> @char_young-monk standing, now fully aware, as the corridor dissolves into open sky and mountain peaks rendered in loose, saturated watercolor, no longer bound by architecture. He raises his arms slightly; the world reshapes gently around his attention; prayer flags fly free in impossibly vivid color. Camera: crane up, revealing the full dreamscape. Style: [Style block], the most saturated, painterly moment of the episode.
 
 **VO:** "What he does next is its own practice — centuries of instruction on what a lucid dream is for. But the catching, the noticing: that part hasn't changed in a thousand years."
 
