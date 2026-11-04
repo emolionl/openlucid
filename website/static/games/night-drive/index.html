@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Night Drive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* layout: full-viewport three.js terrain-drive scene, fixed HUD overlay (top-left stage readout, top-right score, bottom-center waveform + controls, corner stage/cycle buttons) */
+  :root{
+    --bg:#06060f;
+    --fg:#eef0ff;
+    --muted:#8d8fc0;
+    --panel:rgba(10,10,24,.74);
+    --accent:#ffd166;
+    --warn:#ff5c7a;
+    --font-display:'Unbounded',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+    color-scheme:dark;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hidden;font-family:var(--font-mono);}
+  #stage3d{position:fixed;inset:0;display:block;}
+
+  .hud{position:fixed;z-index:5;pointer-events:none;}
+  .panel{
+    background:var(--panel);border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;backdrop-filter:blur(6px);
+    padding:10px 14px;
+  }
+
+  #readout{
+    top:max(14px,env(safe-area-inset-top,0px));
+    left:max(14px,env(safe-area-inset-left,0px));
+    min-width:220px;max-width:min(78vw,340px);
+  }
+  #readout .role-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+  #readout .stage-name{font-family:var(--font-display);font-weight:800;font-size:28px;letter-spacing:.01em;color:var(--accent);line-height:1;transition:color .6s ease;}
+  #readout .band{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px;}
+  #readout .feel{font-family:var(--font-display);font-weight:500;font-size:13px;color:var(--fg);margin-top:8px;line-height:1.35;opacity:.92;}
+  #readout .progress-label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:10px;}
+  #readout .progress-bar{height:5px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:4px;overflow:hidden;}
+  #readout .progress-bar i{display:block;height:100%;background:var(--accent);width:0%;transition:width .2s linear;}
+
+  #narrator{
+    top:190px;left:max(14px,env(safe-area-inset-left,0px));
+    max-width:min(78vw,340px);pointer-events:auto;
+  }
+  #narrator .role-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  #narrator .narrator-text{font-family:var(--font-display);font-weight:500;font-size:12.5px;line-height:1.4;color:var(--fg);margin-top:4px;}
+  #narrator .narrator-link{display:inline-block;margin-top:6px;font-size:11px;color:var(--accent);text-decoration:none;}
+  #narrator .narrator-link:hover{text-decoration:underline;}
+  #narrator .narrator-link[hidden]{display:none;}
+  @media (max-width:720px){
+    #narrator{top:auto;bottom:170px;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));max-width:none;}
+  }
+
+  #score{
+    top:max(14px,env(safe-area-inset-top,0px));
+    right:max(14px,env(safe-area-inset-right,0px));
+    font-size:11px;color:var(--muted);min-width:120px;
+  }
+  .score-row{display:flex;align-items:center;gap:6px;margin-top:3px;}
+  .score-row .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .dot.blue{background:#5eead4;}
+  .dot.red{background:#ff5c7a;}
+  .score-row b{font-family:var(--font-mono);font-size:13px;color:var(--fg);margin-left:auto;}
+  .score-net{margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.12);display:flex;justify-content:space-between;align-items:baseline;}
+  .score-net b{font-family:var(--font-display);font-size:19px;color:var(--fg);}
+  .score-net b.pos{color:#5eead4;}
+  .score-net b.neg{color:#ff5c7a;}
+
+  #toast{
+    top:84px;left:max(14px,env(safe-area-inset-left,0px));
+    font-size:13px;color:var(--accent);font-weight:600;
+    opacity:0;transition:opacity .25s ease;max-width:280px;
+  }
+
+  #event{
+    top:max(14px,env(safe-area-inset-top,0px));
+    left:50%;transform:translateX(-50%);
+    text-align:center;opacity:0;transition:opacity .2s ease;
+    min-width:240px;
+  }
+  #event .title{font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--warn);letter-spacing:.03em;}
+  #event .sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  #event .bar{height:4px;border-radius:3px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden;}
+  #event .bar i{display:block;height:100%;background:var(--warn);width:100%;transform-origin:left;}
+
+  #stages{
+    bottom:max(14px,env(safe-area-inset-bottom,0px));
+    left:max(14px,env(safe-area-inset-left,0px));
+    right:max(14px,env(safe-area-inset-right,0px));
+    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+    pointer-events:auto;
+  }
+  .btn{
+    font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.04em;
+    color:var(--muted);background:var(--panel);border:1px solid rgba(255,255,255,.1);
+    border-radius:999px;padding:8px 16px;cursor:pointer;transition:all .2s ease;
+  }
+  .btn:hover{color:var(--fg);border-color:rgba(255,255,255,.25);}
+  .btn.active{color:#06060f;background:var(--accent);border-color:var(--accent);}
+  .btn.ghost{color:var(--fg);}
+
+  #wave{
+    bottom:62px;left:50%;transform:translateX(-50%);
+    width:min(78vw,420px);height:54px;
+    pointer-events:none;
+  }
+  #wave canvas{width:100%;height:100%;display:block;border-radius:10px;}
+  #wave{transition:transform .25s ease;}
+  #wave.highlight{transform:translateX(-50%) scale(1.22);}
+
+  #waveAnnotation{
+    bottom:122px;left:50%;transform:translateX(-50%);
+    font-size:11px;color:var(--accent);text-align:center;opacity:0;
+    transition:opacity .3s ease;max-width:min(80vw,420px);
+  }
+
+  #bandStrip{bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:6px;pointer-events:none;}
+  .band-chip{font-size:10px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--muted);letter-spacing:.04em;border:1px solid rgba(255,255,255,.08);}
+  .band-chip.active{background:var(--accent);color:#06060f;font-weight:700;border-color:transparent;}
+
+  #setupScreen{position:fixed;inset:0;background:var(--bg);z-index:9;overflow-y:auto;}
+  #setupScreen[hidden]{display:none;}
+  .setup-inner{max-width:460px;margin:0 auto;padding:max(28px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-left,0px)) 40px max(16px,env(safe-area-inset-right,0px));}
+  .setup-eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .setup-title{font-family:var(--font-display);font-weight:800;font-size:26px;color:var(--accent);margin-top:4px;}
+  .setup-sub{font-size:13px;color:var(--fg);opacity:.85;line-height:1.5;margin-top:8px;}
+  .head-diagram{position:relative;width:100%;max-width:280px;aspect-ratio:1/1;margin:24px auto 0;}
+  .head-diagram svg{width:100%;height:100%;}
+  .head-diagram svg ellipse,.head-diagram svg circle,.head-diagram svg path{fill:none;stroke:var(--muted);stroke-width:1;}
+  .electrode-dot{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+    background:rgba(255,255,255,.08);border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:9px;color:var(--fg);cursor:pointer;user-select:none;}
+  .electrode-dot.good{border-color:#5eead4;background:rgba(94,234,212,.18);}
+  .electrode-dot.bad{border-color:#ff5c7a;background:rgba(255,92,122,.18);}
+  .electrode-dot .reading{position:absolute;top:28px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:10px;}
+  .electrode-dot.good .reading{color:#5eead4;}
+  .electrode-dot.bad .reading{color:#ff5c7a;}
+  .electrode-list{margin-top:46px;display:flex;flex-direction:column;gap:6px;}
+  .electrode-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+  .electrode-row b{font-family:var(--font-mono);color:var(--fg);}
+  .electrode-row.good b{color:#5eead4;}
+  .electrode-row.bad b{color:#ff5c7a;}
+  .setup-status{margin-top:14px;font-size:12px;color:var(--muted);}
+  #toCalibBtn,#calibFixBtn{margin-top:18px;width:100%;}
+  #toCalibBtn:disabled{opacity:.4;cursor:not-allowed;}
+  .calib-prompt{font-family:var(--font-display);font-weight:800;font-size:28px;color:var(--accent);margin-top:22px;}
+  .calib-desc{font-size:13px;color:var(--muted);margin-top:4px;}
+  .calib-trace{margin-top:18px;background:rgba(255,255,255,.04);border-radius:10px;padding:6px;}
+  .calib-trace canvas{width:100%;height:90px;display:block;}
+  .calib-bar{height:5px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:10px;overflow:hidden;}
+  .calib-bar i{display:block;height:100%;background:var(--accent);width:0%;}
+  .calib-result{margin-top:14px;font-family:var(--font-display);font-weight:600;font-size:14px;}
+  .calib-result.ok{color:#5eead4;}
+  .calib-result.fail{color:#ff5c7a;}
+
+  #stageModal{position:fixed;inset:0;background:rgba(4,4,10,.78);z-index:8;display:flex;align-items:center;justify-content:center;padding:16px;}
+  #stageModal[hidden]{display:none;}
+  .modal-box{max-width:min(92vw,380px);text-align:center;padding:28px 22px;}
+  .modal-eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .modal-title{font-family:var(--font-display);font-weight:800;font-size:36px;color:var(--accent);margin-top:4px;}
+  .modal-band{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.06em;}
+  .modal-text{font-family:var(--font-display);font-weight:500;font-size:14px;line-height:1.5;margin-top:16px;color:var(--fg);}
+  .modal-goal{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.4;}
+  #modalContinue{margin-top:20px;}
+
+  #legend{
+    bottom:max(14px,env(safe-area-inset-bottom,0px));
+    left:0;right:0;text-align:center;font-size:10px;letter-spacing:.06em;
+    color:var(--muted);text-transform:uppercase;margin-bottom:46px;
+  }
+  @media (min-width:720px){ #legend{ margin-bottom:0; bottom: 70px; } }
+
+  #touch{position:fixed;z-index:5;display:none;pointer-events:none;}
+  @media (max-width:720px), (pointer:coarse){ #touch{display:block;} }
+  .tpad{position:fixed;pointer-events:auto;display:flex;gap:10px;bottom:max(96px,calc(96px + env(safe-area-inset-bottom,0px)));}
+  #tleft{left:max(14px,env(safe-area-inset-left,0px));}
+  #tright{right:max(14px,env(safe-area-inset-right,0px));}
+  .tbtn{
+    width:52px;height:52px;border-radius:50%;background:var(--panel);
+    border:1px solid rgba(255,255,255,.14);color:var(--fg);font-size:18px;
+    display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;
+  }
+
+  .fine-print{position:fixed;z-index:5;bottom:max(14px,env(safe-area-inset-bottom,0px));left:max(14px,env(safe-area-inset-left,0px));}
+
+  #thoughts{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:4;}
+  .obstacle-label{position:fixed;font-family:var(--font-mono);font-size:11px;color:#ffd2db;background:rgba(40,8,20,.65);border:1px solid rgba(255,92,122,.4);padding:2px 7px;border-radius:7px;white-space:nowrap;transform:translate(-50%,-150%);}
+  .good-label{position:fixed;font-family:var(--font-mono);font-size:11px;color:#c8fff0;background:rgba(8,38,34,.65);border:1px solid rgba(94,234,212,.4);padding:2px 7px;border-radius:7px;white-space:nowrap;transform:translate(-50%,-150%);}
+</style>
+</head>
+<body>
+
+<div id="setupScreen">
+  <div class="setup-inner">
+    <div id="hookupView">
+      <div class="setup-eyebrow">Pre-study checklist · 1 of 2</div>
+      <div class="setup-title">Electrode hookup</div>
+      <div class="setup-sub">Tap each site to attach the electrode, then check impedance. Fix anything over threshold (EEG/EOG &lt; 5kΩ, EMG &lt; 10kΩ) before continuing.</div>
+      <div class="head-diagram" id="headDiagram">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+          <ellipse cx="50" cy="42" rx="30" ry="36"></ellipse>
+          <circle cx="38" cy="38" r="3"></circle>
+          <circle cx="62" cy="38" r="3"></circle>
+          <path d="M42 64 Q50 70 58 64"></path>
+        </svg>
+      </div>
+      <div class="electrode-list" id="electrodeList"></div>
+      <div class="setup-status" id="hookupStatus">0 / 6 electrodes ready</div>
+      <button class="btn active" id="toCalibBtn" disabled>Continue to bio-calibration →</button>
+    </div>
+
+    <div id="calibView" hidden>
+      <div class="setup-eyebrow">Pre-study checklist · 2 of 2</div>
+      <div class="setup-title">Bio-calibration</div>
+      <div class="setup-sub">Confirm every channel responds correctly before lights-out.</div>
+      <div class="calib-prompt" id="calibPrompt">Eyes open</div>
+      <div class="calib-desc" id="calibDesc">Baseline — fast, low-amplitude EEG.</div>
+      <div class="calib-trace"><canvas id="calibCanvas" width="420" height="90"></canvas></div>
+      <div class="calib-bar"><i id="calibBar"></i></div>
+      <div class="calib-result" id="calibResult" hidden></div>
+      <button class="btn" id="calibFixBtn" hidden>Go fix electrode →</button>
+    </div>
+  </div>
+</div>
+
+<div id="stage3d"></div>
+<div id="thoughts"></div>
+
+<div class="hud panel" id="readout">
+  <div class="role-label">Sleeper state</div>
+  <div class="stage-name" id="stageName">WAKE</div>
+  <div class="band" id="stageBand">Beta · 13–30 Hz</div>
+  <div class="feel" id="stageFeel">Fully alert — everything demands your attention at once.</div>
+  <div class="progress-label">Next: <span id="nextStageLabel">N1</span></div>
+  <div class="progress-bar"><i id="progressFill"></i></div>
+</div>
+
+<div class="hud panel" id="narrator">
+  <div class="role-label">Operator log</div>
+  <div class="narrator-text" id="narratorText">You're the operator monitoring tonight's home EEG recording.</div>
+  <a class="narrator-link" id="narratorLink" href="#" target="_blank" rel="noopener" hidden>Read more →</a>
+</div>
+
+<div class="hud panel" id="score">
+  <div class="score-row"><span class="dot blue"></span>Blue<b id="blueVal">0</b></div>
+  <div class="score-row"><span class="dot red"></span>Red<b id="redVal">0</b></div>
+  <div class="score-net">Net<b id="netVal">0</b></div>
+</div>
+
+<div class="hud" id="toast"></div>
+
+<div class="hud panel" id="event">
+  <div class="title" id="eventTitle">—</div>
+  <div class="sub" id="eventSub">—</div>
+  <div class="bar"><i id="eventBar"></i></div>
+</div>
+
+<div class="hud" id="waveAnnotation"></div>
+<div class="hud" id="wave"><canvas id="waveCanvas" width="420" height="54"></canvas></div>
+<div class="hud" id="bandStrip">
+  <span class="band-chip" data-band="Delta">Delta</span>
+  <span class="band-chip" data-band="Theta">Theta</span>
+  <span class="band-chip" data-band="Alpha">Alpha</span>
+  <span class="band-chip" data-band="Beta">Beta</span>
+  <span class="band-chip" data-band="Gamma">Gamma</span>
+</div>
+<div class="hud" id="legend">← → change lane · ↑ ↓ speed · drag to look around</div>
+
+<div id="stageModal" hidden>
+  <div class="panel modal-box">
+    <div class="modal-eyebrow">Entering</div>
+    <div class="modal-title" id="modalStageName">N2</div>
+    <div class="modal-band" id="modalBand">Theta · 4–8 Hz</div>
+    <div class="modal-text" id="modalText">—</div>
+    <div class="modal-goal" id="modalGoal">—</div>
+    <button class="btn active" id="modalContinue">Continue →</button>
+  </div>
+</div>
+
+<div class="hud" id="stages">
+  <button class="btn" data-stage="wake">Wake</button>
+  <button class="btn" data-stage="n1">N1</button>
+  <button class="btn" data-stage="n2">N2</button>
+  <button class="btn" data-stage="n3">N3</button>
+  <button class="btn" data-stage="rem">REM</button>
+</div>
+
+<div id="touch">
+  <div class="tpad" id="tleft">
+    <div class="tbtn" id="tLeft">◀</div>
+    <div class="tbtn" id="tRight">▶</div>
+  </div>
+  <div class="tpad" id="tright">
+    <div class="tbtn" id="tDown">▼</div>
+    <div class="tbtn" id="tUp">▲</div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- stage definitions ----------
+  var STAGES = {
+    wake:{ label:"WAKE", band:"Beta · 13–30 Hz", feel:"Fully alert — everything demands your attention at once.",
+      comps:[{f:1.15,a:0.4},{f:2.05,a:0.22},{f:3.4,a:0.12}], noise:0.2, speed:1.15, control:1.0,
+      accent:0xffd166, fog:0x10101c, distractions:true, shuffle:true },
+    n1:{ label:"N1", band:"Theta · 4–8 Hz", feel:"You're drifting. You might not even know you've started.",
+      comps:[{f:0.35,a:0.62},{f:0.62,a:0.22},{f:1.1,a:0.0}], noise:0.05, speed:0.9, control:1.0,
+      accent:0xb5a8ff, fog:0x0c0c1a, microsleep:true, shuffle:true },
+    n2:{ label:"N2", band:"Theta + spindles · ~50% of the night", feel:"Light sleep. The brain still checks in on the outside world.",
+      comps:[{f:0.26,a:0.46},{f:0.48,a:0.14},{f:0.9,a:0.0}], noise:0.04, speed:0.85, control:1.0,
+      accent:0x5eead4, fog:0x081014, spindles:true, kcomplex:true },
+    n3:{ label:"N3", band:"Delta · 0.5–4 Hz", feel:"Deep sleep. Right now, almost nothing could wake you.",
+      comps:[{f:0.1,a:1.15},{f:0.18,a:0.0},{f:0.3,a:0.0}], noise:0.015, speed:0.55, control:0.55,
+      accent:0x8b5cf6, fog:0x05030c, shuffle:true },
+    rem:{ label:"REM", band:"Mixed & fast · brain almost like waking", feel:"Your body is paralysed. Your mind is wide awake inside the dream.",
+      comps:[{f:0.85,a:0.36},{f:1.95,a:0.28},{f:3.05,a:0.22}], noise:0.22, speed:1.0, control:0.3,
+      accent:0xff6fb5, fog:0x150a1c, dreamcue:true, chaosFog:true }
+  };
+  var ORDER=["wake","n1","n2","n3","n2","rem"];
+  var STAGE_THRESHOLD={wake:20,n1:15,n2:35,n3:25,rem:30};
+  var BAND_OF_STAGE={wake:"Beta",n1:"Theta",n2:"Theta",n3:"Delta",rem:"Beta"};
+  var BAND_NOTE={
+    kcomplex:"K-complex — scored within Theta (N2)",
+    spindle:"Spindle — 11–16Hz burst within Theta (N2)",
+    distraction:"Worry-thought — keeps Beta (Wake) arousal high",
+    shuffle:"Cognitive shuffle — helps ease out of Beta (Wake)",
+    microsleep:"Microsleep — brief drop into Theta (N1)",
+    dreamcue:"Dream cue — REM: fast, Beta-like activity despite being asleep"
+  };
+  var GOALS={
+    wake:"Collect teal shuffle-thoughts, avoid red worry-thoughts. Fill the bar to start drifting off.",
+    n1:"Keep collecting shuffle-thoughts. Microsleeps will briefly freeze your controls — that's normal.",
+    n2:"Collect spindles, and press ↓ fast when a K-complex approaches.",
+    n3:"Just keep going — the bar fills slowly. This is the deepest, hardest-to-interrupt stage.",
+    rem:"Hold still when a dream cue appears — don't press anything — to go lucid."
+  };
+
+  var NARRATION={
+    stage:{
+      wake:{text:"Subject is awake — busy, beta-heavy brain, lots of input to process. Your job: keep the recording clean from here on.",url:null},
+      n1:{text:"Drifting into N1. People often don't know they've fallen asleep at this point — that's why self-reported sleep-onset time is unreliable.",url:"https://en.wikipedia.org/wiki/Non-rapid_eye_movement_sleep"},
+      n2:{text:"N2 now — about half the night happens here. Watch for spindles and K-complexes: the brain still briefly checking in on the outside world.",url:"https://en.wikipedia.org/wiki/Sleep_spindle"},
+      n3:{text:"Deep N3. Delta-dominant, hardest stage to wake someone from. The recording should look slow and steady right now.",url:"https://en.wikipedia.org/wiki/Slow-wave_sleep"},
+      rem:{text:"REM. The subject's body is paralysed (atonia) but their brain looks almost awake. Most remembered dreams happen here.",url:"https://en.wikipedia.org/wiki/Rapid_eye_movement_sleep"}
+    },
+    event:{
+      kcomplex:{text:"K-complex: a brief high-voltage spike — the sleeping brain sampling the environment without waking up.",url:"https://en.wikipedia.org/wiki/K-complex"},
+      microsleep:{text:"That blackout was a microsleep — a hallmark of N1. The subject's own sense of being awake is already unreliable here.",url:null},
+      dreamcue:{text:"A cue during REM — this is literally how lucid-dream induction (and OpenLucid) works: catch the window without waking the subject.",url:"https://en.wikipedia.org/wiki/Lucid_dream"},
+      spindle:{text:"Spindle collected. These 11–16 Hz bursts are linked to memory consolidation during N2.",url:"https://en.wikipedia.org/wiki/Sleep_spindle"},
+      distraction:{text:"That was a worry-thought. Pre-sleep worry is one of the strongest predictors of trouble falling asleep.",url:"https://bpspsychub.onlinelibrary.wiley.com/doi/abs/10.1348/014466500163284"},
+      shuffle:{text:"Cognitive shuffle: picturing random, unrelated things — not worries — is a technique designed to ease falling asleep.",url:"https://en.wikipedia.org/wiki/Cognitive_shuffle"}
+    }
+  };
+  function setNarration(entry){
+    if(!entry) return;
+    document.getElementById("narratorText").textContent=entry.text;
+    var link=document.getElementById("narratorLink");
+    if(entry.url){ link.href=entry.url; link.hidden=false; } else { link.hidden=true; }
+  }
+  function flagEvent(key){
+    setNarration(NARRATION.event[key]);
+    var note=BAND_NOTE[key];
+    if(note){
+      var el=document.getElementById("waveAnnotation");
+      el.textContent=note;
+      el.style.opacity=1;
+      clearTimeout(el._t);
+      el._t=setTimeout(function(){ el.style.opacity=0; },2200);
+    }
+    if(key==="kcomplex" || key==="spindle"){
+      var dur=key==="kcomplex"?1.0:1.3;
+      waveEvent={type:key,start:elapsed,dur:dur};
+      var waveEl=document.getElementById("wave");
+      waveEl.classList.add("highlight");
+      setTimeout(function(){ waveEl.classList.remove("highlight"); },dur*1000);
+    }
+  }
+  function showStageModal(key){
+    paused=true;
+    document.getElementById("modalStageName").textContent=STAGES[key].label;
+    document.getElementById("modalBand").textContent=STAGES[key].band;
+    document.getElementById("modalText").textContent=STAGES[key].feel;
+    document.getElementById("modalGoal").textContent=GOALS[key];
+    document.getElementById("stageModal").hidden=false;
+  }
+
+  var halfWidth=6.5, spatialScale=0.11;
+  var LANES=[-1,0,1], laneWidth=4, laneIndex=1;
+
+  // ---------- state ----------
+  var stageKey="wake";
+  var cur=JSON.parse(JSON.stringify(STAGES.wake));
+  cur.accentColor=new THREE.Color(STAGES.wake.accent);
+  cur.fogColor=new THREE.Color(STAGES.wake.fog);
+  var cycleIdx=0, stageBaselineNet=0, paused=true;
+  var blueScore=0, redScore=0;
+  var keys={left:false,right:false,up:false,down:false};
+  var frozen=false; // microsleep lock
+  var activeEvent=null; // {type,start,dur,resolved,ok}
+  var nextSpindleAt=2, nextKAt=4, nextMicroAt=5, nextDreamAt=6;
+  var nextDistractionAt=2, nextShuffleAt=1.5;
+  var spindles=[];
+  var distractions=[];
+  var shuffles=[];
+  var kcomplexObj=null;
+  var SHUFFLE_WORDS=["a kettle","a bicycle","a lighthouse","a pinecone","a violin","an umbrella","a teapot","a canoe"];
+  var clock=new THREE.Clock();
+  var elapsed=0;
+
+  // ---------- three.js setup ----------
+  var scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(STAGES.wake.fog,22,120);
+  var camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,0.1,500);
+  var renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  document.getElementById("stage3d").appendChild(renderer.domElement);
+
+  var hemi=new THREE.HemisphereLight(0x8892ff,0x05050a,0.55);
+  scene.add(hemi);
+  var moon=new THREE.DirectionalLight(0xdfe4ff,0.9);
+  moon.position.set(-20,40,10);
+  scene.add(moon);
+  var amb=new THREE.AmbientLight(0x202040,0.4);
+  scene.add(amb);
+
+  // starfield
+  (function(){
+    var g=new THREE.BufferGeometry();
+    var n=600, pos=new Float32Array(n*3);
+    for(var i=0;i<n;i++){
+      pos[i*3]=(Math.random()-0.5)*400;
+      pos[i*3+1]=Math.random()*150+10;
+      pos[i*3+2]=(Math.random()-0.5)*400;
+    }
+    g.setAttribute("position",new THREE.BufferAttribute(pos,3));
+    var m=new THREE.PointsMaterial({color:0xffffff,size:1.1,transparent:true,opacity:0.6});
+    scene.add(new THREE.Points(g,m));
+  })();
+
+  // terrain
+  var segW=11, segL=90, lenSpan=140, widSpan=halfWidth*2;
+  var terrainGeo=new THREE.PlaneGeometry(widSpan,lenSpan,segW,segL);
+  terrainGeo.rotateX(-Math.PI/2);
+  var terrainMat=new THREE.MeshStandardMaterial({color:0x14182c,roughness:0.9,metalness:0.05,wireframe:false,flatShading:true});
+  var terrain=new THREE.Mesh(terrainGeo,terrainMat);
+  terrain.receiveShadow=false;
+  scene.add(terrain);
+
+  var wireMat=new THREE.MeshBasicMaterial({color:0x3a3f66,wireframe:true,transparent:true,opacity:0.35});
+  var wire=new THREE.Mesh(terrainGeo,wireMat);
+  terrain.add(wire);
+
+  // edge rails
+  function makeRail(xSide){
+    var g=new THREE.BoxGeometry(0.25,1.4,lenSpan);
+    var m=new THREE.MeshStandardMaterial({color:0x5eead4,emissive:0x1a6b63,emissiveIntensity:0.6});
+    var mesh=new THREE.Mesh(g,m);
+    mesh.position.x=xSide*(halfWidth-0.4);
+    scene.add(mesh);
+    return mesh;
+  }
+  var railL=makeRail(-1), railR=makeRail(1);
+
+  // car
+  var car=new THREE.Group();
+  (function(){
+    var bodyMat=new THREE.MeshStandardMaterial({color:0x1b1f33,roughness:0.4,metalness:0.4});
+    var glowMat=new THREE.MeshStandardMaterial({color:STAGES.wake.accent,emissive:STAGES.wake.accent,emissiveIntensity:1.1});
+    var body=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,3.0),bodyMat);
+    body.position.y=0.45;
+    var cab=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.45,1.3),bodyMat);
+    cab.position.set(0,0.85,-0.1);
+    var trim=new THREE.Mesh(new THREE.BoxGeometry(1.64,0.08,0.3),glowMat);
+    trim.position.set(0,0.55,1.5);
+    car.add(body,cab,trim);
+    car.userData.glow=glowMat;
+    [[-0.85,0.15,1.0],[0.85,0.15,1.0],[-0.85,0.15,-1.0],[0.85,0.15,-1.0]].forEach(function(p){
+      var wheel=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.32,0.28,12),new THREE.MeshStandardMaterial({color:0x08080f}));
+      wheel.rotation.z=Math.PI/2;
+      wheel.position.set(p[0],p[1],p[2]);
+      car.add(wheel);
+    });
+    var light=new THREE.PointLight(STAGES.wake.accent,1.2,6);
+    light.position.set(0,1,1.8);
+    car.add(light);
+    car.userData.light=light;
+  })();
+  scene.add(car);
+  car.position.set(0,0,0);
+
+  // ---------- height field ----------
+  function noise(x,z,t){
+    return Math.sin(x*0.7+z*0.37+t*1.1)*Math.cos(x*0.21-z*0.11+t*0.8)*0.5;
+  }
+  function heightAt(x,z,t){
+    var h=0;
+    for(var i=0;i<cur.comps.length;i++){
+      var c=cur.comps[i];
+      h+=c.a*Math.sin(c.f*z*spatialScale + t*(0.12+c.f*0.08));
+    }
+    h+=cur.noise*noise(x,z,t);
+    return h;
+  }
+
+  // ---------- lerp current params toward target stage ----------
+  function lerpStage(dt){
+    var target=STAGES[stageKey];
+    var rate=1-Math.exp(-dt/0.9);
+    for(var i=0;i<3;i++){
+      cur.comps[i].f += (target.comps[i].f-cur.comps[i].f)*rate;
+      cur.comps[i].a += (target.comps[i].a-cur.comps[i].a)*rate;
+    }
+    cur.noise += (target.noise-cur.noise)*rate;
+    cur.speed += (target.speed-cur.speed)*rate;
+    cur.control += (target.control-cur.control)*rate;
+    cur.accentColor.lerp(new THREE.Color(target.accent),rate);
+    cur.fogColor.lerp(new THREE.Color(target.fog),rate);
+    scene.fog.color.copy(cur.fogColor);
+    renderer.setClearColor(cur.fogColor);
+    var hex=cur.accentColor.getHex();
+    document.documentElement.style.setProperty("--accent","#"+hex.toString(16).padStart(6,"0"));
+    car.userData.glow.color.copy(cur.accentColor);
+    car.userData.glow.emissive.copy(cur.accentColor);
+    car.userData.light.color.copy(cur.accentColor);
+    railL.material.color.copy(cur.accentColor);
+    railR.material.color.copy(cur.accentColor);
+  }
+
+  // ---------- input ----------
+  function attemptLaneShift(dir){
+    if(frozen) return;
+    if(Math.random()>cur.control){ toast("Can't move — body's paralysed"); return; }
+    laneIndex=Math.max(0,Math.min(LANES.length-1,laneIndex+dir));
+  }
+  window.addEventListener("keydown",function(e){
+    if((e.key==="ArrowLeft"||e.key==="a"||e.key==="A") && !keys.left){ attemptLaneShift(-1); }
+    if((e.key==="ArrowRight"||e.key==="d"||e.key==="D") && !keys.right){ attemptLaneShift(1); }
+    if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A") keys.left=true;
+    if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") keys.right=true;
+    if(e.key==="ArrowUp"||e.key==="w"||e.key==="W") keys.up=true;
+    if(e.key==="ArrowDown"||e.key==="s"||e.key==="S") keys.down=true;
+  });
+  window.addEventListener("keyup",function(e){
+    if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A") keys.left=false;
+    if(e.key==="ArrowRight"||e.key==="d"||e.key==="D") keys.right=false;
+    if(e.key==="ArrowUp"||e.key==="w"||e.key==="W") keys.up=false;
+    if(e.key==="ArrowDown"||e.key==="s"||e.key==="S") keys.down=false;
+  });
+  function bindTouch(id,onDown,onUp){
+    var el=document.getElementById(id);
+    el.addEventListener("pointerdown",function(e){e.preventDefault();onDown();});
+    ["pointerup","pointerleave","pointercancel"].forEach(function(ev){el.addEventListener(ev,onUp);});
+  }
+  bindTouch("tLeft",function(){attemptLaneShift(-1);},function(){});
+  bindTouch("tRight",function(){attemptLaneShift(1);},function(){});
+  bindTouch("tUp",function(){keys.up=true;},function(){keys.up=false;});
+  bindTouch("tDown",function(){keys.down=true;},function(){keys.down=false;});
+
+  var dragging=false,lastX=0,azimuth=0;
+  renderer.domElement.addEventListener("pointerdown",function(e){dragging=true;lastX=e.clientX;});
+  window.addEventListener("pointerup",function(){dragging=false;});
+  window.addEventListener("pointermove",function(e){
+    if(!dragging) return;
+    azimuth+=(e.clientX-lastX)*0.005;
+    lastX=e.clientX;
+  });
+
+  // ---------- toast / events UI ----------
+  function toast(text){
+    var el=document.getElementById("toast");
+    el.textContent=text;
+    el.style.opacity=1;
+    clearTimeout(el._t);
+    el._t=setTimeout(function(){el.style.opacity=0;},1800);
+  }
+  function setEventUI(show,title,sub,progress){
+    var el=document.getElementById("event");
+    el.style.opacity=show?1:0;
+    if(show){
+      document.getElementById("eventTitle").textContent=title;
+      document.getElementById("eventSub").textContent=sub;
+      document.getElementById("eventBar").style.transform="scaleX("+progress+")";
+    }
+  }
+
+  // ---------- spindle objects ----------
+  function spawnSpindle(){
+    var geo=new THREE.SphereGeometry(0.55,16,16);
+    var mat=new THREE.MeshStandardMaterial({color:cur.accentColor.getHex(),emissive:cur.accentColor.getHex(),emissiveIntensity:1.6});
+    var mesh=new THREE.Mesh(geo,mat);
+    var x=LANES[Math.floor(Math.random()*LANES.length)]*laneWidth;
+    var z=car.position.z-(26+Math.random()*12);
+    mesh.position.set(x,heightAt(x,z,elapsed)+1.1,z);
+    var light=new THREE.PointLight(cur.accentColor.getHex(),1,5);
+    mesh.add(light);
+    scene.add(mesh);
+    spindles.push({mesh:mesh,x:x,z:z});
+  }
+  function updateSpindles(dt){
+    for(var i=spindles.length-1;i>=0;i--){
+      var s=spindles[i];
+      s.mesh.rotation.y+=dt*2.2;
+      s.mesh.position.y=heightAt(s.x,s.z,elapsed)+1.1+Math.sin(elapsed*3+i)*0.1;
+      var dx=s.x-car.position.x, dz=s.z-car.position.z, dist=Math.sqrt(dx*dx+dz*dz);
+      if(dist<1.9){
+        blueScore+=10; toast("Spindle +10 — brain checking in");
+        flagEvent("spindle");
+        scene.remove(s.mesh); spindles.splice(i,1); continue;
+      }
+      if(car.position.z < s.z-6){
+        scene.remove(s.mesh); spindles.splice(i,1);
+      }
+    }
+  }
+  var THOUGHTS=["did I lock the door?","what's for lunch?","did I reply to that email?","what time is it?","where are my keys?","I should call them back"];
+  function updateLabelPos(el,worldPos){
+    var v=worldPos.clone().project(camera);
+    if(v.z>1||v.z<-1){ el.style.display="none"; return; }
+    el.style.display="block";
+    el.style.left=((v.x*0.5+0.5)*innerWidth)+"px";
+    el.style.top=((-v.y*0.5+0.5)*innerHeight)+"px";
+  }
+  function spawnDistraction(){
+    var geo=new THREE.OctahedronGeometry(0.5,0);
+    var mat=new THREE.MeshStandardMaterial({color:0xff5c7a,emissive:0xff5c7a,emissiveIntensity:1.3});
+    var mesh=new THREE.Mesh(geo,mat);
+    var x=LANES[Math.floor(Math.random()*LANES.length)]*laneWidth;
+    var z=car.position.z-(22+Math.random()*14);
+    mesh.position.set(x,heightAt(x,z,elapsed)+1.3,z);
+    scene.add(mesh);
+    var el=document.createElement("div");
+    el.className="obstacle-label";
+    el.textContent=THOUGHTS[Math.floor(Math.random()*THOUGHTS.length)];
+    document.getElementById("thoughts").appendChild(el);
+    distractions.push({mesh:mesh,x:x,z:z,el:el});
+  }
+  function updateDistractions(dt){
+    for(var i=distractions.length-1;i>=0;i--){
+      var d=distractions[i];
+      d.mesh.rotation.x+=dt*3; d.mesh.rotation.y+=dt*2;
+      d.mesh.position.y=heightAt(d.x,d.z,elapsed)+1.3+Math.sin(elapsed*4+i)*0.08;
+      updateLabelPos(d.el,d.mesh.position);
+      var dx=d.x-car.position.x, dz=d.z-car.position.z, dist=Math.sqrt(dx*dx+dz*dz);
+      if(dist<1.7){
+        redScore+=5; toast("Distracted − 5");
+        flagEvent("distraction");
+        scene.remove(d.mesh); d.el.remove(); distractions.splice(i,1); continue;
+      }
+      if(car.position.z < d.z-6){
+        scene.remove(d.mesh); d.el.remove(); distractions.splice(i,1);
+      }
+    }
+  }
+  function spawnShuffle(){
+    var geo=new THREE.SphereGeometry(0.5,14,14);
+    var mat=new THREE.MeshStandardMaterial({color:0x5eead4,emissive:0x5eead4,emissiveIntensity:1.4});
+    var mesh=new THREE.Mesh(geo,mat);
+    var x=LANES[Math.floor(Math.random()*LANES.length)]*laneWidth;
+    var z=car.position.z-(20+Math.random()*12);
+    mesh.position.set(x,heightAt(x,z,elapsed)+1.1,z);
+    scene.add(mesh);
+    var el=document.createElement("div");
+    el.className="good-label";
+    el.textContent=SHUFFLE_WORDS[Math.floor(Math.random()*SHUFFLE_WORDS.length)];
+    document.getElementById("thoughts").appendChild(el);
+    shuffles.push({mesh:mesh,x:x,z:z,el:el});
+  }
+  function updateShuffles(dt){
+    for(var i=shuffles.length-1;i>=0;i--){
+      var u=shuffles[i];
+      u.mesh.rotation.y+=dt*2;
+      u.mesh.position.y=heightAt(u.x,u.z,elapsed)+1.1+Math.sin(elapsed*3+i)*0.1;
+      updateLabelPos(u.el,u.mesh.position);
+      var dx=u.x-car.position.x, dz=u.z-car.position.z, dist=Math.sqrt(dx*dx+dz*dz);
+      if(dist<1.9){
+        blueScore+=8; toast("Shuffled +8 — displacing the worry");
+        flagEvent("shuffle");
+        scene.remove(u.mesh); u.el.remove(); shuffles.splice(i,1); continue;
+      }
+      if(car.position.z < u.z-6){
+        scene.remove(u.mesh); u.el.remove(); shuffles.splice(i,1);
+      }
+    }
+  }
+
+  // ---------- timed HUD events: microsleep / k-complex / dream cue ----------
+  function startEvent(type,dur){
+    activeEvent={type:type,start:elapsed,dur:dur,resolved:false};
+    flagEvent(type);
+    if(type==="kcomplex") spawnKcomplexObj();
+  }
+  function spawnKcomplexObj(){
+    var geo=new THREE.ConeGeometry(0.4,1.6,6);
+    var mat=new THREE.MeshStandardMaterial({color:0xff8a3d,emissive:0xff8a3d,emissiveIntensity:1.5});
+    var mesh=new THREE.Mesh(geo,mat);
+    var x=LANES[laneIndex]*laneWidth, z=car.position.z-14;
+    mesh.position.set(x,heightAt(x,z,elapsed)+1.0,z);
+    scene.add(mesh);
+    var el=document.createElement("div");
+    el.className="obstacle-label";
+    el.textContent="K-complex";
+    document.getElementById("thoughts").appendChild(el);
+    kcomplexObj={mesh:mesh,x:x,z:z,el:el};
+  }
+  function clearKcomplexObj(){
+    if(kcomplexObj){ scene.remove(kcomplexObj.mesh); kcomplexObj.el.remove(); kcomplexObj=null; }
+  }
+  function updateEvent(dt){
+    if(!activeEvent){ setEventUI(false); return; }
+    var t=elapsed-activeEvent.start;
+    var p=Math.max(0,1-t/activeEvent.dur);
+    if(activeEvent.type==="kcomplex"){
+      setEventUI(true,"K-COMPLEX","Press ↓ before it reaches you",p);
+      if(kcomplexObj){
+        kcomplexObj.mesh.position.y=heightAt(kcomplexObj.x,kcomplexObj.z,elapsed)+1.0+Math.sin(elapsed*10)*0.08;
+        kcomplexObj.mesh.rotation.y+=dt*4;
+        updateLabelPos(kcomplexObj.el,kcomplexObj.mesh.position);
+      }
+      if(keys.down && !activeEvent.resolved){
+        activeEvent.resolved=true; blueScore+=10; toast("Stayed asleep +10");
+        clearKcomplexObj();
+      }
+      if(t>=activeEvent.dur){
+        if(!activeEvent.resolved){ redScore+=5; toast("Nearly woke up − 5"); }
+        clearKcomplexObj();
+        activeEvent=null;
+      }
+    } else if(activeEvent.type==="microsleep"){
+      frozen=true;
+      setEventUI(true,"MICROSLEEP","…drifting…",p);
+      if(t>=activeEvent.dur){ frozen=false; activeEvent=null; }
+    } else if(activeEvent.type==="dreamcue"){
+      setEventUI(true,"CUE SENSED","Hold still — don't steer or accelerate",p);
+      if((keys.left||keys.right||keys.up||keys.down) && !activeEvent.resolved){
+        activeEvent.resolved=true; toast("Missed it — moved too soon");
+      }
+      if(t>=activeEvent.dur){
+        if(!activeEvent.resolved){ blueScore+=25; toast("LUCID! +25"); }
+        activeEvent=null;
+      }
+    }
+  }
+  function maybeSpawnEvents(dt){
+    var s=STAGES[stageKey];
+    if(s.spindles){ nextSpindleAt-=dt; if(nextSpindleAt<=0){ spawnSpindle(); nextSpindleAt=3+Math.random()*3; } }
+    if(s.kcomplex){ nextKAt-=dt; if(nextKAt<=0 && !activeEvent){ startEvent("kcomplex",1.4); nextKAt=6+Math.random()*4; } }
+    if(s.microsleep){ nextMicroAt-=dt; if(nextMicroAt<=0 && !activeEvent){ startEvent("microsleep",0.5+Math.random()*0.3); nextMicroAt=4+Math.random()*4; } }
+    if(s.dreamcue){ nextDreamAt-=dt; if(nextDreamAt<=0 && !activeEvent){ startEvent("dreamcue",2.0); nextDreamAt=7+Math.random()*5; } }
+    if(s.distractions){ nextDistractionAt-=dt; if(nextDistractionAt<=0){ spawnDistraction(); nextDistractionAt=1.8+Math.random()*1.6; } }
+    if(s.shuffle){ nextShuffleAt-=dt; if(nextShuffleAt<=0){ spawnShuffle(); nextShuffleAt=1.8+Math.random()*1.6; } }
+  }
+
+  // ---------- waveform HUD ----------
+  var waveCtx=document.getElementById("waveCanvas").getContext("2d");
+  var waveBuf=[];
+  var waveEvent=null;
+  function drawWave(){
+    var sample=0;
+    for(var i=0;i<cur.comps.length;i++){
+      var c=cur.comps[i];
+      sample+=c.a*Math.sin(c.f*elapsed*6);
+    }
+    sample+=cur.noise*Math.sin(elapsed*23)*0.6;
+
+    var labelNow=null;
+    if(waveEvent){
+      var te=elapsed-waveEvent.start;
+      if(te<=waveEvent.dur){
+        if(waveEvent.type==="kcomplex"){
+          var peak=waveEvent.dur*0.4, sigma=0.09;
+          sample += -1.3*Math.exp(-Math.pow(te-peak,2)/(2*sigma*sigma))
+                    + 0.6*Math.exp(-Math.pow(te-peak-0.22,2)/(2*(sigma*1.6)*(sigma*1.6)));
+          labelNow="K-complex";
+        } else if(waveEvent.type==="spindle"){
+          var env=Math.sin(Math.PI*Math.min(1,te/waveEvent.dur));
+          sample += env*0.55*Math.sin(te*2*Math.PI*12);
+          labelNow="Spindle";
+        }
+      } else {
+        waveEvent=null;
+      }
+    }
+
+    waveBuf.push(sample);
+    if(waveBuf.length>140) waveBuf.shift();
+    var w=waveCtx.canvas.width,h=waveCtx.canvas.height;
+    waveCtx.clearRect(0,0,w,h);
+    waveCtx.strokeStyle="#"+cur.accentColor.getHexString();
+    waveCtx.lineWidth=2;
+    waveCtx.beginPath();
+    var lastX=0,lastY=h/2;
+    for(var j=0;j<waveBuf.length;j++){
+      var x=(j/139)*w;
+      var y=h/2 - waveBuf[j]*(h*0.38);
+      if(j===0) waveCtx.moveTo(x,y); else waveCtx.lineTo(x,y);
+      lastX=x; lastY=y;
+    }
+    waveCtx.stroke();
+
+    if(labelNow){
+      waveCtx.fillStyle=waveEvent.type==="kcomplex"?"#ff8a3d":"#5eead4";
+      waveCtx.beginPath();
+      waveCtx.arc(lastX,lastY,3,0,Math.PI*2);
+      waveCtx.fill();
+      waveCtx.font="700 10px 'JetBrains Mono',monospace";
+      waveCtx.textAlign="right";
+      waveCtx.fillText(labelNow,w-4,Math.max(11,lastY-8));
+    }
+  }
+
+  // ---------- stage UI wiring ----------
+  var stageBtns=Array.prototype.slice.call(document.querySelectorAll("#stages .btn[data-stage]"));
+  function applyStageUI(key){
+    document.getElementById("stageName").textContent=STAGES[key].label;
+    document.getElementById("stageBand").textContent=STAGES[key].band;
+    document.getElementById("stageFeel").textContent=STAGES[key].feel;
+    document.getElementById("nextStageLabel").textContent=STAGES[ORDER[(cycleIdx+1)%ORDER.length]].label;
+    setNarration(NARRATION.stage[key]);
+    stageBtns.forEach(function(b){ b.classList.toggle("active", b.dataset.stage===key); });
+    var activeBand=BAND_OF_STAGE[key];
+    document.querySelectorAll(".band-chip").forEach(function(c){ c.classList.toggle("active", c.dataset.band===activeBand); });
+  }
+  function setStage(key){
+    stageKey=key;
+    cycleIdx=ORDER.indexOf(key); if(cycleIdx<0) cycleIdx=0;
+    stageBaselineNet=blueScore-redScore;
+    applyStageUI(key);
+    showStageModal(key);
+  }
+  stageBtns.forEach(function(b){ b.addEventListener("click",function(){ setStage(b.dataset.stage); }); });
+
+  // ---------- main loop ----------
+  function update(dt){
+    elapsed+=dt;
+    if(paused) return;
+
+    lerpStage(dt);
+    maybeSpawnEvents(dt);
+    updateEvent(dt);
+
+    var targetX=LANES[laneIndex]*laneWidth;
+    if(!frozen) car.position.x+=(targetX-car.position.x)*(1-Math.exp(-dt/0.15));
+
+    var base=10*cur.speed;
+    var boost=keys.up?1.5:0, brake=keys.down?0.5:0;
+    var speed=frozen?0:Math.max(2,base+base*boost-base*brake*0.6);
+    car.position.z-=speed*dt;
+
+    var hHere=heightAt(car.position.x,car.position.z,elapsed);
+    car.position.y=hHere+0.05;
+    var hAhead=heightAt(car.position.x,car.position.z-0.6,elapsed);
+    var hBehind=heightAt(car.position.x,car.position.z+0.6,elapsed);
+    var hLeft=heightAt(car.position.x-0.6,car.position.z,elapsed);
+    var hRight=heightAt(car.position.x+0.6,car.position.z,elapsed);
+    car.rotation.x=Math.atan2(hBehind-hAhead,1.2)*0.6;
+    car.rotation.z=Math.atan2(hLeft-hRight,1.2)*0.6;
+    car.rotation.y=Math.max(-0.3,Math.min(0.3,(targetX-car.position.x)*-0.15));
+
+    terrain.position.z=car.position.z;
+    var posAttr=terrainGeo.attributes.position;
+    for(var i=0;i<posAttr.count;i++){
+      var vx=posAttr.getX(i), vz=posAttr.getZ(i);
+      posAttr.setY(i, heightAt(vx, vz+terrain.position.z, elapsed));
+    }
+    posAttr.needsUpdate=true;
+    terrainGeo.computeVertexNormals();
+    railL.position.z=terrain.position.z; railR.position.z=terrain.position.z;
+
+    updateSpindles(dt);
+    updateDistractions(dt);
+    updateShuffles(dt);
+
+    var bx=Math.sin(azimuth)*8.5, bz=Math.cos(azimuth)*8.5;
+    var desired=new THREE.Vector3(car.position.x+bx, car.position.y+4.2, car.position.z+bz);
+    camera.position.lerp(desired,1-Math.exp(-dt/0.25));
+    camera.lookAt(car.position.x, car.position.y+1.1, car.position.z-6);
+
+    document.getElementById("blueVal").textContent=blueScore;
+    document.getElementById("redVal").textContent=redScore;
+    var net=blueScore-redScore;
+    var netEl=document.getElementById("netVal");
+    netEl.textContent=(net>0?"+":"")+net;
+    netEl.className=net>0?"pos":(net<0?"neg":"");
+
+    var threshold=STAGE_THRESHOLD[stageKey]||50;
+    var progressFrac=Math.max(0,Math.min(1,(net-stageBaselineNet)/threshold));
+    document.getElementById("progressFill").style.width=(progressFrac*100)+"%";
+    if(progressFrac>=1){
+      cycleIdx=(cycleIdx+1)%ORDER.length;
+      stageKey=ORDER[cycleIdx];
+      stageBaselineNet=net;
+      applyStageUI(stageKey);
+      showStageModal(stageKey);
+    }
+
+    drawWave();
+  }
+
+  function animate(){
+    var dt=Math.min(clock.getDelta(),0.05);
+    update(dt);
+    renderer.render(scene,camera);
+    requestAnimationFrame(animate);
+  }
+  renderer.setClearColor(STAGES.wake.fog);
+  animate();
+
+  window.addEventListener("resize",function(){
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+
+  document.getElementById("modalContinue").addEventListener("click",function(){
+    document.getElementById("stageModal").hidden=true;
+    paused=false;
+  });
+
+  // ---------- setup screen: hookup + bio-calibration ----------
+  var ELECTRODES=[
+    {id:"eeg-f",label:"EEG — Frontal",type:"eeg",x:50,y:20},
+    {id:"eeg-c",label:"EEG — Central",type:"eeg",x:50,y:34},
+    {id:"eeg-o",label:"EEG — Occipital",type:"eeg",x:50,y:50},
+    {id:"eog-l",label:"EOG — Left eye",type:"eog",x:34,y:38},
+    {id:"eog-r",label:"EOG — Right eye",type:"eog",x:66,y:38},
+    {id:"emg-chin",label:"EMG — Chin",type:"emg",x:50,y:63}
+  ];
+  var THRESHOLD={eeg:5,eog:5,emg:10};
+  ELECTRODES.forEach(function(e){ e.placed=false; e.ok=false; e.impedance=null; });
+
+  var headDiagram=document.getElementById("headDiagram");
+  var electrodeListEl=document.getElementById("electrodeList");
+  ELECTRODES.forEach(function(e){
+    var dot=document.createElement("div");
+    dot.className="electrode-dot";
+    dot.style.left=e.x+"%"; dot.style.top=e.y+"%";
+    dot.textContent=e.type.toUpperCase();
+    dot.id="dot-"+e.id;
+    dot.addEventListener("click",function(){ placeOrFixElectrode(e.id); });
+    headDiagram.appendChild(dot);
+
+    var row=document.createElement("div");
+    row.className="electrode-row";
+    row.id="row-"+e.id;
+    row.innerHTML="<span>"+e.label+"</span><b>—</b>";
+    electrodeListEl.appendChild(row);
+  });
+
+  function placeOrFixElectrode(id){
+    var e=ELECTRODES.filter(function(x){return x.id===id;})[0];
+    var firstTry=!e.placed;
+    e.placed=true;
+    var threshold=THRESHOLD[e.type];
+    var goodChance=firstTry?0.65:0.9;
+    var isGood=Math.random()<goodChance;
+    e.impedance=isGood ? (threshold*0.4+Math.random()*threshold*0.4) : (threshold*1.1+Math.random()*threshold*0.7);
+    e.ok=e.impedance<=threshold;
+    renderElectrode(e);
+    updateHookupStatus();
+  }
+  function renderElectrode(e){
+    var dot=document.getElementById("dot-"+e.id);
+    var row=document.getElementById("row-"+e.id);
+    dot.classList.toggle("good",e.ok);
+    dot.classList.toggle("bad",e.placed && !e.ok);
+    var existingReading=dot.querySelector(".reading");
+    if(existingReading) existingReading.remove();
+    if(e.placed){
+      var r=document.createElement("div");
+      r.className="reading";
+      r.textContent=e.impedance.toFixed(1)+"k"+(e.ok?" ✓":" ✗");
+      dot.appendChild(r);
+    }
+    row.className="electrode-row"+(e.placed?(e.ok?" good":" bad"):"");
+    row.querySelector("b").textContent=e.placed?(e.impedance.toFixed(1)+"kΩ "+(e.ok?"✓":"✗ tap to re-prep")):"tap to attach";
+  }
+  function updateHookupStatus(){
+    var okCount=ELECTRODES.filter(function(e){return e.ok;}).length;
+    document.getElementById("hookupStatus").textContent=okCount+" / "+ELECTRODES.length+" electrodes ready";
+    document.getElementById("toCalibBtn").disabled = okCount<ELECTRODES.length;
+  }
+
+  var CALIB_STEPS=[
+    {id:"eyes-open",prompt:"Eyes open",dur:2.6,channel:"eeg",electrodeId:null,desc:"Baseline — fast, low-amplitude EEG."},
+    {id:"eyes-closed",prompt:"Eyes closed",dur:2.6,channel:"eeg-alpha",electrodeId:"eeg-o",desc:"Alpha rhythm (8–12Hz) should appear — confirms the occipital electrode."},
+    {id:"eyes-lr",prompt:"Look left… now right",dur:2.6,channel:"eog",electrodeId:"eog-l",desc:"Slow deflections — confirms the EOG channels."},
+    {id:"blinks",prompt:"Blink three times",dur:2.6,channel:"eog-blink",electrodeId:"eog-r",desc:"Sharp spikes — confirms the eye electrodes catch fast movement too."},
+    {id:"teeth",prompt:"Clench your teeth",dur:2.2,channel:"emg",electrodeId:"emg-chin",desc:"A dense high-amplitude burst — confirms the chin electrode."}
+  ];
+  var calibIdx=0, calibStart=0, calibFailStep=1+Math.floor(Math.random()*4), calibAnimFrame=null;
+  var calibCtx=document.getElementById("calibCanvas").getContext("2d");
+
+  document.getElementById("toCalibBtn").onclick=function(){
+    document.getElementById("hookupView").hidden=true;
+    document.getElementById("calibView").hidden=false;
+    calibIdx=0;
+    runCalibStep();
+  };
+  document.getElementById("calibFixBtn").addEventListener("click",function(){
+    document.getElementById("calibView").hidden=true;
+    document.getElementById("hookupView").hidden=false;
+    var failing=CALIB_STEPS[calibFailStep];
+    var badElectrode=ELECTRODES.filter(function(e){return e.id===failing.electrodeId;})[0];
+    if(badElectrode){ badElectrode.placed=false; badElectrode.ok=false; renderElectrode(badElectrode); updateHookupStatus(); }
+    calibFailStep=-1;
+    document.getElementById("toCalibBtn").textContent="Re-check and continue →";
+    document.getElementById("toCalibBtn").onclick=function(){
+      if(!badElectrode || badElectrode.ok){
+        document.getElementById("hookupView").hidden=true;
+        document.getElementById("calibView").hidden=false;
+        runCalibStep();
+      }
+    };
+  });
+
+  function runCalibStep(){
+    var step=CALIB_STEPS[calibIdx];
+    document.getElementById("calibPrompt").textContent=step.prompt;
+    document.getElementById("calibDesc").textContent=step.desc;
+    document.getElementById("calibResult").hidden=true;
+    document.getElementById("calibFixBtn").hidden=true;
+    calibStart=performance.now();
+    if(calibAnimFrame) cancelAnimationFrame(calibAnimFrame);
+    animateCalib(step);
+  }
+  function animateCalib(step){
+    var t=(performance.now()-calibStart)/1000;
+    var frac=Math.min(1,t/step.dur);
+    document.getElementById("calibBar").style.width=(frac*100)+"%";
+    var willFail=(calibIdx===calibFailStep);
+    drawCalibTrace(step,t,willFail);
+    if(frac<1){
+      calibAnimFrame=requestAnimationFrame(function(){ animateCalib(step); });
+    } else {
+      finishCalibStep(step,willFail);
+    }
+  }
+  function drawCalibTrace(step,t,willFail){
+    var w=calibCtx.canvas.width,h=calibCtx.canvas.height;
+    calibCtx.clearRect(0,0,w,h);
+    var lanes=[{name:"EEG",y:h*0.2},{name:"EOG",y:h*0.52},{name:"EMG",y:h*0.84}];
+    calibCtx.font="9px 'JetBrains Mono',monospace";
+    lanes.forEach(function(lane){
+      var active = step.channel.indexOf(lane.name.toLowerCase())===0;
+      calibCtx.strokeStyle = active ? "#5eead4" : "rgba(255,255,255,.22)";
+      calibCtx.fillStyle = active ? "#5eead4" : "rgba(255,255,255,.35)";
+      calibCtx.fillText(lane.name,4,lane.y-10);
+      calibCtx.lineWidth=1.5;
+      calibCtx.beginPath();
+      for(var x=0;x<=w;x+=3){
+        var ph=x/w*10+t*4;
+        var amp=0.06*h;
+        if(active && !willFail){
+          if(step.channel==="eeg-alpha") amp=0.22*h*Math.sin(ph*1.3);
+          else if(step.channel==="eog-blink") amp = (Math.sin(ph*0.6)>0.9)?0.3*h:0.05*h;
+          else if(step.channel==="eog") amp=0.2*h*Math.sin(ph*0.35);
+          else if(step.channel==="emg") amp=0.28*h*(0.5+0.5*Math.sin(ph*5))* (Math.random()*0.6+0.7);
+          else amp=0.1*h*Math.sin(ph*2.2);
+        } else if(active && willFail){
+          amp=0.015*h*(Math.random()-0.5);
+        }
+        var y=lane.y + (Math.sin(ph*6)*amp*0.15) + amp*Math.sin(ph*2);
+        if(x===0) calibCtx.moveTo(x,y); else calibCtx.lineTo(x,y);
+      }
+      calibCtx.stroke();
+    });
+  }
+  function finishCalibStep(step,willFail){
+    var resultEl=document.getElementById("calibResult");
+    resultEl.hidden=false;
+    if(willFail){
+      resultEl.className="calib-result fail";
+      resultEl.textContent="⚠ No response detected — that channel needs attention.";
+      document.getElementById("calibFixBtn").hidden=false;
+    } else {
+      resultEl.className="calib-result ok";
+      resultEl.textContent="✓ Confirmed.";
+      setTimeout(function(){
+        calibIdx++;
+        if(calibIdx<CALIB_STEPS.length){ runCalibStep(); }
+        else { finishSetup(); }
+      },700);
+    }
+  }
+  function finishSetup(){
+    document.getElementById("setupScreen").hidden=true;
+    setStage("wake");
+  }
+
+  // ---------- hot-reload friendliness ----------
+  function boot(){}
+  if(window.claude && window.claude.hot){
+    window.claude.hot.ready ? window.claude.hot.ready(boot) : boot();
+  }
+})();
+</script>
+</body>
+</html>
