@@ -114,6 +114,8 @@ Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always
 | 09 | Export and honest analysis of your own nights |
 | 10 | One-click installers for every platform |
 
+**Not scheduled yet:** a donate / support link somewhere on the website — everything here (app, server, videos) is free, and there's currently no way for people to chip in if they want to.
+
 ## Contributing
 
 New to programming? You're very welcome here. See [CONTRIBUTING.md](CONTRIBUTING.md).
