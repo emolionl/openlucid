@@ -3,12 +3,20 @@ title: "Are You Dreaming? Episode 1 — The Bell"
 date: 2026-11-04
 description: "A Tibetan monk practices dream yoga, hears the monastery bell ring impossibly inside his own dream, and recognizes it. Soft watercolor, mountain light. Shot-by-shot script for Higgsfield."
 weight: 4
-status: "Script, draft 2 — two Character elements built in Higgsfield, ready for shot 1"
+status: "Published to YouTube (unlisted) and embedded here; intro/outro brand cards still use a placeholder wordmark instead of the real OpenLucid logo (Higgsfield credits ran out mid-build) — the embed will be swapped once that's redone"
 ---
 
 **Format:** animated, soft watercolor, ~2 minutes as scripted below (the series target is 6–10 minutes; this is a complete first cut that can be extended with more coverage shots before final production).
 **Audience:** anyone who's never heard of lucid dreaming, encountering the idea for the first time through its oldest known deliberate practice.
 **Goal:** after watching, people understand that "noticing you're dreaming, on purpose" is not a modern invention — and feel the first beat of the series' recurring question, *"Are you dreaming?"*
+
+---
+
+## Watch the episode
+
+{{< youtube 6bN5SzqJXn4 >}}
+
+This is a first-cut draft — the intro card still carries a placeholder wordmark, not the final OpenLucid logo, and the full series targets 6–10 minutes per episode rather than this one's ~2. Everything else below is the shot-by-shot script we actually fed into Higgsfield to make it, including the exact text-to-video prompt for every shot. If you're learning AI video prompting yourself, this is the real build log, not a cleaned-up explainer — read it alongside the video to see which prompt produced which few seconds.
 
 ---
 

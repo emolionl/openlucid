@@ -39,3 +39,7 @@ website/functions/node_modules/
 
 website/console/node_modules/
 website/console/dist/
+
+# Raw episode video clips (the published episode is embedded from YouTube;
+# source clips are large and live on disk / in Higgsfield, not in git)
+promotion/video-scripts/video/

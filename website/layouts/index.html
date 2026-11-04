@@ -1,7 +1,16 @@
 {{ define "main" }}
 
 <section class="hero">
-  <img class="hero-logo" src="{{ "icon-512.png" | relURL }}" alt="" width="132" height="132" style="border-radius: 30px;">
+  <div class="hero-lockup">
+    <img class="hero-logo" src="{{ "icon-512.png" | relURL }}" alt="" width="132" height="132" style="border-radius: 30px;">
+    <p class="hero-quote">&ldquo;Are you dreaming?&rdquo;</p>
+  </div>
+  <figure class="hero-video">
+    <div class="video-frame">
+      <iframe src="https://www.youtube-nocookie.com/embed/6bN5SzqJXn4" title="Are You Dreaming? Episode 1 — The Bell" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+    <figcaption>Episode 1 of our animated series, <em>Are You Dreaming?</em> — <a href="{{ "videos/are-you-dreaming-01-the-bell/" | relURL }}">watch the full story and the prompts behind it</a></figcaption>
+  </figure>
   <p class="eyebrow">Free · Open source · Build it yourself</p>
   <h1 class="headline">Know when<br><span class="gradient-text">you're dreaming.</span></h1>
   <p class="lede">OpenLucid listens to your sleep through an EEG headband and whispers a soft sound when you are probably dreaming. So the question <em>"Am I dreaming?"</em> can follow you inside.</p>

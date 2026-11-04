@@ -3,7 +3,7 @@ title: "Series: Are You Dreaming?"
 date: 2026-10-31
 description: "An animated anthology about the people who discovered, across nine centuries, that you can know you're dreaming."
 weight: 3
-status: "Concept; pilot script waiting for permission"
+status: "Pilot (Episode 1, The Bell) produced and published; rest of the series still concept-stage scripts"
 ---
 
 **Format:** an animated anthology. Each episode tells one true story, in its own animation style, narrated rather than acted. Episodes start at 6–10 minutes.
@@ -27,7 +27,7 @@ status: "Concept; pilot script waiting for permission"
 
 ## The pilot
 
-Episode 1, **[The Bell](are-you-dreaming-01-the-bell.md)**, is written: a shot-by-shot Higgsfield script, ready for a first test render. No real named person appears in it, so it didn't need anyone's permission first — which is also why it went first.
+Episode 1, **[The Bell](are-you-dreaming-01-the-bell.md)**, is produced: 14 shots generated in Higgsfield, narrated in a cloned voice via ElevenLabs, assembled with ffmpeg, and [published to YouTube](https://youtu.be/6bN5SzqJXn4) (unlisted — watch it on the episode page). No real named person appears in it, so it didn't need anyone's permission first — which is also why it went first.
 
 Episode 4, **The First Message**, is written. It tells a true story about two real people, based on their own published accounts. We promised to contact them before going further, so the script will be published here once they have had the chance to read and correct it.
 
