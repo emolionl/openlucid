@@ -303,6 +303,42 @@ img { max-width: 100%; height: auto; }
 .link-card p { margin: 0; color: var(--muted); font-size: 0.96rem; }
 .link-card .more { display: inline-block; margin-top: 14px; color: var(--lavender); font-size: 0.96rem; }
 
+.path-list { max-width: var(--wide); margin: 0 auto; }
+.path-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 22px 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  transition: background 0.2s ease;
+}
+.path-item:first-child { padding-top: 4px; }
+.path-item:last-child { border-bottom: none; padding-bottom: 4px; }
+.path-item:hover { text-decoration: none; background: rgba(140, 152, 255, 0.05); }
+.path-num {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--lavender);
+  color: var(--lavender);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+.path-body { flex: 1 1 auto; padding-top: 4px; }
+.path-body .kicker { color: var(--moonlight); font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.path-body h3 { margin: 6px 0 6px; font-size: 1.2rem; letter-spacing: -0.02em; }
+.path-body p { margin: 0; color: var(--muted); font-size: 0.96rem; line-height: 1.5; }
+.path-body .more { display: inline-block; margin-top: 10px; color: var(--lavender); font-size: 0.92rem; }
+@media (max-width: 640px) {
+  .path-item { gap: 14px; }
+  .path-num { width: 36px; height: 36px; font-size: 1rem; }
+}
+
 /* ---------- Content pages (journey, docs, videos) ---------- */
 
 .page { max-width: var(--narrow); margin: 0 auto; padding: 56px 16px 96px; }

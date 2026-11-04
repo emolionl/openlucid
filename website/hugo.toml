@@ -53,44 +53,34 @@ disableKinds = ["taxonomy", "term"]
   weight = 0
 
 [[menus.main]]
-  name = "Journey"
-  pageRef = "/journey"
+  name = "Games"
+  pageRef = "/games"
   weight = 1
 
 [[menus.main]]
-  name = "Videos"
-  pageRef = "/videos"
+  name = "Journey"
+  pageRef = "/journey"
   weight = 2
 
 [[menus.main]]
-  name = "Research"
-  pageRef = "/research"
+  name = "Education"
+  pageRef = "/education"
   weight = 3
-
-[[menus.main]]
-  name = "Learn"
-  pageRef = "/learn"
-  weight = 4
-
-[[menus.main]]
-  name = "Docs"
-  pageRef = "/docs"
-  weight = 5
 
 [[menus.main]]
   name = "Questions"
   pageRef = "/questions"
-  weight = 6
+  weight = 4
 
 [[menus.main]]
   name = "Proposal"
   pageRef = "/proposal"
-  weight = 7
+  weight = 5
 
 [[menus.main]]
   name = "GitHub"
   url = "https://github.com/emolionl/openlucid"
-  weight = 8
+  weight = 6
 
 # Public Firebase web config (safe to publish; access is decided by firestore.rules).
 [params.firebase]

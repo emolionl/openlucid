@@ -1,0 +1,1555 @@
+{
+  "schemaVersion": 1,
+  "asset": {
+    "path": "public/models/brain-atlas.glb",
+    "bytes": 10692408,
+    "sha256": "ce761741d866e32d7a5b7638f4cacd5ec03e2b582e72c8218aba483ac28125e8",
+    "format": "glTF 2.0 binary",
+    "visibleRegionMeshes": [
+      "frontal-lobe",
+      "parietal-lobe",
+      "temporal-lobe",
+      "occipital-lobe",
+      "cerebellum",
+      "brain-stem",
+      "hippocampus",
+      "amygdala",
+      "prefrontal-cortex",
+      "corpus-callosum"
+    ],
+    "unifiedCortexMeshes": [
+      "unified-cortex"
+    ],
+    "hitProxyMeshes": [
+      "hit-proxy--cerebellum",
+      "hit-proxy--brain-stem",
+      "hit-proxy--hippocampus",
+      "hit-proxy--amygdala",
+      "hit-proxy--corpus-callosum"
+    ],
+    "visibleTriangles": 234560,
+    "unifiedCortexTriangles": 150256,
+    "hitProxyTriangles": 3200
+  },
+  "provenance": {
+    "dataset": "ds006128",
+    "snapshot": "1.0.11",
+    "snapshotTagCommit": "20faeed0c774665f58d55c409992f32c8dc4b76a",
+    "snapshotDoi": "10.18112/openneuro.ds006128.v1.0.11",
+    "repository": "https://github.com/OpenNeuroDatasets/ds006128",
+    "license": "CC0-1.0",
+    "subject": "sub-01",
+    "sourceFiles": [
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/lh.pial.T1",
+        "cacheFilename": "lh.pial.T1",
+        "role": "left FreeSurfer T1 pial surface (surface RAS/TKR)",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/lh.pial.T1",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/lh.pial.T1?ref=1.0.11",
+        "bytes": 5518077,
+        "sha256": "2aac780dd856e8be55362cec46663bd0eb14c03d3cac7ac3969f2083a7bf09f8",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer triangular surface",
+          "vertices": 153253,
+          "faces": 306502
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/rh.pial.T1",
+        "cacheFilename": "rh.pial.T1",
+        "role": "right FreeSurfer T1 pial surface (surface RAS/TKR)",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/rh.pial.T1",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/rh.pial.T1?ref=1.0.11",
+        "bytes": 5493057,
+        "sha256": "655690359a5cf3c4cd498b31594a22014d7ad4b85620248ae60ed82b25ce3d31",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer triangular surface",
+          "vertices": 152558,
+          "faces": 305112
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/lh.white",
+        "cacheFilename": "lh.white",
+        "role": "left matching FreeSurfer white-matter topology reference",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/lh.white",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/lh.white?ref=1.0.11",
+        "bytes": 5518077,
+        "sha256": "5e3f1bc3f112ca5900e117e89d4f10591a26275d9db6683e6cd5d9c4d5a4de65",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer triangular surface",
+          "vertices": 153253,
+          "faces": 306502
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/rh.white",
+        "cacheFilename": "rh.white",
+        "role": "right matching FreeSurfer white-matter topology reference",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/rh.white",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/rh.white?ref=1.0.11",
+        "bytes": 5493057,
+        "sha256": "f600bebc744c0ddb1ecf56a0f994a664042476159846f95fad47032e81b32459",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer triangular surface",
+          "vertices": 152558,
+          "faces": 305112
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/lh.curv",
+        "cacheFilename": "lh.curv",
+        "role": "left FreeSurfer native per-vertex cortical curvature",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/lh.curv",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/lh.curv?ref=1.0.11",
+        "bytes": 613027,
+        "sha256": "dfa25262297c73b8e6038bd3292202060dd1280d23818be510cfe814787c46a5",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer morphometry",
+          "vertices": 153253,
+          "minimum": -2.339956045150757,
+          "maximum": 0.6806773543357849,
+          "percentiles": {
+            "p0": -2.339956045150757,
+            "p1": -0.43485228180885316,
+            "p5": -0.3484123766422272,
+            "p25": -0.1706993728876114,
+            "p50": -0.009806840680539608,
+            "p75": 0.10926374793052673,
+            "p95": 0.2081413567066192,
+            "p99": 0.26031695008277905,
+            "p100": 0.6806773543357849
+          }
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/rh.curv",
+        "cacheFilename": "rh.curv",
+        "role": "right FreeSurfer native per-vertex cortical curvature",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/rh.curv",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/rh.curv?ref=1.0.11",
+        "bytes": 610247,
+        "sha256": "eeac37fbdbc9cdc8d56d0d2aa85de02f597648799e5a1363d9a2d277712eb8d4",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer morphometry",
+          "vertices": 152558,
+          "minimum": -0.7852358222007751,
+          "maximum": 0.5029873847961426,
+          "percentiles": {
+            "p0": -0.7852358222007751,
+            "p1": -0.4287167418003082,
+            "p5": -0.3459210604429245,
+            "p25": -0.17031249031424522,
+            "p50": -0.012249388732016087,
+            "p75": 0.10901348851621151,
+            "p95": 0.20795370787382125,
+            "p99": 0.2562009522318839,
+            "p100": 0.5029873847961426
+          }
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/label/lh.aparc.annot",
+        "cacheFilename": "lh.aparc.annot",
+        "role": "left Desikan-Killiany cortical annotation",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/label/lh.aparc.annot",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/label/lh.aparc.annot?ref=1.0.11",
+        "bytes": 1227537,
+        "sha256": "1ef2dccc752d0eda7f23f3df056bb9839f1457446ddf699a54eb5f5e23dbd1f5",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer annotation",
+          "vertices": 153253,
+          "labels": 36,
+          "colorTableRows": 36
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/label/rh.aparc.annot",
+        "cacheFilename": "rh.aparc.annot",
+        "role": "right Desikan-Killiany cortical annotation",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/label/rh.aparc.annot",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/label/rh.aparc.annot?ref=1.0.11",
+        "bytes": 1221977,
+        "sha256": "ca6c4ba089b0f1f8fd51a18d6ed07a306f81a057282bec08c9f2698b05ce25e8",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer annotation",
+          "vertices": 152558,
+          "labels": 36,
+          "colorTableRows": 36
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/mri/aseg.mgz",
+        "cacheFilename": "aseg.mgz",
+        "role": "FreeSurfer automatic subcortical segmentation",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/mri/aseg.mgz",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/mri/aseg.mgz?ref=1.0.11",
+        "bytes": 440891,
+        "sha256": "d2c386e1aaa05074042b07c8c9c53e999e6172053586562227c97e77a1a41a96",
+        "binaryVerified": true,
+        "formatValidation": {
+          "format": "FreeSurfer MGZ volume",
+          "imageClass": "MGHImage",
+          "shape": [
+            256,
+            256,
+            256
+          ],
+          "dataType": ">i4"
+        },
+        "acquisition": {
+          "method": "verified cache hit"
+        }
+      }
+    ],
+    "sectionSourcePurpose": "Provenance-locked offline inputs for authored MRI sections. The white surfaces also provide matching-subject topology references for the pial cortex in brain-atlas.glb.",
+    "sectionSourceFiles": [
+      {
+        "path": "derivatives/FreeSurfer/sub-01/mri/T1.mgz",
+        "cacheFilename": "T1.mgz",
+        "role": "FreeSurfer conformed T1 intensity volume for authored sections",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/mri/T1.mgz",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/mri/T1.mgz?ref=1.0.11",
+        "bytes": 4329761,
+        "sha256": "b107830e8147d33049fb29d8b0244016e535d16d4366cdea5dac8c2e675c964f",
+        "format": "FreeSurfer MGZ volume"
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/mri/brainmask.mgz",
+        "cacheFilename": "brainmask.mgz",
+        "role": "FreeSurfer skull-stripped intensity volume and brain support mask",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/mri/brainmask.mgz",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/mri/brainmask.mgz?ref=1.0.11",
+        "bytes": 1448184,
+        "sha256": "53d20cd298b779415ec8eeae02e15e489e576661bf601e8a69eae8bcc4808281",
+        "format": "FreeSurfer MGZ volume"
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/lh.white",
+        "cacheFilename": "lh.white",
+        "role": "left FreeSurfer white-matter surface (surface RAS/TKR)",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/lh.white",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/lh.white?ref=1.0.11",
+        "bytes": 5518077,
+        "sha256": "5e3f1bc3f112ca5900e117e89d4f10591a26275d9db6683e6cd5d9c4d5a4de65",
+        "format": "FreeSurfer triangular surface"
+      },
+      {
+        "path": "derivatives/FreeSurfer/sub-01/surf/rh.white",
+        "cacheFilename": "rh.white",
+        "role": "right FreeSurfer white-matter surface (surface RAS/TKR)",
+        "url": "https://s3.amazonaws.com/openneuro.org/ds006128/derivatives/FreeSurfer/sub-01/surf/rh.white",
+        "annexMetadataUrl": "https://api.github.com/repos/OpenNeuroDatasets/ds006128/contents/derivatives/FreeSurfer/sub-01/surf/rh.white?ref=1.0.11",
+        "bytes": 5493057,
+        "sha256": "f600bebc744c0ddb1ecf56a0f994a664042476159846f95fad47032e81b32459",
+        "format": "FreeSurfer triangular surface"
+      }
+    ],
+    "sectionSurfaceNamingNote": "Snapshot 1.0.11 contains lh.white and rh.white. It does not contain lh.white.T1 or rh.white.T1.",
+    "surfaceNamingNote": "Snapshot 1.0.11 stores the final bilateral FreeSurfer T1 pial surfaces as lh.pial.T1 and rh.pial.T1. The official unsuffixed lh.pial and rh.pial object paths are absent."
+  },
+  "coordinateTransform": {
+    "surfaceCoordinates": "FreeSurfer surface RAS/TKR millimeters",
+    "asegVoxelToSurfaceRasTkr": [
+      [
+        -0.9000001,
+        0.0,
+        0.0,
+        115.2000122
+      ],
+      [
+        0.0,
+        0.0,
+        0.9000001,
+        -115.2000122
+      ],
+      [
+        0.0,
+        -0.9000001,
+        0.0,
+        115.2000122
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "displayAxes": {
+      "input": [
+        "right",
+        "anterior",
+        "superior"
+      ],
+      "output": [
+        "right",
+        "up",
+        "front"
+      ],
+      "mapping": [
+        "x",
+        "z",
+        "y"
+      ],
+      "windingReversedAfterReflection": true
+    },
+    "runtimeMirroring": false
+  },
+  "corticalSegmentation": {
+    "atlas": "FreeSurfer aparc / Desikan-Killiany",
+    "priority": [
+      "prefrontal-cortex",
+      "frontal-lobe",
+      "parietal-lobe",
+      "temporal-lobe",
+      "occipital-lobe"
+    ],
+    "labelGroups": {
+      "prefrontal-cortex": [
+        "caudalanteriorcingulate",
+        "lateralorbitofrontal",
+        "medialorbitofrontal",
+        "parsopercularis",
+        "parsorbitalis",
+        "parstriangularis",
+        "rostralanteriorcingulate",
+        "rostralmiddlefrontal",
+        "superiorfrontal",
+        "frontalpole"
+      ],
+      "frontal-lobe": [
+        "caudalmiddlefrontal",
+        "paracentral",
+        "precentral"
+      ],
+      "parietal-lobe": [
+        "inferiorparietal",
+        "isthmuscingulate",
+        "postcentral",
+        "posteriorcingulate",
+        "precuneus",
+        "superiorparietal",
+        "supramarginal"
+      ],
+      "temporal-lobe": [
+        "bankssts",
+        "entorhinal",
+        "fusiform",
+        "inferiortemporal",
+        "insula",
+        "middletemporal",
+        "parahippocampal",
+        "superiortemporal",
+        "temporalpole",
+        "transversetemporal"
+      ],
+      "occipital-lobe": [
+        "cuneus",
+        "lateraloccipital",
+        "lingual",
+        "pericalcarine"
+      ]
+    },
+    "faceRule": "Each triangle is assigned once by majority vote across its three vertex labels; ties use the declared priority order.",
+    "uncategorizedFallback": "Vertices with unknown or unmapped annotations inherit the category of the nearest annotated pial vertex in the same hemisphere before face voting.",
+    "decimationRule": "Each complete hemisphere is quadric-decimated once before the reduced faces are partitioned. Candidate edge collapses that violate the closed-manifold link condition are rejected, preventing remote sulcal sheets from pinching together. Region meshes retain identical shared boundary positions and normals.",
+    "triangleTarget": 150000,
+    "build": {
+      "prefrontal-cortex": {
+        "sourceTriangles": 169062,
+        "outputTriangles": 40752,
+        "outputVertices": 20765,
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 20765,
+          "percentiles": {
+            "p0": -0.6778674125671387,
+            "p1": -0.45513957023620605,
+            "p5": -0.37669806480407714,
+            "p25": -0.22891612350940704,
+            "p50": -0.07476233690977097,
+            "p75": 0.06541147828102112,
+            "p95": 0.17936765551567074,
+            "p99": 0.2236503499746323,
+            "p100": 0.5631527900695801
+          }
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 20765,
+          "percentilesMillimeters": {
+            "p0": 0.0,
+            "p1": 0.0,
+            "p5": 1.5959403276443482,
+            "p25": 2.3229897022247314,
+            "p50": 2.8322439193725586,
+            "p75": 3.264655590057373,
+            "p95": 3.9110383033752436,
+            "p99": 4.518627586364747,
+            "p100": 5.728035926818848
+          }
+        }
+      },
+      "frontal-lobe": {
+        "sourceTriangles": 55894,
+        "outputTriangles": 11450,
+        "outputVertices": 6143,
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 6143,
+          "percentiles": {
+            "p0": -0.47929859161376953,
+            "p1": -0.38951777160167694,
+            "p5": -0.32759247422218324,
+            "p25": -0.20214637368917465,
+            "p50": -0.04959762096405029,
+            "p75": 0.084925327450037,
+            "p95": 0.1872139796614647,
+            "p99": 0.22774910271167748,
+            "p100": 0.28834104537963867
+          }
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 6143,
+          "percentilesMillimeters": {
+            "p0": 0.6923923492431641,
+            "p1": 1.2394858646392821,
+            "p5": 1.5996128916740417,
+            "p25": 2.183134436607361,
+            "p50": 2.627894639968872,
+            "p75": 2.989367723464966,
+            "p95": 3.4783947706222533,
+            "p99": 3.839381008148193,
+            "p100": 4.8528618812561035
+          }
+        }
+      },
+      "parietal-lobe": {
+        "sourceTriangles": 164236,
+        "outputTriangles": 39218,
+        "outputVertices": 20252,
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 20252,
+          "percentiles": {
+            "p0": -0.5608304738998413,
+            "p1": -0.4280830612778664,
+            "p5": -0.3588942900300026,
+            "p25": -0.21565356105566025,
+            "p50": -0.06885410472750664,
+            "p75": 0.0705451387912035,
+            "p95": 0.18862335756421092,
+            "p99": 0.23215019091963768,
+            "p100": 0.47813066840171814
+          }
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 20252,
+          "percentilesMillimeters": {
+            "p0": 0.0,
+            "p1": 0.0,
+            "p5": 1.3438709199428558,
+            "p25": 2.154849588871002,
+            "p50": 2.6424596309661865,
+            "p75": 3.088974952697754,
+            "p95": 3.781266188621521,
+            "p99": 4.359482417106628,
+            "p100": 5.815234184265137
+          }
+        }
+      },
+      "temporal-lobe": {
+        "sourceTriangles": 143588,
+        "outputTriangles": 37526,
+        "outputVertices": 19226,
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 19226,
+          "percentiles": {
+            "p0": -2.0531435012817383,
+            "p1": -0.4290662258863449,
+            "p5": -0.35203276574611664,
+            "p25": -0.1916416957974434,
+            "p50": -0.05247741937637329,
+            "p75": 0.05875563807785511,
+            "p95": 0.1692623794078827,
+            "p99": 0.21117737516760826,
+            "p100": 0.33975812792778015
+          }
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 19226,
+          "percentilesMillimeters": {
+            "p0": 0.0,
+            "p1": 0.0,
+            "p5": 0.0,
+            "p25": 2.240854024887085,
+            "p50": 2.8947038650512695,
+            "p75": 3.516024172306061,
+            "p95": 4.449605941772461,
+            "p99": 5.117456793785095,
+            "p100": 7.020665168762207
+          }
+        }
+      },
+      "occipital-lobe": {
+        "sourceTriangles": 78834,
+        "outputTriangles": 21310,
+        "outputVertices": 11061,
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 11061,
+          "percentiles": {
+            "p0": -0.5005602836608887,
+            "p1": -0.3821828782558441,
+            "p5": -0.32668137550354004,
+            "p25": -0.21143226325511932,
+            "p50": -0.07629715651273727,
+            "p75": 0.07552541047334671,
+            "p95": 0.22513960301876068,
+            "p99": 0.2867273032665252,
+            "p100": 0.4027513563632965
+          }
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 11061,
+          "percentilesMillimeters": {
+            "p0": 0.0,
+            "p1": 0.0,
+            "p5": 1.1386910676956177,
+            "p25": 1.6286921501159668,
+            "p50": 2.0550827980041504,
+            "p75": 2.578580379486084,
+            "p95": 3.3039450645446777,
+            "p99": 3.842822647094726,
+            "p100": 5.519504547119141
+          }
+        }
+      },
+      "hemispheres": {
+        "lh": {
+          "vertices": 153253,
+          "triangles": 306502,
+          "fallbackVertices": 8595,
+          "assignedTriangles": {
+            "prefrontal-cortex": 82161,
+            "frontal-lobe": 28053,
+            "parietal-lobe": 81816,
+            "temporal-lobe": 74552,
+            "occipital-lobe": 39920
+          },
+          "decimationTargetTriangles": 75000,
+          "decimatedVertices": 37574,
+          "decimatedTriangles": 75144,
+          "candidateDecimationCollapses": 115750,
+          "decimationCollapses": 115679,
+          "rejectedNonManifoldCollapses": 71,
+          "topology": {
+            "watertight": true,
+            "windingConsistent": true,
+            "eulerNumber": 2,
+            "boundaryEdges": 0,
+            "nonManifoldEdges": 0
+          },
+          "outputAssignedTriangles": {
+            "prefrontal-cortex": 19965,
+            "frontal-lobe": 5809,
+            "parietal-lobe": 19206,
+            "temporal-lobe": 19332,
+            "occipital-lobe": 10832
+          },
+          "pialWhiteCorrespondence": {
+            "sameSubject": "sub-01",
+            "sameVertexCount": true,
+            "identicalFacesAndVertexOrder": true,
+            "pialPositionSource": "lh.pial.T1",
+            "whiteTopologyReference": "lh.white"
+          },
+          "curvature": {
+            "source": "lh.curv",
+            "sourceVertices": 153253,
+            "sourcePercentiles": {
+              "p0": -2.339956045150757,
+              "p1": -0.43485228180885316,
+              "p5": -0.3484123766422272,
+              "p25": -0.1706993728876114,
+              "p50": -0.009806840680539608,
+              "p75": 0.10926374793052673,
+              "p95": 0.2081413567066192,
+              "p99": 0.26031695008277905,
+              "p100": 0.6806773543357849
+            },
+            "decimatedVertices": 37574,
+            "decimatedPercentiles": {
+              "p0": -2.0531435012817383,
+              "p1": -0.4344928494095802,
+              "p5": -0.35919198840856553,
+              "p25": -0.21519313380122185,
+              "p50": -0.06990253925323486,
+              "p75": 0.06560765765607357,
+              "p95": 0.18575744107365608,
+              "p99": 0.24056496500968896,
+              "p100": 0.5631527900695801
+            },
+            "aggregation": "Arithmetic mean of source values mapped through each accepted deterministic edge collapse."
+          },
+          "pialToWhiteThickness": {
+            "source": "lh.pial.T1 minus lh.white",
+            "sourcePercentilesMillimeters": {
+              "p0": 0.0,
+              "p1": 0.0,
+              "p5": 0.0,
+              "p25": 1.946427345275879,
+              "p50": 2.486330270767212,
+              "p75": 3.0189714431762695,
+              "p95": 3.798197269439697,
+              "p99": 4.451392593383801,
+              "p100": 6.099164009094238
+            },
+            "decimatedPercentilesMillimeters": {
+              "p0": 0.0,
+              "p1": 0.0,
+              "p5": 1.2035368025302888,
+              "p25": 2.094133496284485,
+              "p50": 2.6561503410339355,
+              "p75": 3.167415976524353,
+              "p95": 3.938225531578064,
+              "p99": 4.621142358779906,
+              "p100": 6.052896022796631
+            },
+            "aggregation": "Arithmetic mean through deterministic edge collapses."
+          },
+          "boundsMillimeters": [
+            [
+              -65.04669,
+              -27.51732,
+              -96.00668
+            ],
+            [
+              1.14785,
+              88.62182,
+              75.74292
+            ]
+          ]
+        },
+        "rh": {
+          "vertices": 152558,
+          "triangles": 305112,
+          "fallbackVertices": 9075,
+          "assignedTriangles": {
+            "prefrontal-cortex": 86901,
+            "frontal-lobe": 27841,
+            "parietal-lobe": 82420,
+            "temporal-lobe": 69036,
+            "occipital-lobe": 38914
+          },
+          "decimationTargetTriangles": 75000,
+          "decimatedVertices": 37558,
+          "decimatedTriangles": 75112,
+          "candidateDecimationCollapses": 115056,
+          "decimationCollapses": 115000,
+          "rejectedNonManifoldCollapses": 56,
+          "topology": {
+            "watertight": true,
+            "windingConsistent": true,
+            "eulerNumber": 2,
+            "boundaryEdges": 0,
+            "nonManifoldEdges": 0
+          },
+          "outputAssignedTriangles": {
+            "prefrontal-cortex": 20787,
+            "frontal-lobe": 5641,
+            "parietal-lobe": 20012,
+            "temporal-lobe": 18194,
+            "occipital-lobe": 10478
+          },
+          "pialWhiteCorrespondence": {
+            "sameSubject": "sub-01",
+            "sameVertexCount": true,
+            "identicalFacesAndVertexOrder": true,
+            "pialPositionSource": "rh.pial.T1",
+            "whiteTopologyReference": "rh.white"
+          },
+          "curvature": {
+            "source": "rh.curv",
+            "sourceVertices": 152558,
+            "sourcePercentiles": {
+              "p0": -0.7852358222007751,
+              "p1": -0.4287167418003082,
+              "p5": -0.3459210604429245,
+              "p25": -0.17031249031424522,
+              "p50": -0.012249388732016087,
+              "p75": 0.10901348851621151,
+              "p95": 0.20795370787382125,
+              "p99": 0.2562009522318839,
+              "p100": 0.5029873847961426
+            },
+            "decimatedVertices": 37558,
+            "decimatedPercentiles": {
+              "p0": -0.6778674125671387,
+              "p1": -0.42825059533119203,
+              "p5": -0.3561015009880066,
+              "p25": -0.21215665712952614,
+              "p50": -0.06865569204092026,
+              "p75": 0.06377493590116501,
+              "p95": 0.18553952649235728,
+              "p99": 0.2358725553750992,
+              "p100": 0.47813066840171814
+            },
+            "aggregation": "Arithmetic mean of source values mapped through each accepted deterministic edge collapse."
+          },
+          "pialToWhiteThickness": {
+            "source": "rh.pial.T1 minus rh.white",
+            "sourcePercentilesMillimeters": {
+              "p0": 0.0,
+              "p1": 0.0,
+              "p5": 0.0,
+              "p25": 1.9784593880176544,
+              "p50": 2.513521432876587,
+              "p75": 3.0532878637313843,
+              "p95": 3.8731903195381165,
+              "p99": 4.621802549362182,
+              "p100": 7.177267074584961
+            },
+            "decimatedPercentilesMillimeters": {
+              "p0": 0.0,
+              "p1": 0.0,
+              "p5": 1.2713197231292725,
+              "p25": 2.135633647441864,
+              "p50": 2.698684334754944,
+              "p75": 3.2057716250419617,
+              "p95": 4.037020039558412,
+              "p99": 4.755650730133057,
+              "p100": 7.020665168762207
+            },
+            "aggregation": "Arithmetic mean through deterministic edge collapses."
+          },
+          "boundsMillimeters": [
+            [
+              -6.57713,
+              -23.67026,
+              -94.16934
+            ],
+            [
+              66.04674,
+              89.22427,
+              77.19736
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "internalSegmentation": {
+    "source": "aseg.mgz",
+    "method": "Binary union of the listed aseg labels; the cerebellum uses a one-voxel binary closing and a 0.55-voxel smoothed signed-distance envelope, while the brain stem uses an unclosed 0.65-voxel smoothed signed-distance envelope. Other structures use marching cubes at 0.5. All surfaces use the MGH voxel-to-TKR transform, tiny disconnected fragments are removed, and each region is quadric-decimated.",
+    "build": {
+      "cerebellum": {
+        "asegLabels": [
+          {
+            "id": 7,
+            "name": "Left-Cerebellum-White-Matter"
+          },
+          {
+            "id": 8,
+            "name": "Left-Cerebellum-Cortex"
+          },
+          {
+            "id": 46,
+            "name": "Right-Cerebellum-White-Matter"
+          },
+          {
+            "id": 47,
+            "name": "Right-Cerebellum-Cortex"
+          }
+        ],
+        "sourceVoxels": 178849,
+        "surfaceExtraction": {
+          "method": "closed signed-distance level set",
+          "binaryClosing": true,
+          "binaryClosingConnectivity": 1,
+          "cropMarginVoxels": 5,
+          "gaussianSigmaVoxels": 0.55,
+          "gaussianSigmaMillimeters": 0.49500005245208745,
+          "rawVoxelsInCrop": 178849,
+          "processedVoxels": 181256,
+          "voxelDelta": 2407,
+          "isoLevel": 0.0
+        },
+        "sourceTriangles": 73138,
+        "sourceComponents": 1,
+        "retainedComponents": 1,
+        "removedFragmentTriangles": 0,
+        "cleanedTriangles": 73138,
+        "targetTriangles": 48000,
+        "postDecimationComponents": 1,
+        "postDecimationRemovedFragmentTriangles": 0,
+        "outputTriangles": 48000,
+        "outputVertices": 24000
+      },
+      "brain-stem": {
+        "asegLabels": [
+          {
+            "id": 16,
+            "name": "Brain-Stem"
+          }
+        ],
+        "sourceVoxels": 29269,
+        "surfaceExtraction": {
+          "method": "signed-distance level set",
+          "binaryClosing": false,
+          "binaryClosingConnectivity": null,
+          "cropMarginVoxels": 5,
+          "gaussianSigmaVoxels": 0.65,
+          "gaussianSigmaMillimeters": 0.5850000619888306,
+          "rawVoxelsInCrop": 29269,
+          "processedVoxels": 29269,
+          "voxelDelta": 0,
+          "isoLevel": 0.0
+        },
+        "sourceTriangles": 20204,
+        "sourceComponents": 1,
+        "retainedComponents": 1,
+        "removedFragmentTriangles": 0,
+        "cleanedTriangles": 20204,
+        "targetTriangles": 16000,
+        "postDecimationComponents": 1,
+        "postDecimationRemovedFragmentTriangles": 0,
+        "outputTriangles": 16000,
+        "outputVertices": 7998
+      },
+      "hippocampus": {
+        "asegLabels": [
+          {
+            "id": 17,
+            "name": "Left-Hippocampus"
+          },
+          {
+            "id": 53,
+            "name": "Right-Hippocampus"
+          }
+        ],
+        "sourceVoxels": 10798,
+        "surfaceExtraction": {
+          "method": "closed signed-distance level set",
+          "binaryClosing": true,
+          "binaryClosingConnectivity": 1,
+          "cropMarginVoxels": 5,
+          "gaussianSigmaVoxels": 1.15,
+          "gaussianSigmaMillimeters": 1.0350001096725463,
+          "rawVoxelsInCrop": 10798,
+          "processedVoxels": 11072,
+          "voxelDelta": 274,
+          "isoLevel": 0.0
+        },
+        "sourceTriangles": 14064,
+        "sourceComponents": 2,
+        "retainedComponents": 2,
+        "removedFragmentTriangles": 0,
+        "cleanedTriangles": 14064,
+        "targetTriangles": 10000,
+        "postDecimationComponents": 2,
+        "postDecimationRemovedFragmentTriangles": 0,
+        "outputTriangles": 10000,
+        "outputVertices": 5002
+      },
+      "amygdala": {
+        "asegLabels": [
+          {
+            "id": 18,
+            "name": "Left-Amygdala"
+          },
+          {
+            "id": 54,
+            "name": "Right-Amygdala"
+          }
+        ],
+        "sourceVoxels": 3848,
+        "surfaceExtraction": {
+          "method": "closed signed-distance level set",
+          "binaryClosing": true,
+          "binaryClosingConnectivity": 1,
+          "cropMarginVoxels": 5,
+          "gaussianSigmaVoxels": 0.9,
+          "gaussianSigmaMillimeters": 0.8100000858306885,
+          "rawVoxelsInCrop": 3848,
+          "processedVoxels": 3961,
+          "voxelDelta": 113,
+          "isoLevel": 0.0
+        },
+        "sourceTriangles": 5304,
+        "sourceComponents": 2,
+        "retainedComponents": 2,
+        "removedFragmentTriangles": 0,
+        "cleanedTriangles": 5304,
+        "targetTriangles": 6000,
+        "postDecimationComponents": 2,
+        "postDecimationRemovedFragmentTriangles": 0,
+        "outputTriangles": 5304,
+        "outputVertices": 2656
+      },
+      "corpus-callosum": {
+        "asegLabels": [
+          {
+            "id": 251,
+            "name": "CC_Posterior"
+          },
+          {
+            "id": 252,
+            "name": "CC_Mid_Posterior"
+          },
+          {
+            "id": 253,
+            "name": "CC_Central"
+          },
+          {
+            "id": 254,
+            "name": "CC_Mid_Anterior"
+          },
+          {
+            "id": 255,
+            "name": "CC_Anterior"
+          }
+        ],
+        "sourceVoxels": 4261,
+        "surfaceExtraction": {
+          "method": "closed signed-distance level set",
+          "binaryClosing": true,
+          "binaryClosingConnectivity": 1,
+          "cropMarginVoxels": 5,
+          "gaussianSigmaVoxels": 1.1,
+          "gaussianSigmaMillimeters": 0.9900001049041749,
+          "rawVoxelsInCrop": 4261,
+          "processedVoxels": 4297,
+          "voxelDelta": 36,
+          "isoLevel": 0.0
+        },
+        "sourceTriangles": 6200,
+        "sourceComponents": 1,
+        "retainedComponents": 1,
+        "removedFragmentTriangles": 0,
+        "cleanedTriangles": 6200,
+        "targetTriangles": 5000,
+        "postDecimationComponents": 1,
+        "postDecimationRemovedFragmentTriangles": 0,
+        "outputTriangles": 5000,
+        "outputVertices": 2502
+      }
+    }
+  },
+  "internalContainment": {
+    "method": "1 mm filled voxel occupancy of each source pial shell",
+    "pitchMillimeters": 1.0,
+    "enclosedRuntimeHidden": [
+      "hippocampus",
+      "amygdala",
+      "corpus-callosum"
+    ],
+    "externallyVisible": [
+      "cerebellum",
+      "brain-stem"
+    ],
+    "regions": {
+      "cerebellum": {
+        "vertices": 24000,
+        "insideLeftPial": 1846,
+        "insideRightPial": 1125,
+        "insideEitherPial": 2971,
+        "outsideBothPial": 21029,
+        "insideEitherPercent": 12.379166666666666,
+        "outsideBoundsMillimeters": [
+          [
+            -53.51852,
+            -39.14196,
+            -83.24991
+          ],
+          [
+            55.34719,
+            16.6428,
+            -17.55333
+          ]
+        ],
+        "runtimeVisible": true,
+        "bleedPrevention": "not applicable; externally visible posterior-inferior anatomy"
+      },
+      "brain-stem": {
+        "vertices": 7998,
+        "insideLeftPial": 435,
+        "insideRightPial": 510,
+        "insideEitherPial": 945,
+        "outsideBothPial": 7053,
+        "insideEitherPercent": 11.815453863465866,
+        "outsideBoundsMillimeters": [
+          [
+            -16.58288,
+            -40.00633,
+            -41.78148
+          ],
+          [
+            18.51579,
+            20.16849,
+            -5.85099
+          ]
+        ],
+        "runtimeVisible": true,
+        "bleedPrevention": "not applicable; externally visible posterior-inferior anatomy"
+      },
+      "hippocampus": {
+        "vertices": 5002,
+        "insideLeftPial": 1358,
+        "insideRightPial": 1751,
+        "insideEitherPial": 3109,
+        "outsideBothPial": 1893,
+        "insideEitherPercent": 62.15513794482207,
+        "outsideBoundsMillimeters": [
+          [
+            -34.76336,
+            -6.18801,
+            -34.2
+          ],
+          [
+            37.23527,
+            25.75927,
+            1.37659
+          ]
+        ],
+        "runtimeVisible": false,
+        "bleedPrevention": "runtime-hidden; invisible cortical proxy remains raycastable"
+      },
+      "amygdala": {
+        "vertices": 2656,
+        "insideLeftPial": 472,
+        "insideRightPial": 479,
+        "insideEitherPial": 951,
+        "outsideBothPial": 1705,
+        "insideEitherPercent": 35.80572289156627,
+        "outsideBoundsMillimeters": [
+          [
+            -30.67893,
+            -7.22266,
+            -5.7781
+          ],
+          [
+            30.44376,
+            13.3479,
+            8.79177
+          ]
+        ],
+        "runtimeVisible": false,
+        "bleedPrevention": "runtime-hidden; invisible cortical proxy remains raycastable"
+      },
+      "corpus-callosum": {
+        "vertices": 2502,
+        "insideLeftPial": 1089,
+        "insideRightPial": 1216,
+        "insideEitherPial": 2170,
+        "outsideBothPial": 332,
+        "insideEitherPercent": 86.73061550759392,
+        "outsideBoundsMillimeters": [
+          [
+            -3.6,
+            21.22654,
+            -33.58433
+          ],
+          [
+            1.87807,
+            45.74685,
+            37.03412
+          ]
+        ],
+        "runtimeVisible": false,
+        "bleedPrevention": "runtime-hidden; invisible cortical proxy remains raycastable"
+      }
+    }
+  },
+  "hitProxyStrategy": {
+    "rendering": "Runtime marks proxy nodes invisible while retaining Three.js raycasting; proxy names carry their target RegionId.",
+    "construction": "For each aseg-derived region and hemisphere, select a compact pial patch from adjacent cortical categories nearest the structure, then offset it 0.7 mm outward.",
+    "build": {
+      "cerebellum": {
+        "meshName": "hit-proxy--cerebellum",
+        "triangles": 640,
+        "vertices": 397,
+        "facesPerHemisphere": 320,
+        "outwardOffsetMillimeters": 0.7,
+        "candidateCorticalRegions": {
+          "lh": [
+            "occipital-lobe",
+            "temporal-lobe"
+          ],
+          "rh": [
+            "occipital-lobe",
+            "temporal-lobe"
+          ]
+        }
+      },
+      "brain-stem": {
+        "meshName": "hit-proxy--brain-stem",
+        "triangles": 640,
+        "vertices": 373,
+        "facesPerHemisphere": 320,
+        "outwardOffsetMillimeters": 0.7,
+        "candidateCorticalRegions": {
+          "lh": [
+            "temporal-lobe",
+            "frontal-lobe"
+          ],
+          "rh": [
+            "temporal-lobe",
+            "frontal-lobe"
+          ]
+        }
+      },
+      "hippocampus": {
+        "meshName": "hit-proxy--hippocampus",
+        "triangles": 640,
+        "vertices": 408,
+        "facesPerHemisphere": 320,
+        "outwardOffsetMillimeters": 0.7,
+        "candidateCorticalRegions": {
+          "lh": [
+            "temporal-lobe"
+          ],
+          "rh": [
+            "temporal-lobe"
+          ]
+        }
+      },
+      "amygdala": {
+        "meshName": "hit-proxy--amygdala",
+        "triangles": 640,
+        "vertices": 389,
+        "facesPerHemisphere": 320,
+        "outwardOffsetMillimeters": 0.7,
+        "candidateCorticalRegions": {
+          "lh": [
+            "temporal-lobe"
+          ],
+          "rh": [
+            "temporal-lobe"
+          ]
+        }
+      },
+      "corpus-callosum": {
+        "meshName": "hit-proxy--corpus-callosum",
+        "triangles": 640,
+        "vertices": 384,
+        "facesPerHemisphere": 320,
+        "outwardOffsetMillimeters": 0.7,
+        "candidateCorticalRegions": {
+          "lh": [
+            "prefrontal-cortex",
+            "frontal-lobe",
+            "parietal-lobe"
+          ],
+          "rh": [
+            "prefrontal-cortex",
+            "frontal-lobe",
+            "parietal-lobe"
+          ]
+        }
+      }
+    }
+  },
+  "verification": {
+    "bytes": 10692408,
+    "sha256": "ce761741d866e32d7a5b7638f4cacd5ec03e2b582e72c8218aba483ac28125e8",
+    "visibleMeshCount": 10,
+    "hitProxyMeshCount": 5,
+    "visibleTriangles": 234560,
+    "hitProxyTriangles": 3200,
+    "unifiedCortexTriangles": 150256,
+    "regions": {
+      "frontal-lobe": {
+        "meshName": "frontal-lobe",
+        "vertices": 6143,
+        "triangles": 11450,
+        "boundsMillimeters": [
+          [
+            -63.494422912597656,
+            18.85142707824707,
+            -45.61216354370117
+          ],
+          [
+            61.69905090332031,
+            85.96610260009766,
+            31.981002807617188
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 6143,
+          "minimum": -0.47929859161376953,
+          "maximum": 0.28834104537963867
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 6143,
+          "minimumMillimeters": 0.6923923492431641,
+          "maximumMillimeters": 4.8528618812561035
+        }
+      },
+      "parietal-lobe": {
+        "meshName": "parietal-lobe",
+        "vertices": 20252,
+        "triangles": 39218,
+        "boundsMillimeters": [
+          [
+            -65.12268829345703,
+            10.572113990783691,
+            -94.76721954345703
+          ],
+          [
+            62.313411712646484,
+            89.18587493896484,
+            8.688529014587402
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 20252,
+          "minimum": -0.5608304738998413,
+          "maximum": 0.47813066840171814
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 20252,
+          "minimumMillimeters": 0.0,
+          "maximumMillimeters": 5.815234184265137
+        }
+      },
+      "temporal-lobe": {
+        "meshName": "temporal-lobe",
+        "vertices": 19226,
+        "triangles": 37526,
+        "boundsMillimeters": [
+          [
+            -64.97724914550781,
+            -27.507925033569336,
+            -73.3243637084961
+          ],
+          [
+            66.00181579589844,
+            41.69867706298828,
+            33.38328170776367
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 19226,
+          "minimum": -2.0531435012817383,
+          "maximum": 0.33975812792778015
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 19226,
+          "minimumMillimeters": 0.0,
+          "maximumMillimeters": 7.020665168762207
+        }
+      },
+      "occipital-lobe": {
+        "meshName": "occipital-lobe",
+        "vertices": 11061,
+        "triangles": 21310,
+        "boundsMillimeters": [
+          [
+            -55.526458740234375,
+            -11.15479564666748,
+            -95.99910736083984
+          ],
+          [
+            51.2114372253418,
+            45.30519104003906,
+            -26.30824089050293
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 11061,
+          "minimum": -0.5005602836608887,
+          "maximum": 0.4027513563632965
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 11061,
+          "minimumMillimeters": 0.0,
+          "maximumMillimeters": 5.519504547119141
+        }
+      },
+      "cerebellum": {
+        "meshName": "cerebellum",
+        "vertices": 24000,
+        "triangles": 48000,
+        "boundsMillimeters": [
+          [
+            -53.518516540527344,
+            -39.1419563293457,
+            -83.24990844726562
+          ],
+          [
+            55.34719467163086,
+            16.642799377441406,
+            -17.553325653076172
+          ]
+        ]
+      },
+      "brain-stem": {
+        "meshName": "brain-stem",
+        "vertices": 7998,
+        "triangles": 16000,
+        "boundsMillimeters": [
+          [
+            -16.662511825561523,
+            -40.00633239746094,
+            -41.7814826965332
+          ],
+          [
+            18.515789031982422,
+            20.234066009521484,
+            -5.850991249084473
+          ]
+        ]
+      },
+      "hippocampus": {
+        "meshName": "hippocampus",
+        "vertices": 5002,
+        "triangles": 10000,
+        "boundsMillimeters": [
+          [
+            -34.76335525512695,
+            -6.188008785247803,
+            -36.27449035644531
+          ],
+          [
+            37.23527145385742,
+            25.798044204711914,
+            1.3765870332717896
+          ]
+        ]
+      },
+      "amygdala": {
+        "meshName": "amygdala",
+        "vertices": 2656,
+        "triangles": 5304,
+        "boundsMillimeters": [
+          [
+            -31.624149322509766,
+            -7.520925045013428,
+            -5.778101921081543
+          ],
+          [
+            30.622175216674805,
+            13.619937896728516,
+            8.830262184143066
+          ]
+        ]
+      },
+      "prefrontal-cortex": {
+        "meshName": "prefrontal-cortex",
+        "vertices": 20765,
+        "triangles": 40752,
+        "boundsMillimeters": [
+          [
+            -61.644046783447266,
+            -6.363574028015137,
+            -18.046199798583984
+          ],
+          [
+            57.900394439697266,
+            86.20570373535156,
+            77.1701889038086
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 20765,
+          "minimum": -0.6778674125671387,
+          "maximum": 0.5631527900695801
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 20765,
+          "minimumMillimeters": 0.0,
+          "maximumMillimeters": 5.728035926818848
+        }
+      },
+      "corpus-callosum": {
+        "meshName": "corpus-callosum",
+        "vertices": 2502,
+        "triangles": 5000,
+        "boundsMillimeters": [
+          [
+            -4.042414665222168,
+            21.22653579711914,
+            -33.58433151245117
+          ],
+          [
+            2.121288537979126,
+            45.756988525390625,
+            37.03411865234375
+          ]
+        ]
+      }
+    },
+    "hitProxies": {
+      "cerebellum": {
+        "meshName": "hit-proxy--cerebellum",
+        "vertices": 397,
+        "triangles": 640,
+        "boundsMillimeters": [
+          [
+            -34.93735122680664,
+            -7.511599540710449,
+            -73.5163803100586
+          ],
+          [
+            36.022483825683594,
+            5.939260959625244,
+            -38.06789016723633
+          ]
+        ]
+      },
+      "brain-stem": {
+        "meshName": "hit-proxy--brain-stem",
+        "vertices": 373,
+        "triangles": 640,
+        "boundsMillimeters": [
+          [
+            -9.030056953430176,
+            1.9019181728363037,
+            -20.184484481811523
+          ],
+          [
+            14.392054557800293,
+            14.815496444702148,
+            -8.330489158630371
+          ]
+        ]
+      },
+      "hippocampus": {
+        "meshName": "hit-proxy--hippocampus",
+        "vertices": 408,
+        "triangles": 640,
+        "boundsMillimeters": [
+          [
+            -22.430179595947266,
+            8.71871280670166,
+            -32.51012420654297
+          ],
+          [
+            26.271486282348633,
+            19.015459060668945,
+            -19.33353042602539
+          ]
+        ]
+      },
+      "amygdala": {
+        "meshName": "hit-proxy--amygdala",
+        "vertices": 389,
+        "triangles": 640,
+        "boundsMillimeters": [
+          [
+            -29.80434226989746,
+            -12.992884635925293,
+            -2.058537244796753
+          ],
+          [
+            34.27967071533203,
+            9.985198020935059,
+            9.10282039642334
+          ]
+        ]
+      },
+      "corpus-callosum": {
+        "meshName": "hit-proxy--corpus-callosum",
+        "vertices": 384,
+        "triangles": 640,
+        "boundsMillimeters": [
+          [
+            -7.740708827972412,
+            26.376943588256836,
+            -27.70993995666504
+          ],
+          [
+            5.553614616394043,
+            41.08746337890625,
+            31.609216690063477
+          ]
+        ]
+      }
+    },
+    "unifiedCortex": {
+      "unified-cortex": {
+        "meshName": "unified-cortex",
+        "vertices": 75132,
+        "triangles": 150256,
+        "boundsMillimeters": [
+          [
+            -65.12268829345703,
+            -27.507925033569336,
+            -95.99910736083984
+          ],
+          [
+            66.00181579589844,
+            89.18587493896484,
+            77.1701889038086
+          ]
+        ],
+        "curvatureAttribute": {
+          "semantic": "_CURVATURE",
+          "vertices": 75132,
+          "minimum": -2.0531435012817383,
+          "maximum": 0.5631527900695801
+        },
+        "thicknessAttribute": {
+          "semantic": "_THICKNESS",
+          "vertices": 75132,
+          "minimumMillimeters": 0.0,
+          "maximumMillimeters": 7.020665168762207
+        }
+      }
+    }
+  },
+  "tooling": {
+    "generator": "tools/generate-brain-atlas.py",
+    "requirements": "tools/requirements-brain-atlas.txt",
+    "decimation": "fast-simplification via trimesh"
+  }
+}

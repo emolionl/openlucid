@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brain Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* layout: full-viewport three.js brain model with exploded-view slider, left region navigator, right info panel on selection */
+  :root{
+    --bg:#06060f;
+    --fg:#eef0ff;
+    --muted:#8d8fc0;
+    --panel:rgba(10,10,24,.78);
+    --accent:#5eead4;
+    --warn:#ff8a3d;
+    --font-display:'Unbounded',system-ui,sans-serif;
+    --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+    color-scheme:dark;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);overflow:hidden;font-family:var(--font-mono);}
+  #stage3d{position:fixed;inset:0;display:block;}
+
+  .hud{position:fixed;z-index:5;pointer-events:none;}
+  .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;backdrop-filter:blur(6px);padding:12px 16px;}
+
+  #header{
+    top:max(14px,env(safe-area-inset-top,0px));
+    left:max(14px,env(safe-area-inset-left,0px));
+    max-width:min(80vw,280px);
+  }
+  #header .eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  #header .title{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);margin-top:2px;}
+  #header .sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;}
+
+  #navigator{
+    top:max(140px,env(safe-area-inset-top,0px));
+    left:max(14px,env(safe-area-inset-left,0px));
+    max-width:min(80vw,220px);
+    pointer-events:auto;
+    display:flex;flex-direction:column;gap:4px;
+    padding:10px;
+  }
+  .nav-item{
+    font-family:var(--font-mono);font-size:11.5px;color:var(--muted);
+    background:transparent;border:1px solid transparent;border-radius:8px;
+    padding:6px 9px;cursor:pointer;text-align:left;transition:all .15s ease;
+  }
+  .nav-item:hover{color:var(--fg);background:rgba(255,255,255,.06);}
+  .nav-item.active{color:#06060f;background:var(--accent);font-weight:600;}
+
+  #info{
+    top:max(14px,env(safe-area-inset-top,0px));
+    right:max(14px,env(safe-area-inset-right,0px));
+    max-width:min(82vw,340px);
+    pointer-events:auto;
+    opacity:0;transform:translateX(12px);transition:opacity .25s ease,transform .25s ease;
+  }
+  #info.show{opacity:1;transform:translateX(0);}
+  #info .region-name{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);}
+  #info .region-sleep{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--warn);margin-top:4px;}
+  #info .region-desc{font-size:13px;color:var(--fg);line-height:1.5;margin-top:10px;opacity:.92;}
+  #info .close-btn{margin-top:14px;}
+
+  #controls{
+    bottom:max(14px,env(safe-area-inset-bottom,0px));
+    left:50%;transform:translateX(-50%);
+    pointer-events:auto;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    width:min(90vw,360px);
+  }
+  #controls .explode-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  #explodeSlider{width:100%;accent-color:var(--accent);}
+  #legend{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+
+  #modeToggle{pointer-events:auto;}
+
+  #driveHud{
+    top:max(14px,env(safe-area-inset-top,0px));
+    right:max(14px,env(safe-area-inset-right,0px));
+    max-width:min(82vw,280px);pointer-events:none;
+  }
+  #driveHud .target-name{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--warn);}
+  #driveHud .target-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+  #driveHud .target-dist{font-family:var(--font-mono);font-size:12px;color:var(--fg);margin-top:8px;}
+  #driveHud .target-dist b{color:var(--accent);}
+  #driveLegend{
+    bottom:max(14px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
+    font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  }
+
+  #camTune{
+    top:170px;left:max(14px,env(safe-area-inset-left,0px));
+    max-width:min(80vw,220px);pointer-events:auto;
+  }
+  #camTune .cam-tune-label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+  #camTune .cam-tune-label:first-child{margin-top:0;}
+  #camTune input[type=range]{width:100%;accent-color:var(--accent);}
+  #camTune .cam-tune-readout{font-family:var(--font-mono);font-size:11px;color:var(--accent);margin-top:10px;}
+
+  #minimapWrap{
+    position:fixed;z-index:5;bottom:max(14px,env(safe-area-inset-bottom,0px));
+    left:max(14px,env(safe-area-inset-left,0px));
+    width:150px;height:150px;border-radius:50%;overflow:hidden;
+    border:2px solid rgba(255,255,255,.18);background:#06060f;pointer-events:none;
+  }
+  #minimapWrap[hidden]{display:none;}
+  #minimapWrap::after{
+    content:"";position:absolute;inset:0;border-radius:50%;
+    box-shadow:inset 0 0 18px rgba(0,0,0,.7);pointer-events:none;
+  }
+
+  #traceHud{
+    top:max(14px,env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);
+    width:min(86vw,320px);
+    transition:top .35s ease,width .35s ease,transform .35s ease;
+  }
+  #traceHud .trace-label{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:6px;}
+  #traceHud canvas{width:100%;height:78px;display:block;transition:height .35s ease;}
+  #traceHud{pointer-events:auto;}
+  #traceHud.zoomed{
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    width:min(92vw,560px);z-index:7;
+    box-shadow:0 0 0 1px rgba(255,255,255,.1),0 20px 60px rgba(0,0,0,.6);
+  }
+  #traceHud.zoomed canvas{height:200px;}
+  #traceBackdrop{
+    inset:0;background:rgba(2,2,10,.6);z-index:6;
+  }
+  .trace-prompt{margin-top:8px;text-align:center;}
+  .trace-prompt-text{font-size:11px;color:var(--warn);}
+  #traceHud.zoomed .trace-prompt-text{font-size:14px;}
+  .trace-prompt-choices{display:flex;gap:6px;margin-top:6px;}
+  .trace-prompt-choices .btn{flex:1;font-size:10px;padding:6px 8px;}
+  #traceHud.zoomed .trace-prompt-choices .btn{font-size:13px;padding:10px 14px;}
+  .trace-prompt .repair-bar{margin-top:6px;}
+  .trace-explain{margin-top:10px;text-align:left;}
+  .trace-explain-text{font-size:12px;color:var(--fg);line-height:1.55;opacity:.92;margin:0 0 10px;}
+  #traceHud.zoomed .trace-explain-text{font-size:13.5px;}
+  .trace-explain #traceExplainOk{width:100%;}
+  .trace-learn-more{display:block;font-size:10.5px;color:var(--accent);text-decoration:none;opacity:.85;margin:0 0 10px;}
+  .trace-learn-more:hover{opacity:1;text-decoration:underline;}
+
+  #repairPanel{
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    width:min(86vw,300px);text-align:center;pointer-events:auto;
+  }
+  #repairPanel{position:fixed;}
+  #toast{
+    top:84px;left:max(14px,env(safe-area-inset-left,0px));
+    font-size:13px;color:var(--accent);font-weight:600;
+    opacity:0;transition:opacity .25s ease;max-width:300px;
+  }
+  #repairLeave{position:absolute;top:10px;right:10px;font-size:10px;padding:5px 10px;}
+  #repairPanel .repair-title{font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--accent);}
+  #repairPanel .repair-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+  #repairPanel .repair-choices{display:flex;gap:8px;margin-top:14px;}
+  #repairPanel .repair-choices .btn{flex:1;line-height:1.5;}
+  #repairPanel .repair-note{font-size:9px;color:var(--muted);text-transform:none;letter-spacing:0;}
+  #repairPanel .btn.active .repair-note{color:#06060f;opacity:.75;}
+  #repairPanel .repair-press{margin-top:14px;}
+  .repair-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden;}
+  .repair-bar i{display:block;height:100%;background:var(--accent);width:0%;}
+
+  .btn{
+    font-family:var(--font-mono);font-size:12px;font-weight:600;letter-spacing:.04em;
+    color:var(--muted);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;padding:7px 14px;cursor:pointer;transition:all .2s ease;
+  }
+  .btn:hover{color:var(--fg);border-color:rgba(255,255,255,.3);}
+  .btn.active{color:#06060f;background:var(--accent);border-color:var(--accent);}
+
+  #loading{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:var(--bg);z-index:6;font-family:var(--font-display);font-weight:600;
+    font-size:14px;color:var(--muted);flex-direction:column;gap:10px;
+  }
+  #loading[hidden]{display:none;}
+  .spinner{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);animation:spin 0.9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media (max-width:720px){
+    #navigator{display:none;}
+    #header{max-width:min(90vw,220px);}
+  }
+</style>
+</head>
+<body>
+
+<div id="stage3d"></div>
+
+<div id="loading"><div class="spinner"></div>Loading atlas…</div>
+
+<div class="hud panel" id="header">
+  <div class="eyebrow">Night Drive · companion atlas</div>
+  <div class="title">Brain Atlas</div>
+  <div class="sub">Drag to orbit, scroll to zoom. Explode the view, then click a region to learn what it does — and when it matters for sleep.</div>
+</div>
+
+<div class="hud panel" id="navigator"></div>
+
+<div class="hud panel" id="info">
+  <div class="region-name" id="infoName">—</div>
+  <div class="region-sleep" id="infoSleep">—</div>
+  <div class="region-desc" id="infoDesc">—</div>
+  <button class="btn" id="infoClose">Close ×</button>
+</div>
+
+<div class="hud" id="controls">
+  <div class="explode-label">Explode view</div>
+  <input type="range" id="explodeSlider" min="0" max="100" value="0">
+  <div id="legend">drag to orbit · scroll to zoom · click a region</div>
+  <button class="btn" id="modeToggle" style="margin-top:8px;">Drive to electrode →</button>
+</div>
+
+<div class="hud panel" id="driveHud" hidden>
+  <div class="target-name" id="driveTargetName">FP1</div>
+  <div class="target-sub">Contact lost — drive there to reseat it</div>
+  <div class="target-dist">Distance: <b id="driveDist">—</b></div>
+</div>
+<div class="hud" id="driveLegend" hidden>← → steer · ↑ ↓ drive · drag to look around</div>
+
+<div class="hud" id="traceBackdrop" hidden></div>
+<div class="hud panel" id="traceHud" hidden>
+  <div class="trace-label">Live trace — EEG / EOG / EMG</div>
+  <canvas id="traceCanvas" width="300" height="78"></canvas>
+  <div class="trace-prompt" id="tracePrompt" hidden>
+    <div class="trace-prompt-text" id="tracePromptText">Something changed — real event, or artifact?</div>
+    <div class="trace-prompt-choices" id="tracePromptChoices">
+      <button class="btn" id="traceReal">Real event</button>
+      <button class="btn" id="traceArtifact">Artifact — ignore</button>
+    </div>
+    <div class="repair-bar" id="tracePromptBarWrap"><i id="tracePromptBar"></i></div>
+    <div class="trace-explain" id="traceExplain" hidden>
+      <p class="trace-explain-text" id="traceExplainText"></p>
+      <a class="trace-learn-more" href="/research/reading-a-sleep-trace-real-event-or-artifact/" target="_blank" rel="noopener">Learn more about reading a trace →</a>
+      <button class="btn" id="traceExplainOk">Got it →</button>
+    </div>
+  </div>
+</div>
+
+<div class="hud" id="toast"></div>
+<div class="hud panel" id="repairPanel" hidden>
+  <button class="btn" id="repairLeave">Leave (Esc)</button>
+  <div class="repair-title" id="repairTitle">FP1</div>
+  <div class="repair-sub" id="repairImpedance">Impedance: 14.2kΩ (bad)</div>
+  <div class="repair-choices" id="repairChoices">
+    <button class="btn" id="repairWater">Water<br><span class="repair-note">fast — dries out</span></button>
+    <button class="btn" id="repairPaste">Paste<br><span class="repair-note">slow — durable</span></button>
+  </div>
+  <div class="repair-press" id="repairPress" hidden>
+    <div class="repair-sub">Hold SPACE to press into place</div>
+    <div class="repair-bar"><i id="repairPressFill"></i></div>
+  </div>
+</div>
+
+<div class="hud panel" id="camTune" hidden>
+  <div class="cam-tune-label">Camera height</div>
+  <input type="range" id="camUpSlider" min="0" max="40" value="8">
+  <div class="cam-tune-label">Camera distance</div>
+  <input type="range" id="camBackSlider" min="10" max="70" value="13">
+  <div class="cam-tune-readout" id="camTuneReadout">up: 0.080 × R — back: 0.130 × R</div>
+  <div class="cam-tune-label">Minimap size</div>
+  <input type="range" id="minimapSizeSlider" min="100" max="320" value="220">
+  <div class="cam-tune-readout" id="minimapSizeReadout">330px (220%)</div>
+  <div class="cam-tune-label">Region color intensity</div>
+  <input type="range" id="colorIntensitySlider" min="0" max="150" value="41">
+  <div class="cam-tune-readout" id="colorIntensityReadout">41%</div>
+</div>
+
+<div id="minimapWrap" hidden>
+  <canvas id="minimapCanvas" width="150" height="150"></canvas>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// ---------- region data: name in GLB -> label/description/sleep relevance ----------
+const REGIONS = {
+  "frontal-lobe": {
+    label: "Frontal lobe",
+    sleep: "Generates K-complexes in N2 · dominates slow waves in N3",
+    desc: "Planning, decision-making, voluntary movement, and self-control. The frontal cortex is where K-complexes originate, and its slow-wave activity is what makes N3 the deepest, hardest-to-interrupt stage."
+  },
+  "prefrontal-cortex": {
+    label: "Prefrontal cortex",
+    sleep: "Usually quiet in REM — reactivates in lucid dreams",
+    desc: "The seat of self-awareness and judgment. In ordinary REM sleep it goes quiet, which is part of why dreams feel so unquestioned. In lucid dreams, it selectively reactivates — this is one of the actual neural signatures researchers (including the Donders lab) look for."
+  },
+  "parietal-lobe": {
+    label: "Parietal lobe",
+    sleep: "Sensory integration, spatial awareness",
+    desc: "Combines touch, spatial position, and sensory input into a coherent sense of your body in space — part of why dream environments can feel so physically convincing."
+  },
+  "temporal-lobe": {
+    label: "Temporal lobe",
+    sleep: "Auditory processing, language, memory",
+    desc: "Handles hearing, language comprehension, and works closely with the hippocampus on memory — relevant to how dream narratives and remembered fragments get built."
+  },
+  "occipital-lobe": {
+    label: "Occipital lobe",
+    sleep: "Alpha rhythm (8–12Hz) appears here when eyes close",
+    desc: "The visual cortex. This is exactly the region the bio-calibration 'eyes closed' check confirms — a working occipital electrode should show a clear alpha rhythm the moment your eyes close."
+  },
+  "cerebellum": {
+    label: "Cerebellum",
+    sleep: "Motor coordination · procedural memory",
+    desc: "Best known for balance and motor coordination, but also plays a role in procedural memory consolidation — the 'muscle memory' side of what sleep helps consolidate."
+  },
+  "brain-stem": {
+    label: "Brain stem (pons)",
+    sleep: "Generates REM sleep · causes muscle atonia",
+    desc: "The REM generator. The pons sends inhibitory signals down the spinal cord during REM, paralysing voluntary muscles — this is literally why your body can't move while your mind is dreaming. The single most important structure for lucid dreaming research."
+  },
+  "hippocampus": {
+    label: "Hippocampus",
+    sleep: "Active during N2 spindles · memory consolidation",
+    desc: "Transfers memories from short-term to long-term storage. It's especially active during the sleep spindles you can see and collect in the N2 stage of Night Drive."
+  },
+  "amygdala": {
+    label: "Amygdala",
+    sleep: "Highly active in REM — emotional intensity of dreams",
+    desc: "Processes emotion. It's unusually active during REM sleep, which is one of the leading explanations for why dreams often feel emotionally vivid or intense, even when the content is mundane."
+  },
+  "corpus-callosum": {
+    label: "Corpus callosum",
+    sleep: "Connects the two hemispheres",
+    desc: "The thick bundle of nerve fibres that lets the brain's left and right hemispheres communicate — not sleep-stage-specific, but essential infrastructure for everything else happening around it."
+  }
+};
+const REGION_ORDER = ["frontal-lobe","prefrontal-cortex","parietal-lobe","temporal-lobe","occipital-lobe","cerebellum","brain-stem","hippocampus","amygdala","corpus-callosum"];
+const REGION_COLOR = {
+  "frontal-lobe": 0xff4d6d,
+  "prefrontal-cortex": 0xff922b,
+  "parietal-lobe": 0xffd43b,
+  "temporal-lobe": 0x94d82d,
+  "occipital-lobe": 0x20c997,
+  "cerebellum": 0x22b8cf,
+  "brain-stem": 0x5c7cfa,
+  "hippocampus": 0x845ef7,
+  "amygdala": 0xbe4bdb,
+  "corpus-callosum": 0xf06595
+};
+
+// ---------- scene setup ----------
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06060f);
+scene.fog = new THREE.Fog(0x06060f, 8, 40);
+
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.01, 10000);
+camera.position.set(0, 0, 1);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.getElementById("stage3d").appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.addEventListener("start", () => { focusAnim = null; });
+
+function easeInOutCubic(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+function flyTo(toPos, toTarget, dur=1.0){
+  focusAnim = { fromPos: camera.position.clone(), toPos: toPos.clone(), fromTarget: controls.target.clone(), toTarget: toTarget.clone(), start: performance.now(), dur };
+}
+
+const hemi = new THREE.HemisphereLight(0x8892ff, 0x05050a, 0.8);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffffff, 1.4);
+key.position.set(0.5, 0.8, 0.6);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x5eead4, 0.4);
+fill.position.set(-0.6, -0.2, -0.4);
+scene.add(fill);
+
+// ---------- navigator UI ----------
+const navEl = document.getElementById("navigator");
+REGION_ORDER.forEach(name => {
+  const b = document.createElement("button");
+  b.className = "nav-item";
+  b.textContent = REGIONS[name].label;
+  b.dataset.region = name;
+  b.addEventListener("click", () => selectRegion(name));
+  navEl.appendChild(b);
+});
+function setNavActive(name){
+  navEl.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.region === name));
+}
+
+// ---------- info panel ----------
+const infoEl = document.getElementById("info");
+function showInfo(name){
+  const r = REGIONS[name];
+  if(!r) return;
+  document.getElementById("infoName").textContent = r.label;
+  document.getElementById("infoSleep").textContent = r.sleep;
+  document.getElementById("infoDesc").textContent = r.desc;
+  infoEl.classList.add("show");
+  setNavActive(name);
+}
+function hideInfo(){
+  infoEl.classList.remove("show");
+  setNavActive(null);
+  flyTo(homeCameraPos, homeTarget);
+}
+document.getElementById("infoClose").addEventListener("click", hideInfo);
+
+// ---------- load model ----------
+const regionMeshes = {};      // name -> mesh
+const hitProxyMeshes = {};    // bareName -> mesh
+let unifiedCortex = null;
+let modelCenter = new THREE.Vector3();
+let modelRadius = 1;
+let homeCameraPos = new THREE.Vector3();
+let homeTarget = new THREE.Vector3();
+let scalpMesh = null;
+let focusAnim = null; // {fromPos, toPos, fromTarget, toTarget, start, dur}
+let explodeAmount = 0;
+let EXPLODE_DISTANCE = 0.09;
+const initialPositions = new Map();
+const explodeDirections = new Map();
+
+const loader = new GLTFLoader();
+loader.load("model/brain-atlas.glb", (gltf) => {
+  const root = gltf.scene;
+  scene.add(root);
+
+  const box = new THREE.Box3().setFromObject(root);
+  box.getCenter(modelCenter);
+  const sphere = new THREE.Sphere();
+  box.getBoundingSphere(sphere);
+  modelRadius = sphere.radius;
+
+  // frame the camera/controls/fog/explode distance to the model's actual scale
+  // (the atlas ships in FreeSurfer surface-RAS millimetres, not metres)
+  camera.near = modelRadius * 0.01;
+  camera.far = modelRadius * 30;
+  camera.updateProjectionMatrix();
+  camera.position.copy(modelCenter).add(new THREE.Vector3(0, modelRadius * 0.15, modelRadius * 2.6));
+  controls.target.copy(modelCenter);
+  controls.minDistance = modelRadius * 0.4;
+  controls.maxDistance = modelRadius * 8;
+  controls.update();
+  homeCameraPos.copy(camera.position);
+  homeTarget.copy(controls.target);
+  scene.fog.near = modelRadius * 2;
+  scene.fog.far = modelRadius * 12;
+  EXPLODE_DISTANCE = modelRadius * 0.55;
+
+  // translucent "scalp" shell — smooth, reliable drive surface + raised electrode
+  // placement, with the real cortex still visible (dimly) through it
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const scalpGeo = new THREE.SphereGeometry(1, 48, 32);
+  scalpGeo.scale(size.x * 0.5 * 1.045, size.y * 0.5 * 1.045, size.z * 0.5 * 1.045);
+  const scalpMat = new THREE.MeshPhysicalMaterial({
+    color: 0xcfe8ff, transparent: true, opacity: 0.14, roughness: 0.3, metalness: 0,
+    side: THREE.DoubleSide, depthWrite: false
+  });
+  scalpMesh = new THREE.Mesh(scalpGeo, scalpMat);
+  scalpMesh.position.copy(modelCenter);
+  scalpMesh.visible = false;
+  scene.add(scalpMesh);
+
+  const mmExtent = modelRadius * 1.3;
+  minimapCamera = new THREE.OrthographicCamera(-mmExtent, mmExtent, mmExtent, -mmExtent, 0.01, modelRadius * 20);
+  minimapCamera.position.copy(modelCenter).add(new THREE.Vector3(0, modelRadius * 10, 0));
+  minimapCamera.up.set(0, 0, -1);
+  minimapCamera.lookAt(modelCenter);
+  minimapCamera.layers.enable(MINIMAP_BLIP_LAYER);
+
+  root.traverse(obj => {
+    if(!obj.isMesh) return;
+    obj.visible = true;
+    const n = obj.name;
+    if(n === "unified-cortex"){
+      unifiedCortex = obj;
+      obj.visible = false; // region meshes (colour-coded) are shown instead, even when assembled
+    } else if(n.startsWith("hit-proxy--")){
+      obj.visible = false;
+      hitProxyMeshes[n.replace("hit-proxy--","")] = obj;
+    } else if(REGIONS[n]){
+      regionMeshes[n] = obj;
+      initialPositions.set(obj, obj.position.clone());
+      const mBox = new THREE.Box3().setFromObject(obj);
+      const mCenter = new THREE.Vector3();
+      mBox.getCenter(mCenter);
+      const dir = mCenter.clone().sub(modelCenter);
+      if(dir.lengthSq() < 1e-8) dir.set(0,1,0);
+      dir.normalize();
+      explodeDirections.set(obj, dir);
+      obj.visible = true;
+      if(obj.material){
+        obj.material = obj.material.clone();
+        obj.material.side = THREE.DoubleSide;
+        const col = REGION_COLOR[n];
+        if(col !== undefined){
+          obj.material.color.setHex(col);
+          obj.material.emissive.setHex(col);
+          obj.material.emissiveIntensity = 1.3;
+        }
+      }
+    }
+  });
+
+  applyColorIntensity();
+  document.getElementById("loading").hidden = true;
+  animate();
+}, undefined, (err) => {
+  document.getElementById("loading").textContent = "Couldn't load the atlas — check console.";
+  console.error(err);
+});
+
+// ---------- explode slider ----------
+const slider = document.getElementById("explodeSlider");
+slider.addEventListener("input", () => {
+  explodeAmount = slider.value / 100;
+  applyExplode();
+});
+function applyExplode(){
+  Object.values(regionMeshes).forEach(mesh => {
+    const base = initialPositions.get(mesh);
+    const dir = explodeDirections.get(mesh);
+    if(!base || !dir) return;
+    mesh.position.copy(base).addScaledVector(dir, explodeAmount * EXPLODE_DISTANCE);
+  });
+}
+
+// ---------- picking ----------
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let selectedName = null;
+
+function pickableMeshes(){
+  const list = [];
+  if(unifiedCortex && unifiedCortex.visible) list.push(unifiedCortex);
+  Object.entries(regionMeshes).forEach(([name, mesh]) => { if(mesh.visible) list.push(mesh); });
+  Object.values(hitProxyMeshes).forEach(mesh => list.push(mesh)); // invisible but raycastable
+  return list;
+}
+function resolveRegionFromMesh(mesh){
+  if(mesh === unifiedCortex) return null; // unified cortex isn't a single region
+  if(REGIONS[mesh.name]) return mesh.name;
+  const bare = mesh.name.replace("hit-proxy--","");
+  if(REGIONS[bare]) return bare;
+  return null;
+}
+
+let pointerDownAt = null;
+renderer.domElement.addEventListener("pointerdown", (e) => { pointerDownAt = { x: e.clientX, y: e.clientY }; });
+renderer.domElement.addEventListener("click", (e) => {
+  if(pointerDownAt && Math.hypot(e.clientX - pointerDownAt.x, e.clientY - pointerDownAt.y) > 5) return; // was a camera drag, not a selection click
+  pointer.x = (e.clientX/innerWidth)*2-1;
+  pointer.y = -(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(pickableMeshes(), false);
+  if(hits.length){
+    const name = resolveRegionFromMesh(hits[0].object);
+    if(name) selectRegion(name); else hideInfo();
+  } else {
+    hideInfo();
+  }
+});
+
+const INTERNAL_REGIONS = new Set(["hippocampus","amygdala","corpus-callosum"]);
+const MIN_INTERNAL_EXPLODE = 0.78;
+
+function selectRegion(name){
+  selectedName = name;
+  showInfo(name);
+
+  // internal structures are hidden inside the cortex until separated — force enough explode to see them
+  if(INTERNAL_REGIONS.has(name) && explodeAmount < MIN_INTERNAL_EXPLODE){
+    explodeAmount = MIN_INTERNAL_EXPLODE;
+    slider.value = MIN_INTERNAL_EXPLODE * 100;
+    applyExplode();
+  }
+
+  const mesh = regionMeshes[name];
+  if(!mesh) return;
+  const box = new THREE.Box3().setFromObject(mesh);
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  const sphere = new THREE.Sphere();
+  box.getBoundingSphere(sphere);
+  const dir = explodeDirections.get(mesh) || new THREE.Vector3(0,0,1);
+  const dist = Math.max(sphere.radius * 5.5, modelRadius * 0.22);
+  const toPos = center.clone().addScaledVector(dir, dist);
+  flyTo(toPos, center);
+}
+
+// ---------- drive mode: surface-walking rover ----------
+let mode = "inspect";
+const modeBtn = document.getElementById("modeToggle");
+const driveHud = document.getElementById("driveHud");
+const driveLegend = document.getElementById("driveLegend");
+const explodeLabelEl = document.querySelector("#controls .explode-label");
+
+const rover = new THREE.Group();
+(function buildRover(){
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1b1f33, roughness: 0.35, metalness: 0.55 });
+  const glowMat = new THREE.MeshStandardMaterial({ color: 0x5eead4, emissive: 0x5eead4, emissiveIntensity: 1.4 });
+
+  const hub = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.6), bodyMat);
+  rover.add(hub);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.3, 8), glowMat);
+  nose.rotation.x = Math.PI / 2;
+  nose.position.set(0, 0, 0.42);
+  rover.add(nose);
+  const belly = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 8, 20), glowMat);
+  belly.rotation.x = Math.PI / 2;
+  belly.position.y = -0.08;
+  rover.add(belly);
+
+  const rotors = [];
+  [[0.7,0.7],[0.7,-0.7],[-0.7,0.7],[-0.7,-0.7]].forEach(([sx, sz]) => {
+    const armLen = 0.95;
+    const ax = sx * armLen * 0.5, az = sz * armLen * 0.5;
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, armLen, 6), bodyMat);
+    arm.position.set(ax, 0, az);
+    arm.rotation.y = Math.atan2(sx, sz);
+    arm.rotation.z = Math.PI / 2;
+    rover.add(arm);
+
+    const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.1, 8), bodyMat);
+    mount.position.set(sx * armLen, 0.04, sz * armLen);
+    rover.add(mount);
+
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.012, 0.045), glowMat);
+    blade.position.set(sx * armLen, 0.1, sz * armLen);
+    rover.add(blade);
+    rotors.push(blade);
+  });
+  rover.userData.rotors = rotors;
+
+  const light = new THREE.PointLight(0x5eead4, 1.2, 4);
+  light.position.set(0, -0.15, 0);
+  rover.add(light);
+})();
+rover.visible = false;
+scene.add(rover);
+
+// Minimap-only markers: real rover/target are too small to read on the minimap,
+// so these oversized, pulsing discs render on a layer only the minimap camera sees.
+const MINIMAP_BLIP_LAYER = 1;
+const roverBlip = new THREE.Mesh(
+  new THREE.CircleGeometry(1, 20),
+  new THREE.MeshBasicMaterial({ color: 0x5eead4, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthTest: false, depthWrite: false })
+);
+roverBlip.renderOrder = 999;
+roverBlip.rotation.x = -Math.PI / 2;
+roverBlip.layers.set(MINIMAP_BLIP_LAYER);
+roverBlip.visible = false;
+scene.add(roverBlip);
+
+const targetBlip = new THREE.Mesh(
+  new THREE.CircleGeometry(1, 20),
+  new THREE.MeshBasicMaterial({ color: 0xff5c7a, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthTest: false, depthWrite: false })
+);
+targetBlip.renderOrder = 999;
+targetBlip.rotation.x = -Math.PI / 2;
+targetBlip.layers.set(MINIMAP_BLIP_LAYER);
+targetBlip.visible = false;
+scene.add(targetBlip);
+let blipPulseT = 0;
+
+let navDir = new THREE.Vector3(0, 0, 1);
+let navForward = new THREE.Vector3(0, 1, 0);
+let targetDir = new THREE.Vector3(0.3, 0.65, -0.35).normalize();
+let targetMesh = null;
+let targetReached = false;
+
+// electrode connection state: starts bad, player must service it; water fix
+// decays (re-dries) and needs revisiting, paste is slow to apply but durable
+const electrode = {
+  name: "FP1",
+  impedanceK: 14.2,
+  medium: null,       // "water" | "paste" | null
+  lastServiceT: 0
+};
+const GOOD_THRESHOLD_K = 5;
+let repairActive = false;
+let repairPressing = false;
+let repairPressProgress = 0;
+let pendingMedium = null;
+let repairArmed = true; // prevents the panel instantly reopening while still parked on the spot
+
+// trace-reading challenge: real physiological events move EEG+EOG+EMG together;
+// artifacts usually only disturb one channel. Player must tell them apart in time.
+let anomaly = null; // {kind:"real"|"artifact", start, dur, resolved}
+let nextAnomalyAt = 6;
+let anomalyScore = { correct: 0, wrong: 0 };
+const driveKeys = { left: false, right: false, up: false, down: false };
+
+let camUpFactor = 0.08, camBackFactor = 0.13;
+const camUpSlider = document.getElementById("camUpSlider");
+const camBackSlider = document.getElementById("camBackSlider");
+const camTuneReadout = document.getElementById("camTuneReadout");
+function updateCamTuneReadout(){
+  camTuneReadout.textContent = "up: " + camUpFactor.toFixed(3) + " × R — back: " + camBackFactor.toFixed(3) + " × R";
+}
+camUpSlider.addEventListener("input", () => { camUpFactor = camUpSlider.value / 100; updateCamTuneReadout(); });
+camBackSlider.addEventListener("input", () => { camBackFactor = camBackSlider.value / 100; updateCamTuneReadout(); });
+updateCamTuneReadout();
+
+const minimapCanvas = document.getElementById("minimapCanvas");
+const minimapWrap = document.getElementById("minimapWrap");
+const minimapRenderer = new THREE.WebGLRenderer({ canvas: minimapCanvas, antialias: true, alpha: true });
+minimapRenderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+minimapRenderer.setSize(150, 150, false);
+let minimapCamera = null;
+
+const minimapBaseSize = 150;
+const minimapSizeSlider = document.getElementById("minimapSizeSlider");
+const minimapSizeReadout = document.getElementById("minimapSizeReadout");
+function applyMinimapSize(){
+  const pct = Number(minimapSizeSlider.value);
+  const px = Math.round(minimapBaseSize * (pct / 100));
+  minimapWrap.style.width = px + "px";
+  minimapWrap.style.height = px + "px";
+  minimapRenderer.setSize(px, px, false);
+  minimapSizeReadout.textContent = px + "px (" + pct + "%)";
+}
+minimapSizeSlider.addEventListener("input", applyMinimapSize);
+applyMinimapSize();
+
+let colorIntensity = 1.0;
+const colorIntensitySlider = document.getElementById("colorIntensitySlider");
+const colorIntensityReadout = document.getElementById("colorIntensityReadout");
+const tmpHSL = { h: 0, s: 0, l: 0 };
+const tmpColor = new THREE.Color();
+function applyColorIntensity(){
+  colorIntensity = Number(colorIntensitySlider.value) / 100;
+  Object.entries(regionMeshes).forEach(([name, mesh]) => {
+    const hex = REGION_COLOR[name];
+    if(hex === undefined || !mesh.material) return;
+    tmpColor.setHex(hex);
+    tmpColor.getHSL(tmpHSL);
+    const s = Math.min(1, tmpHSL.s * colorIntensity);
+    mesh.material.color.setHSL(tmpHSL.h, s, tmpHSL.l);
+    mesh.material.emissive.setHSL(tmpHSL.h, s, tmpHSL.l);
+    mesh.material.emissiveIntensity = 1.3 * colorIntensity;
+  });
+  colorIntensityReadout.textContent = Math.round(colorIntensity * 100) + "%";
+}
+colorIntensitySlider.addEventListener("input", applyColorIntensity);
+const driveRaycaster = new THREE.Raycaster();
+
+window.addEventListener("keydown", (e) => {
+  if(e.key === "ArrowLeft" || e.key === "a" || e.key === "A") driveKeys.left = true;
+  if(e.key === "ArrowRight" || e.key === "d" || e.key === "D") driveKeys.right = true;
+  if(e.key === "ArrowUp" || e.key === "w" || e.key === "W") driveKeys.up = true;
+  if(e.key === "ArrowDown" || e.key === "s" || e.key === "S") driveKeys.down = true;
+});
+window.addEventListener("keyup", (e) => {
+  if(e.key === "ArrowLeft" || e.key === "a" || e.key === "A") driveKeys.left = false;
+  if(e.key === "ArrowRight" || e.key === "d" || e.key === "D") driveKeys.right = false;
+  if(e.key === "ArrowUp" || e.key === "w" || e.key === "W") driveKeys.up = false;
+  if(e.key === "ArrowDown" || e.key === "s" || e.key === "S") driveKeys.down = false;
+});
+
+// Driving happens on the smooth translucent "scalp" shell, not the raw cortex —
+// real gyri/sulci relief never affects steering, and nothing can poke up to
+// block the camera's view of the rover.
+function surfaceSample(dir){
+  if(!scalpMesh) return null;
+  const origin = modelCenter.clone().addScaledVector(dir, modelRadius * 4);
+  const toward = dir.clone().negate();
+  driveRaycaster.set(origin, toward);
+  driveRaycaster.far = modelRadius * 8;
+  const hits = driveRaycaster.intersectObject(scalpMesh, false);
+  if(!hits.length) return null;
+  const hit = hits[0];
+  const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+  return { point: hit.point, normal };
+}
+
+function placeTargetMarker(){
+  const geo = new THREE.SphereGeometry(modelRadius * 0.045, 16, 16);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xff5c7a, emissive: 0xff5c7a, emissiveIntensity: 1.6 });
+  targetMesh = new THREE.Mesh(geo, mat);
+  scene.add(targetMesh);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(modelRadius * 0.075, modelRadius * 0.008, 8, 24),
+    new THREE.MeshBasicMaterial({ color: 0xff5c7a }));
+  targetMesh.add(ring);
+  targetMesh.userData.ring = ring;
+  updateTargetMarkerPosition();
+}
+function updateTargetMarkerPosition(){
+  if(!targetMesh) return;
+  const s = surfaceSample(targetDir);
+  if(!s) return;
+  targetMesh.position.copy(s.point).addScaledVector(s.normal, modelRadius * 0.05);
+  targetMesh.userData.ring.lookAt(targetMesh.position.clone().add(s.normal));
+}
+
+function setMode(next){
+  mode = next;
+  const driving = mode === "drive";
+  controls.enabled = !driving;
+  navEl.style.display = driving ? "none" : "flex";
+  explodeLabelEl.hidden = driving;
+  document.getElementById("explodeSlider").hidden = driving;
+  document.getElementById("legend").hidden = driving;
+  driveLegend.hidden = !driving;
+  driveHud.hidden = !driving;
+  document.getElementById("camTune").hidden = !driving;
+  document.getElementById("minimapWrap").hidden = !driving;
+  document.getElementById("traceHud").hidden = !driving;
+  if(!driving) closeRepairPanel();
+  hideInfo();
+  rover.visible = driving;
+  if(scalpMesh) scalpMesh.visible = driving;
+  if(targetMesh) targetMesh.visible = driving;
+  roverBlip.visible = driving;
+  targetBlip.visible = driving;
+  if(driving){
+    explodeAmount = 0; slider.value = 0; applyExplode();
+    modeBtn.textContent = "← Back to atlas";
+    targetReached = false;
+    electrode.impedanceK = 14.2;
+    electrode.medium = null;
+    anomaly = null;
+    nextAnomalyAt = 6;
+    document.getElementById("tracePrompt").hidden = true;
+    document.getElementById("traceHud").classList.remove("zoomed");
+    document.getElementById("traceBackdrop").hidden = true;
+    document.getElementById("driveTargetName").textContent = "FP1";
+    document.querySelector("#driveHud .target-sub").textContent = "Contact lost — drive there to reseat it";
+    if(!targetMesh){ placeTargetMarker(); } else { updateTargetMarkerPosition(); targetMesh.material.color.set(0xff5c7a); targetMesh.material.emissive.set(0xff5c7a); }
+  } else {
+    modeBtn.textContent = "Drive to electrode →";
+    flyTo(homeCameraPos, homeTarget);
+  }
+}
+modeBtn.addEventListener("click", () => setMode(mode === "drive" ? "inspect" : "drive"));
+
+function toast(text){
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.style.opacity = 1;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = 0; }, 2200);
+}
+
+// ---------- repair panel ----------
+function openRepairPanel(){
+  repairActive = true;
+  pendingMedium = null;
+  document.getElementById("repairTitle").textContent = electrode.name;
+  document.getElementById("repairImpedance").textContent =
+    "Impedance: " + electrode.impedanceK.toFixed(1) + "kΩ (bad — needs < " + GOOD_THRESHOLD_K + "kΩ)";
+  document.getElementById("repairChoices").hidden = false;
+  document.getElementById("repairPress").hidden = true;
+  document.getElementById("repairPanel").hidden = false;
+}
+function closeRepairPanel(){
+  repairActive = false;
+  repairPressing = false;
+  repairPressProgress = 0;
+  repairArmed = false; // must fly away and back before it can reopen
+  document.getElementById("repairPanel").hidden = true;
+}
+function chooseMedium(medium){
+  pendingMedium = medium;
+  document.getElementById("repairChoices").hidden = true;
+  document.getElementById("repairPress").hidden = false;
+  document.getElementById("repairPressFill").style.width = "0%";
+}
+document.getElementById("repairLeave").addEventListener("click", closeRepairPanel);
+document.getElementById("repairWater").addEventListener("click", () => chooseMedium("water"));
+document.getElementById("repairPaste").addEventListener("click", () => chooseMedium("paste"));
+window.addEventListener("keydown", (e) => { if(e.code === "Space" && pendingMedium) repairPressing = true; });
+window.addEventListener("keyup", (e) => { if(e.code === "Space") repairPressing = false; });
+window.addEventListener("keydown", (e) => { if(e.code === "Escape" && repairActive) closeRepairPanel(); });
+
+function updateRepair(dt, elapsed){
+  if(!repairActive || !pendingMedium) return;
+  if(repairPressing){
+    repairPressProgress = Math.min(1, repairPressProgress + dt / 1.3);
+  } else {
+    repairPressProgress = Math.max(0, repairPressProgress - dt / 1.3);
+  }
+  document.getElementById("repairPressFill").style.width = (repairPressProgress * 100) + "%";
+  if(repairPressProgress >= 1){
+    electrode.medium = pendingMedium;
+    electrode.impedanceK = 2.8;
+    electrode.lastServiceT = elapsed;
+    targetReached = true;
+    targetMesh.material.color.set(0x5eead4);
+    targetMesh.material.emissive.set(0x5eead4);
+    document.getElementById("driveTargetName").textContent = electrode.name + " ✓";
+    document.querySelector("#driveHud .target-sub").textContent =
+      pendingMedium === "water" ? "Good for now — water dries out, check back" : "Good — paste holds much longer";
+    toast(pendingMedium === "water" ? "Reseated with water +contact" : "Reseated with paste +contact");
+    closeRepairPanel();
+  }
+}
+
+// medium decay: water drifts back above threshold fast, paste barely moves
+function updateElectrodeDecay(dt, elapsed){
+  if(!electrode.medium) return;
+  const rate = electrode.medium === "water" ? 0.085 : 0.004; // kΩ per second — water needs reseating in well under a minute, paste holds for the whole session
+  electrode.impedanceK = Math.min(20, electrode.impedanceK + rate * dt);
+  if(electrode.impedanceK >= GOOD_THRESHOLD_K && targetReached){
+    targetReached = false;
+    electrode.medium = null;
+    targetMesh.material.color.set(0xff5c7a);
+    targetMesh.material.emissive.set(0xff5c7a);
+    document.getElementById("driveTargetName").textContent = electrode.name;
+    document.querySelector("#driveHud .target-sub").textContent = "Dried out — contact lost again";
+    toast(electrode.name + " impedance drifted back up — needs reseating");
+  }
+}
+
+// ---------- live trace HUD (EEG/EOG/EMG) ----------
+const traceCtx = document.getElementById("traceCanvas").getContext("2d");
+const traceBufs = [[], [], []];
+const ANOMALY_EXPLAIN = {
+  real: "EEG, EOG, and EMG all moved together — busier low-voltage EEG, rapid eye bursts, and muscle tone dropping out. When several channels shift in sync like that, it's a genuine physiological event. Tag it real.",
+  artifact: "Only the EEG channel drifted, slowly, while EOG and EMG stayed flat. One channel moving alone — especially a slow drift — is usually sweat or a loose contact, not a real event. Ignore it."
+};
+
+function spawnAnomaly(){
+  const kind = Math.random() < 0.5 ? "real" : "artifact";
+  // phase "lead": trace keeps moving a moment so the change is visible developing,
+  // then we freeze + zoom in before asking, and give a generous, untimed-feeling window to answer.
+  anomaly = { kind, start: blipPulseT, leadDur: 1.4, answerDur: 8, phaseT: 0, resolved: false, frozen: false, phase: "lead" };
+}
+
+function enterAnomalyPrompt(){
+  anomaly.phase = "prompt";
+  anomaly.phaseT = 0;
+  anomaly.frozen = true;
+  document.getElementById("tracePromptText").textContent = "Something changed on the trace — real event, or artifact?";
+  document.getElementById("tracePromptChoices").hidden = false;
+  document.getElementById("tracePromptBarWrap").hidden = false;
+  document.getElementById("tracePromptBar").style.width = "100%";
+  document.getElementById("traceExplain").hidden = true;
+  document.getElementById("tracePrompt").hidden = false;
+  document.getElementById("traceHud").classList.add("zoomed");
+  document.getElementById("traceBackdrop").hidden = false;
+}
+
+function showAnomalyExplain(isTimeout){
+  anomaly.resolved = true;
+  anomaly.phase = "explain";
+  anomalyScore.wrong++;
+  const headline = anomaly.kind === "real"
+    ? (isTimeout ? "Missed it — this was a real event" : "Not quite — this was a real event")
+    : (isTimeout ? "Missed it — this was just an artifact" : "Not quite — this was just an artifact");
+  document.getElementById("tracePromptText").textContent = headline;
+  document.getElementById("traceExplainText").textContent = ANOMALY_EXPLAIN[anomaly.kind];
+  document.getElementById("tracePromptChoices").hidden = true;
+  document.getElementById("tracePromptBarWrap").hidden = true;
+  document.getElementById("traceExplain").hidden = false;
+}
+
+function endAnomalyChallenge(){
+  document.getElementById("tracePrompt").hidden = true;
+  document.getElementById("traceHud").classList.remove("zoomed");
+  document.getElementById("traceBackdrop").hidden = true;
+  anomaly = null;
+  nextAnomalyAt = 9 + Math.random() * 8;
+}
+
+function resolveAnomaly(guess){
+  if(!anomaly || anomaly.resolved || anomaly.phase !== "prompt") return;
+  const correct = guess === anomaly.kind;
+  if(correct){
+    anomaly.resolved = true;
+    anomalyScore.correct++;
+    toast(anomaly.kind === "real" ? "Correctly caught the cue window" : "Correctly ignored — just an artifact");
+    endAnomalyChallenge();
+  } else {
+    showAnomalyExplain(false);
+  }
+}
+document.getElementById("traceReal").addEventListener("click", () => resolveAnomaly("real"));
+document.getElementById("traceArtifact").addEventListener("click", () => resolveAnomaly("artifact"));
+document.getElementById("traceExplainOk").addEventListener("click", endAnomalyChallenge);
+
+// true while the trace challenge owns the screen — driveUpdate skips rover/camera movement so the player can study it
+function anomalyLocked(){
+  return !!anomaly && (anomaly.phase === "prompt" || anomaly.phase === "explain");
+}
+
+function updateAnomaly(dt){
+  if(anomaly && !anomaly.resolved){
+    if(anomaly.phase === "lead"){
+      const t = blipPulseT - anomaly.start;
+      if(t >= anomaly.leadDur) enterAnomalyPrompt();
+      return;
+    }
+    if(anomaly.phase === "prompt"){
+      anomaly.phaseT += dt;
+      const frac = Math.max(0, 1 - anomaly.phaseT / anomaly.answerDur);
+      document.getElementById("tracePromptBar").style.width = (frac * 100) + "%";
+      if(anomaly.phaseT >= anomaly.answerDur) showAnomalyExplain(true);
+      return;
+    }
+    return; // "explain" phase waits on the player's "Got it" click
+  }
+  if(!anomaly){
+    nextAnomalyAt -= dt;
+    if(nextAnomalyAt <= 0) spawnAnomaly();
+  }
+}
+
+function drawTrace(elapsed){
+  const w = traceCtx.canvas.width, h = traceCtx.canvas.height;
+  const healthy = electrode.impedanceK < GOOD_THRESHOLD_K;
+  const frozen = !!(anomaly && anomaly.frozen);
+  const lanes = [
+    { label: "EEG", y: h * 0.17, color: "#5eead4" },
+    { label: "EOG", y: h * 0.5, color: "#ffd43b" },
+    { label: "EMG", y: h * 0.83, color: "#ff6b9d" }
+  ];
+  traceCtx.clearRect(0, 0, w, h);
+  lanes.forEach((lane, i) => {
+    if(!frozen){
+      let sample;
+      if(!healthy){
+        sample = (Math.random() - 0.5) * (i === 0 ? 0.9 : 0.5); // noisy / flat artifact
+      } else if(i === 0){
+        sample = 0.25 * Math.sin(elapsed * 9) + 0.08 * Math.sin(elapsed * 23);
+      } else if(i === 1){
+        sample = (Math.sin(elapsed * 0.7) > 0.95) ? (Math.random() - 0.5) * 0.9 : 0.04 * Math.sin(elapsed * 1.1);
+      } else {
+        sample = 0.3 * (0.5 + 0.5 * Math.sin(elapsed * 6)) * (Math.random() * 0.4 + 0.8) * 0.5;
+      }
+      if(healthy && anomaly && !anomaly.resolved){
+        const at = elapsed - anomaly.start;
+        if(anomaly.kind === "artifact" && i === 0){
+          sample += 0.5 * Math.sin(at * 0.9); // slow drift on EEG only — sweat, not real delta
+        } else if(anomaly.kind === "real"){
+          if(i === 0) sample += 0.12 * Math.sin(at * 14); // low-voltage mixed, busy
+          if(i === 1 && Math.sin(at * 2.2) > 0.6) sample += (Math.random() - 0.5) * 1.1; // rapid eye bursts
+          if(i === 2) sample -= 0.22; // tone drops (atonia)
+        }
+      }
+      traceBufs[i].push(sample);
+      if(traceBufs[i].length > 90) traceBufs[i].shift();
+    }
+
+    traceCtx.font = "9px 'JetBrains Mono',monospace";
+    traceCtx.fillStyle = lane.color;
+    traceCtx.fillText(lane.label, 4, Math.max(9, lane.y - 10));
+    traceCtx.strokeStyle = lane.color;
+    traceCtx.lineWidth = 1.4;
+    traceCtx.beginPath();
+    traceBufs[i].forEach((v, j) => {
+      const x = (j / 89) * w;
+      const y = lane.y - v * (h * 0.14);
+      if(j === 0) traceCtx.moveTo(x, y); else traceCtx.lineTo(x, y);
+    });
+    traceCtx.stroke();
+  });
+}
+
+function driveUpdate(dt){
+  if(anomalyLocked()){
+    // the trace challenge owns the screen now — freeze the rover/camera entirely so
+    // the player can study the zoomed-in trace without time pressure from driving
+    updateAnomaly(dt);
+    drawTrace(blipPulseT);
+    return;
+  }
+  if(rover.userData.rotors) rover.userData.rotors.forEach(b => { b.rotation.y += dt * 28; });
+  const turnSpeed = repairActive ? 0 : 1.6;
+  if(driveKeys.left) navForward.applyAxisAngle(navDir, turnSpeed * dt);
+  if(driveKeys.right) navForward.applyAxisAngle(navDir, -turnSpeed * dt);
+  navForward.sub(navDir.clone().multiplyScalar(navForward.dot(navDir))).normalize();
+
+  const moveSpeed = 0.7; // radians/sec of arc travelled
+  let theta = 0;
+  if(driveKeys.up && !repairActive) theta += moveSpeed * dt;
+  if(driveKeys.down && !repairActive) theta -= moveSpeed * dt;
+  if(theta !== 0){
+    const newDir = navDir.clone().multiplyScalar(Math.cos(theta)).addScaledVector(navForward, Math.sin(theta));
+    const newFwd = navDir.clone().multiplyScalar(-Math.sin(theta)).addScaledVector(navForward, Math.cos(theta));
+    navDir = newDir.normalize();
+    navForward = newFwd.normalize();
+  }
+
+  const s = surfaceSample(navDir);
+  if(s){
+    const fwd = navForward.clone().sub(s.normal.clone().multiplyScalar(navForward.dot(s.normal)));
+    if(fwd.lengthSq() < 1e-8) fwd.copy(navForward);
+    fwd.normalize();
+    const roverPos = s.point.clone().addScaledVector(s.normal, modelRadius * 0.012);
+    rover.position.copy(roverPos);
+    const right = new THREE.Vector3().crossVectors(s.normal, fwd).normalize();
+    const correctedFwd = new THREE.Vector3().crossVectors(right, s.normal).normalize();
+    const basis = new THREE.Matrix4().makeBasis(right, s.normal, correctedFwd);
+    rover.quaternion.setFromRotationMatrix(basis);
+    rover.scale.setScalar(modelRadius * 0.018);
+
+    blipPulseT += dt;
+    const pulse = 1 + 0.25 * Math.sin(blipPulseT * 5);
+    roverBlip.position.copy(roverPos).addScaledVector(s.normal, modelRadius * 0.02);
+    roverBlip.scale.setScalar(modelRadius * 0.12 * pulse);
+    if(targetMesh){
+      targetBlip.position.copy(targetMesh.position);
+      targetBlip.scale.setScalar(modelRadius * 0.09 * pulse);
+    }
+
+    const camUp = modelRadius * camUpFactor, camBack = modelRadius * camBackFactor;
+    const desiredCam = roverPos.clone().addScaledVector(s.normal, camUp).addScaledVector(correctedFwd, -camBack);
+    camera.position.lerp(desiredCam, 1 - Math.exp(-dt / 0.2));
+    camera.lookAt(roverPos.clone().addScaledVector(s.normal, modelRadius * 0.02));
+
+    if(targetMesh){
+      const dist = navDir.angleTo(targetDir) * modelRadius;
+      if(!repairArmed && dist > modelRadius * 0.15) repairArmed = true;
+      if(!targetReached){
+        document.getElementById("driveDist").textContent = dist.toFixed(1) + " mm";
+        if(dist < modelRadius * 0.06 && !repairActive && repairArmed){
+          openRepairPanel();
+        }
+      }
+    }
+    updateRepair(dt, blipPulseT);
+    updateElectrodeDecay(dt, blipPulseT);
+    updateAnomaly(dt);
+    drawTrace(blipPulseT);
+  }
+}
+
+// ---------- render loop ----------
+const driveClock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(driveClock.getDelta(), 0.05);
+  if(focusAnim){
+    const t = Math.min(1, (performance.now() - focusAnim.start) / (focusAnim.dur * 1000));
+    const e = easeInOutCubic(t);
+    camera.position.lerpVectors(focusAnim.fromPos, focusAnim.toPos, e);
+    controls.target.lerpVectors(focusAnim.fromTarget, focusAnim.toTarget, e);
+    if(t >= 1) focusAnim = null;
+  }
+  if(mode === "drive"){
+    driveUpdate(dt);
+  } else {
+    controls.update();
+  }
+  renderer.render(scene, camera);
+  if(mode === "drive" && minimapCamera){
+    const savedFog = scene.fog;
+    scene.fog = null; // the minimap camera sits far outside the main view's fog range
+    minimapRenderer.render(scene, minimapCamera);
+    scene.fog = savedFog;
+  }
+}
+
+window.addEventListener("resize", () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

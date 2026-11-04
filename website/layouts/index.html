@@ -12,6 +12,42 @@
   <p class="fineprint">Educational, not medical advice.</p>
 </section>
 
+<section class="section">
+  <div class="section-inner">
+    <h2 class="section-title reveal">Where to start.</h2>
+    <p class="section-lede reveal">Three stops, roughly in order. Jump to whichever one you're ready for.</p>
+    <div class="path-list">
+      <a class="path-item reveal" href="{{ "education/" | relURL }}">
+        <span class="path-num">1</span>
+        <span class="path-body">
+          <span class="kicker">Learn</span>
+          <h3>Education</h3>
+          <p>The videos, the real sleep and lucid-dreaming science, how OpenLucid itself was built with AI agents, and the developer docs — four ways in, pick what you're here for.</p>
+          <span class="more">Start learning</span>
+        </span>
+      </a>
+      <a class="path-item reveal" href="{{ "download/" | relURL }}">
+        <span class="path-num">2</span>
+        <span class="path-body">
+          <span class="kicker">Install</span>
+          <h3>The software</h3>
+          <p>Download the app, unzip, double-click. Try it with the simulated headband first, add a real one when you're ready.</p>
+          <span class="more">Download</span>
+        </span>
+      </a>
+      <a class="path-item reveal" href="https://github.com/emolionl/openlucid/tree/main/backend/">
+        <span class="path-num">3</span>
+        <span class="path-body">
+          <span class="kicker">Early access</span>
+          <h3>Multiple people, one server</h3>
+          <p>The Diary Keeper backend already runs two ways: solo on your laptop (SQLite), or as a shared server for a few people (PostgreSQL, Docker). Working and tested, still early.</p>
+          <span class="more">See the backend</span>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <div class="device-stage reveal">
   <div class="phone" role="img" aria-label="The OpenLucid app showing live brainwaves and the label REM">
     <div class="screen">
@@ -141,6 +177,12 @@
           <span class="more">Read the script</span>
         </a>
       {{ end }}
+      <a class="link-card reveal" href="{{ "games/brain-atlas/" | relURL }}">
+        <div class="kicker">Free · No signup</div>
+        <h3>Play Brain Atlas</h3>
+        <p>Drive a rover across a 3D brain and read a live EEG/EOG/EMG trace — the same "real event or artifact?" call OpenLucid's cueing engine makes all night.</p>
+        <span class="more">Play the game</span>
+      </a>
     </div>
   </div>
 </section>

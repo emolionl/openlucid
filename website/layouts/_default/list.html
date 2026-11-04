@@ -6,7 +6,7 @@
     {{/* On GitHub the journey's README lists the days in a table; here a timeline with the conclusions
          does that job, so the overview alone tells the story. */}}
     <ol class="timeline">
-      {{ range .Pages.ByDate }}
+      {{ range .Pages.ByDate.Reverse }}
       <li class="timeline-item">
         <div class="timeline-dot" aria-hidden="true"></div>
         <a class="timeline-card" href="{{ .RelPermalink }}">
