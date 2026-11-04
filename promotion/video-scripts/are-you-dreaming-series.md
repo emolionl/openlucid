@@ -16,7 +16,7 @@ status: "Concept; pilot script waiting for permission"
 
 | # | Episode | What really happened | Style |
 |---|---|---|---|
-| 1 | **The Bell** | Tibetan dream yoga: a centuries-old practice built around recognizing a dream as a dream | Soft watercolor, mountain light |
+| 1 | **[The Bell](are-you-dreaming-01-the-bell.md)** | Tibetan dream yoga: a centuries-old practice built around recognizing a dream as a dream | Soft watercolor, mountain light |
 | 2 | **The Marquis Who Wrote Everything Down** | Hervey de Saint-Denys kept dream journals from his teens and published how to guide dreams in 1867 | 19th-century etching |
 | 3 | **The Dutchman Who Named It** | Frederik van Eeden coined the term "lucid dream" in a 1913 paper | Old Dutch painting light |
 | 4 | **The First Message** | Hull, 1975: the first eye signal ever sent from inside a lucid dream | Grainy 1970s |
@@ -26,6 +26,8 @@ status: "Concept; pilot script waiting for permission"
 | 8 | **Are You Dreaming?** | Finale: the frame-story dreamer and an honest morning report | All styles together |
 
 ## The pilot
+
+Episode 1, **[The Bell](are-you-dreaming-01-the-bell.md)**, is written: a shot-by-shot Higgsfield script, ready for a first test render. No real named person appears in it, so it didn't need anyone's permission first — which is also why it went first.
 
 Episode 4, **The First Message**, is written. It tells a true story about two real people, based on their own published accounts. We promised to contact them before going further, so the script will be published here once they have had the chance to read and correct it.
 
