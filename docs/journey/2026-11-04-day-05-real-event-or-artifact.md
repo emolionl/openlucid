@@ -10,6 +10,7 @@ tldr:
   - "New research page sourced from three real papers (LaBerge 1981, Chase & Morales 1990, Anderer et al. 1999), checked against the actual PDFs, not memory."
   - "The site's top nav had grown to 10 flat items with no games section at all. Collapsed Videos/Research/Agentic Dev/Docs into one Education hub; nav is down to 7, homepage path down to 3 steps."
   - "Two silent failures today: a homepage edit that did nothing because the template ignores markdown content, and a new Hugo layout the dev server didn't pick up until restarted."
+  - "Kept, not deleted: night-drive, the prototype Brain Atlas grew out of. It could classify Wake/N1/N2/N3/REM; Brain Atlas still can't. That gap stays open on purpose."
 ---
 
 ## What started it
@@ -52,11 +53,18 @@ That last step also corrected an assumption: "multiple people on one server" was
 
 **Mistake today:** the first attempt to add a homepage game link edited `content/_index.md`'s markdown body and changed nothing. The homepage doesn't render through `_default/single.html` — it has its own `layouts/index.html` that never references `.Content` at all. The real fix was a hand-written `<a class="link-card">` inside that template. Separately, the new `layouts/education/list.html` rendered as a blank generic list page until the Hugo dev server was restarted — new files under `layouts/` didn't trigger its watcher.
 
+## A wrong turn worth keeping
+
+`website/static/games/night-drive/` is still sitting in the repo, linked from nowhere, and it's staying there on purpose. It was the first prototype, built before Brain Atlas: a flat hookup screen (tap each electrode site, check impedance, fix anything over 5kΩ for EEG/EOG or 10kΩ for EMG), a bio-calibration step, and then a staging game — classify the live trace into Wake, N1, N2, N3 or REM as it changes, with the actual scoring cues called out as they happen (a K-complex, a spindle, a microsleep, a dream cue during REM).
+
+Brain Atlas took the project in a more spatial direction — a real 3D brain to explore, a rover you drive to a failing electrode, a repair minigame for impedance instead of a tap-to-fix list — and kept growing from there today into the real-event-vs-artifact challenge. What it didn't carry over was night-drive's actual core loop: naming the sleep stage itself. Brain Atlas can teach you to tell REM from an artifact; it still can't ask "is this Wake, N1, N2, N3 or REM?" the way night-drive could.
+
+That's unfinished, not abandoned. The stage-naming mechanic belongs somewhere — maybe back into Brain Atlas as another phase of the same trace panel, maybe night-drive gets revived and connected to the same 3D scene instead of its own flat UI. Keeping the file around means that decision stays open instead of getting made by deletion.
+
 ## Where things stand
 
 - `website/static/games/brain-atlas/index.html` — the trace-reading redesign, tested by hand through all three phases including a deliberate wrong answer and a timeout.
 - `docs/research/reading-a-sleep-trace-real-event-or-artifact.md` — new, sourced.
 - `website/content/education/`, `website/content/games/`, `website/layouts/education/list.html` — new site structure.
 - `website/hugo.toml`, `website/layouts/index.html`, `website/assets/css/site.css` — nav and homepage changes.
-
-Left over from an earlier session: `website/static/games/night-drive/` is the prototype Brain Atlas grew out of, already committed, now linked from nowhere. Not cleaned up yet.
+- `website/static/games/night-drive/` — kept, unlinked, waiting on the Wake/N1/N2/N3/REM decision above.
