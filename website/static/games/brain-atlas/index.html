@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Brain Atlas</title>
+<title>OpenLucid Brain Atlas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -171,6 +171,16 @@
   }
   .btn:hover{color:var(--fg);border-color:rgba(255,255,255,.3);}
   .btn.active{color:#06060f;background:var(--accent);border-color:var(--accent);}
+  .start-btn{
+    display:block;margin:10px auto 0;font-size:15px;font-weight:700;padding:13px 28px;
+    color:#06060f;background:var(--accent);border-color:var(--accent);
+    box-shadow:0 0 0 0 rgba(94,234,212,.5);animation:pulseGlow 2.4s ease-in-out infinite;
+  }
+  .start-btn:hover{color:#06060f;transform:translateY(-1px);}
+  @keyframes pulseGlow{
+    0%,100%{box-shadow:0 0 0 0 rgba(94,234,212,.35);}
+    50%{box-shadow:0 0 0 10px rgba(94,234,212,0);}
+  }
 
   #loading{
     position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
@@ -194,8 +204,8 @@
 <div id="loading"><div class="spinner"></div>Loading atlas…</div>
 
 <div class="hud panel" id="header">
-  <div class="eyebrow">Night Drive · companion atlas</div>
-  <div class="title">Brain Atlas</div>
+  <div class="eyebrow">OpenLucid · educational game</div>
+  <div class="title">OpenLucid Brain Atlas</div>
   <div class="sub">Drag to orbit, scroll to zoom. Explode the view, then click a region to learn what it does — and when it matters for sleep.</div>
 </div>
 
@@ -212,7 +222,7 @@
   <div class="explode-label">Explode view</div>
   <input type="range" id="explodeSlider" min="0" max="100" value="0">
   <div id="legend">drag to orbit · scroll to zoom · click a region</div>
-  <button class="btn" id="modeToggle" style="margin-top:8px;">Drive to electrode →</button>
+  <button class="btn start-btn" id="modeToggle">▶ Start game</button>
 </div>
 
 <div class="hud panel" id="driveHud" hidden>
@@ -371,6 +381,8 @@ document.getElementById("stage3d").appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
+controls.autoRotate = true; // slow idle spin so it reads as a 3D scene, not a static image
+controls.autoRotateSpeed = 0.6;
 controls.addEventListener("start", () => { focusAnim = null; });
 
 function easeInOutCubic(t){ return t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
@@ -831,6 +843,7 @@ function setMode(next){
   if(driving){
     explodeAmount = 0; slider.value = 0; applyExplode();
     modeBtn.textContent = "← Back to atlas";
+    modeBtn.classList.remove("start-btn");
     targetReached = false;
     electrode.impedanceK = 14.2;
     electrode.medium = null;
@@ -843,7 +856,8 @@ function setMode(next){
     document.querySelector("#driveHud .target-sub").textContent = "Contact lost — drive there to reseat it";
     if(!targetMesh){ placeTargetMarker(); } else { updateTargetMarkerPosition(); targetMesh.material.color.set(0xff5c7a); targetMesh.material.emissive.set(0xff5c7a); }
   } else {
-    modeBtn.textContent = "Drive to electrode →";
+    modeBtn.textContent = "▶ Start game";
+    modeBtn.classList.add("start-btn");
     flyTo(homeCameraPos, homeTarget);
   }
 }
