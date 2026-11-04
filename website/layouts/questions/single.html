@@ -90,6 +90,17 @@
       <textarea id="q-copy" class="q-copy" hidden readonly aria-label="Your answers as text"></textarea>
     </div>
   </form>
+
+  <section class="q-thanks" id="q-thanks" hidden tabindex="-1" aria-labelledby="q-thanks-title">
+    <svg class="q-thanks-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/><path d="M14 25l7 7 13-15"/></svg>
+    <h2 id="q-thanks-title">Thank you, your answers were sent</h2>
+    <p id="q-thanks-text">They help more than you might think. We'll write up what we learn in the <a href="/journey/">journey</a>.</p>
+    <p id="q-thanks-mine" hidden>To read or change your answers later, sign in at <a href="https://user.openlucid.nl/">user.openlucid.nl</a> with <strong id="q-thanks-email"></strong>.</p>
+    <div class="buttons q-thanks-actions">
+      <a class="button" href="{{ .Parent.RelPermalink }}">See all questions</a>
+      <a class="more" href="/journey/">Read the journey</a>
+    </div>
+  </section>
   {{ end }}
 </div>
 
@@ -184,9 +195,16 @@
       try { localStorage.removeItem(DRAFT); } catch (err) {}
       copyBox.hidden = true;
       submit.textContent = "Sent";
-      setStatus(email
-        ? `Thank you, your answers were sent. To read or change them later, sign in at user.openlucid.nl with ${email}.`
-        : "Thank you, your answers were sent.", "ok");
+      // Swap the form for a clear thank-you, and bring it into view.
+      const thanks = document.getElementById("q-thanks");
+      if (email) {
+        document.getElementById("q-thanks-email").textContent = email;
+        document.getElementById("q-thanks-mine").hidden = false;
+      }
+      form.hidden = true;
+      thanks.hidden = false;
+      thanks.scrollIntoView({ behavior: "smooth", block: "center" });
+      thanks.focus({ preventScroll: true });
     } catch (err) {
       console.error(err);
       submit.disabled = false;

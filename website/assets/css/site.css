@@ -563,3 +563,19 @@ img { max-width: 100%; height: auto; }
 }
 .q-list-title { margin: 48px 0 0; font-size: 1.4rem; letter-spacing: -0.02em; }
 .q-closed { margin-top: 40px; padding: 18px 22px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--line); color: var(--muted); }
+
+/* Shown instead of the form once the answers are sent. */
+.q-thanks { margin-top: 48px; padding: 48px 32px; border-radius: var(--radius); text-align: center; background: radial-gradient(120% 140% at 50% 0%, rgba(140, 152, 255, 0.22), transparent 60%), var(--bg-card); border: 1px solid rgba(140, 152, 255, 0.45); outline: none; }
+.q-thanks h2 { margin: 18px 0 10px; font-size: clamp(1.6rem, 4vw, 2.2rem); letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; }
+.q-thanks p { margin: 0 auto 10px; max-width: 520px; color: var(--muted); font-size: 1.08rem; }
+.q-thanks strong { color: var(--text); overflow-wrap: anywhere; }
+.q-thanks-actions { margin-top: 26px; }
+.q-thanks-mark { width: 64px; height: 64px; fill: none; stroke: var(--lavender); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.q-thanks-mark circle { fill: rgba(140, 152, 255, 0.14); }
+@media (prefers-reduced-motion: no-preference) {
+  .q-thanks:not([hidden]) { animation: q-thanks-in 0.5s ease both; }
+  .q-thanks-mark path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: q-check 0.5s 0.25s ease forwards; }
+  @keyframes q-thanks-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+  @keyframes q-check { to { stroke-dashoffset: 0; } }
+}
+.qform[hidden], .q-thanks[hidden] { display: none; }
