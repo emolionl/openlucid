@@ -25,7 +25,9 @@
   {{ else }}
     <div class="prose">{{ .Content }}</div>
     <div class="list-cards">
-      {{ range .Pages }}
+      {{ $pages := .Pages }}
+      {{ if eq .Section "videos" }}{{ $pages = .Pages.Reverse }}{{ end }}
+      {{ range $pages }}
       <a class="link-card" href="{{ .RelPermalink }}">
         {{ with .Params.status }}<div class="kicker">{{ . }}</div>{{ end }}
         <h3>{{ .Title }}</h3>
