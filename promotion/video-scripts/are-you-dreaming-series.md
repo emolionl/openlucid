@@ -27,7 +27,7 @@ status: "Pilot (Episode 1, The Bell) produced and published; rest of the series 
 
 ## The pilot
 
-Episode 1, **[The Bell](are-you-dreaming-01-the-bell.md)**, is produced: 14 shots generated in Higgsfield, narrated in a cloned voice via ElevenLabs, assembled with ffmpeg, and [published to YouTube](https://youtu.be/6bN5SzqJXn4) (unlisted — watch it on the episode page). No real named person appears in it, so it didn't need anyone's permission first — which is also why it went first.
+Episode 1, **[The Bell](are-you-dreaming-01-the-bell.md)**, is produced: 14 shots generated in Higgsfield, narrated in a cloned voice via ElevenLabs, assembled with ffmpeg, and [published to YouTube](https://youtu.be/6bN5SzqJXn4) — embedded on the episode page and the homepage. No real named person appears in it, so it didn't need anyone's permission first — which is also why it went first.
 
 Episode 4, **The First Message**, is written. It tells a true story about two real people, based on their own published accounts. We promised to contact them before going further, so the script will be published here once they have had the chance to read and correct it.
 

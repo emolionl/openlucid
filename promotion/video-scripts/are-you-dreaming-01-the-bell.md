@@ -3,7 +3,7 @@ title: "Are You Dreaming? Episode 1 — The Bell"
 date: 2026-11-04
 description: "A Tibetan monk practices dream yoga, hears the monastery bell ring impossibly inside his own dream, and recognizes it. Soft watercolor, mountain light. Shot-by-shot script for Higgsfield."
 weight: 4
-status: "Published to YouTube (unlisted) and embedded here; intro/outro brand cards still use a placeholder wordmark instead of the real OpenLucid logo (Higgsfield credits ran out mid-build) — the embed will be swapped once that's redone"
+status: "Published to YouTube and embedded here. TODO next time there are Higgsfield credits: (1) real OpenLucid logo on the intro, and a proper outro card instead of the video just stopping after Shot 14 — it currently ends abruptly, which reads as unfinished; (2) re-upload and swap the embedded video ID once that's done"
 ---
 
 **Format:** animated, soft watercolor, ~2 minutes as scripted below (the series target is 6–10 minutes; this is a complete first cut that can be extended with more coverage shots before final production).

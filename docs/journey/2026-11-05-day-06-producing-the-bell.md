@@ -58,8 +58,8 @@ The fix was mechanical but non-negotiable: extract an actual frame from each arc
 
 ## Where things stand
 
-- [`promotion/video-scripts/video/the-bell/`](https://github.com/emolionl/openlucid/tree/main/promotion/video-scripts/video/the-bell) — all 14 source clips plus the intro, and the assembled `the-bell-episode1-draft.mp4`.
-- `promotion/video-scripts/audio/the-bell/` — 13 VO files in the cloned voice.
-- Episode 1 is [published to YouTube](https://youtu.be/6bN5SzqJXn4) (unlisted) and embedded directly on [its own page](/videos/are-you-dreaming-01-the-bell/), with the full shot-by-shot prompt script left visible below the video on purpose — anyone learning AI video prompting can read the exact prompt next to the few seconds it produced.
+- `promotion/video-scripts/video/the-bell/` — all 14 source clips plus the intro, and the assembled `the-bell-episode1-draft.mp4`, kept locally only (the folder is `.gitignore`d on purpose: 156MB of raw clips has no reason to live in git history when the published episode is served from YouTube instead).
+- `promotion/video-scripts/audio/the-bell/` — 13 VO files in the cloned voice, small enough to commit, kept as source material.
+- Episode 1 is [published to YouTube](https://youtu.be/6bN5SzqJXn4) and embedded directly on [its own page](/videos/are-you-dreaming-01-the-bell/) and the homepage, with the full shot-by-shot prompt script left visible below the video on purpose — anyone learning AI video prompting can read the exact prompt next to the few seconds it produced.
 
 Not done: the intro card still carries the placeholder AI-hallucinated wordmark instead of the real logo; the outro with the real logo was never finished (credits ran out mid-render); and this episode is a ~2-minute first cut against the series' 6–10 minute target, so more coverage shots are still ahead of it before it's "final" rather than "produced."
