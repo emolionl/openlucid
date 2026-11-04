@@ -1,14 +1,95 @@
 {
-  "hosting": {
-    "public": "public",
-    "cleanUrls": true,
-    "trailingSlash": true,
-    "ignore": ["firebase.json", "**/.*"],
-    "headers": [
-      {
-        "source": "**/*.@(css|js|png|jpg|svg|webp|woff2)",
-        "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
-      }
-    ]
-  }
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "website",
+      "ignore": [
+        "node_modules",
+        "*.test.js",
+        ".git",
+        "firebase-debug.log"
+      ]
+    }
+  ],
+  "hosting": [
+    {
+      "target": "website",
+      "public": "public",
+      "cleanUrls": true,
+      "trailingSlash": true,
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(css|js|png|jpg|svg|webp|woff2)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=604800"
+            }
+          ]
+        },
+        {
+          "source": "/questions/index.json",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=300"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "user",
+      "public": "console/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

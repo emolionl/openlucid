@@ -1,0 +1,200 @@
+{{ define "main" }}
+{{/* One questionnaire: the questions come from the page's front matter (content/questions/<slug>.md).
+     Each send adds one document to Firestore "responses" (rules: website/firestore.rules); the
+     notifyNewResponse function (website/functions) then emails it to the maintainer via Brevo. */}}
+{{ $open := eq (.Params.status | default "open") "open" }}
+<div class="page questions-page">
+  <p class="crumb"><a href="{{ .Parent.RelPermalink }}">‹ {{ .Parent.Title }}</a></p>
+  <h1 class="page-title">{{ .Title }}</h1>
+  <p class="meta">
+    <span class="outcome">{{ if $open }}Open for answers{{ else }}Closed{{ end }}</span>
+    {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
+    {{ with .Params.audience }}<span class="tag">For {{ . }}</span>{{ end }}
+  </p>
+  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+  <div class="prose">{{ .Content }}</div>
+
+  {{ if not $open }}
+  <p class="q-closed">This questionnaire is closed. Thank you to everyone who answered; what we learned is in the <a href="/journey/">journey</a>.</p>
+  {{ else }}
+  <form class="qform" id="qform" novalidate data-questionnaire="{{ .File.ContentBaseName }}" data-title="{{ .Title }}">
+    {{ $n := 0 }}
+    {{ range .Params.sections }}
+      <div class="q-section">
+        <p class="q-count">{{ len .items }} {{ if eq (len .items) 1 }}question{{ else }}questions{{ end }}</p>
+        <h2>{{ .title }}</h2>
+        {{ with .intro }}<p class="q-intro">{{ . }}</p>{{ end }}
+      </div>
+      {{ range .items }}
+        {{ $n = add $n 1 }}
+        {{ $id := .id }}
+        <div class="q" data-qid="{{ $id }}" data-type="{{ .type }}">
+          <div class="q-top">
+            <span class="q-num">{{ printf "%02d" $n }}</span>
+            <div>
+              <h3 id="q-{{ $id }}">{{ .q }}</h3>
+              {{ with .why }}<p class="q-why">{{ . }}</p>{{ end }}
+            </div>
+          </div>
+          {{ if or (eq .type "choice") (eq .type "multi") }}
+            <fieldset class="q-opts" aria-labelledby="q-{{ $id }}">
+              {{ $kind := cond (eq .type "choice") "radio" "checkbox" }}
+              {{ range $i, $o := .options }}
+                <label class="q-opt" for="{{ $id }}_{{ $i }}">
+                  <input type="{{ $kind }}" name="{{ $id }}" id="{{ $id }}_{{ $i }}" value="{{ $o }}">
+                  <span>{{ $o }}</span>
+                </label>
+              {{ end }}
+            </fieldset>
+            {{ if .other }}
+              <div class="q-field">
+                <label for="{{ $id }}_other">Other</label>
+                <input type="text" id="{{ $id }}_other" data-part="other" maxlength="300">
+              </div>
+            {{ end }}
+            {{ with .comment }}
+              <div class="q-field">
+                <label for="{{ $id }}_comment">{{ . }}</label>
+                <textarea id="{{ $id }}_comment" data-part="comment" rows="3" maxlength="4000"></textarea>
+              </div>
+            {{ end }}
+          {{ else if eq .type "short" }}
+            <input type="text" id="{{ $id }}_text" data-part="text" maxlength="200" aria-labelledby="q-{{ $id }}" placeholder="{{ .placeholder }}">
+          {{ else }}
+            <textarea id="{{ $id }}_text" data-part="text" rows="4" maxlength="4000" aria-labelledby="q-{{ $id }}"></textarea>
+          {{ end }}
+        </div>
+      {{ end }}
+    {{ end }}
+
+    {{/* Left empty by people; filled in by most spam bots, which makes the page drop the send. */}}
+    <div class="q-hp" aria-hidden="true">
+      <label for="website">Leave this empty</label>
+      <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="q-email">
+      <div class="q-field">
+        <label for="q-email">Your email (optional)</label>
+        <input type="email" id="q-email" maxlength="200" autocomplete="email" inputmode="email">
+        <p class="q-why">Lets you sign in later at <a href="https://user.openlucid.nl/">user.openlucid.nl</a> to read or change your answers, and lets us reply. We use it for nothing else.</p>
+      </div>
+    </div>
+
+    <p class="q-privacy">What happens with your answers: they are stored in OpenLucid's Firebase project (Google Cloud, Europe). Only the maintainer, and you if you give your email, can read them. Nothing is published without asking you first.</p>
+
+    <div class="q-send">
+      <span class="q-progress" id="q-progress">0 answered</span>
+      <button type="submit" class="button" id="q-submit">Send answers</button>
+      <p class="q-status" id="q-status" role="status" aria-live="polite"></p>
+      <textarea id="q-copy" class="q-copy" hidden readonly aria-label="Your answers as text"></textarea>
+    </div>
+  </form>
+  {{ end }}
+</div>
+
+{{ if $open }}
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
+
+  // Public web config: safe to publish. Access is decided by website/firestore.rules.
+  const app = initializeApp({
+    apiKey: "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ",
+    authDomain: "openlucid.firebaseapp.com",
+    projectId: "openlucid",
+    appId: "1:655847610145:web:0fa5f6e4067766fd0f1060",
+  });
+  const db = getFirestore(app);
+
+  const form = document.getElementById("qform");
+  const statusEl = document.getElementById("q-status");
+  const progress = document.getElementById("q-progress");
+  const submit = document.getElementById("q-submit");
+  const copyBox = document.getElementById("q-copy");
+  const questions = [...form.querySelectorAll(".q")];
+  const DRAFT = "openlucid-questions-draft-" + form.dataset.questionnaire;
+
+  // Each answer carries its own question text, so stored answers stay readable when the page changes.
+  function collect() {
+    const answers = {};
+    for (const q of questions) {
+      const id = q.dataset.qid;
+      const a = {};
+      const picked = [...q.querySelectorAll("input[type=radio]:checked, input[type=checkbox]:checked")].map((i) => i.value);
+      if (picked.length) a.picked = picked;
+      for (const f of q.querySelectorAll("[data-part]")) {
+        const v = f.value.trim();
+        if (v) a[f.dataset.part] = v;
+      }
+      if (Object.keys(a).length) answers[id] = { n: questions.indexOf(q) + 1, q: q.querySelector("h3").textContent, ...a };
+    }
+    return answers;
+  }
+
+  function apply(answers) {
+    for (const q of questions) {
+      const a = answers[q.dataset.qid];
+      if (!a) continue;
+      for (const i of q.querySelectorAll("input[type=radio], input[type=checkbox]")) i.checked = (a.picked || []).includes(i.value);
+      for (const f of q.querySelectorAll("[data-part]")) if (a[f.dataset.part]) f.value = a[f.dataset.part];
+    }
+  }
+
+  function asText(answers) {
+    const lines = ["OpenLucid expert questions: answers", ""];
+    questions.forEach((q, i) => {
+      const a = answers[q.dataset.qid];
+      if (!a) return;
+      lines.push(`${String(i + 1).padStart(2, "0")}. ${q.querySelector("h3").textContent}`);
+      if (a.picked) lines.push("   " + a.picked.join("; "));
+      for (const part of ["other", "text", "comment"]) if (a[part]) lines.push("   " + a[part].replace(/\n/g, "\n   "));
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  const setStatus = (msg, kind) => { statusEl.textContent = msg; statusEl.className = "q-status" + (kind ? " " + kind : ""); };
+  const refresh = () => { progress.textContent = `${Object.keys(collect()).length} of ${questions.length} answered`; };
+
+  try { const d = localStorage.getItem(DRAFT); if (d) apply(JSON.parse(d)); } catch (e) {}
+  refresh();
+
+  let timer;
+  form.addEventListener("input", () => {
+    refresh();
+    clearTimeout(timer);
+    timer = setTimeout(() => { try { localStorage.setItem(DRAFT, JSON.stringify(collect())); } catch (e) {} }, 400);
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const answers = collect();
+    if (!Object.keys(answers).length) { setStatus("Answer at least one question first.", "err"); return; }
+    if (document.getElementById("website").value) { setStatus("Thank you, your answers were sent.", "ok"); return; }
+    submit.disabled = true;
+    setStatus("Sending…");
+    const doc = { questionnaire: form.dataset.questionnaire, title: form.dataset.title, answers, sentAt: serverTimestamp(), form: 2 };
+    if (answers.who_name && answers.who_name.text) doc.name = answers.who_name.text.slice(0, 200);
+    const email = document.getElementById("q-email").value.trim().toLowerCase();
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setStatus("That email address doesn't look complete. Fix it or leave it empty.", "err"); return; }
+    if (email) doc.email = email;
+    try {
+      await addDoc(collection(db, "responses"), doc);
+      try { localStorage.removeItem(DRAFT); } catch (err) {}
+      copyBox.hidden = true;
+      submit.textContent = "Sent";
+      setStatus(email
+        ? `Thank you, your answers were sent. To read or change them later, sign in at user.openlucid.nl with ${email}.`
+        : "Thank you, your answers were sent.", "ok");
+    } catch (err) {
+      console.error(err);
+      submit.disabled = false;
+      copyBox.value = asText(answers);
+      copyBox.hidden = false;
+      setStatus("Sending didn't work. Your answers are kept in this browser; try again in a minute, or copy the text below and send it to us.", "err");
+    }
+  });
+</script>
+{{ end }}
+{{ end }}

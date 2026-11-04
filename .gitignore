@@ -34,3 +34,8 @@ firebase-debug.log
 
 # End-to-end test evidence (screenshots, logs)
 test-results/
+
+website/functions/node_modules/
+
+website/console/node_modules/
+website/console/dist/

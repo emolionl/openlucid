@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "openlucid"
-  }
+  },
+  "targets": {
+    "openlucid": {
+      "hosting": {
+        "website": [
+          "openlucid"
+        ],
+        "user": [
+          "openlucid-user"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

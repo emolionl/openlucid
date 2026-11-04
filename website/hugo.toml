@@ -78,6 +78,23 @@ disableKinds = ["taxonomy", "term"]
   weight = 5
 
 [[menus.main]]
+  name = "Questions"
+  pageRef = "/questions"
+  weight = 6
+
+[[menus.main]]
+  name = "Proposal"
+  pageRef = "/proposal"
+  weight = 7
+
+[[menus.main]]
   name = "GitHub"
   url = "https://github.com/emolionl/openlucid"
-  weight = 6
+  weight = 8
+
+# Public Firebase web config (safe to publish; access is decided by firestore.rules).
+[params.firebase]
+  apiKey = "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ"
+  authDomain = "openlucid.firebaseapp.com"
+  projectId = "openlucid"
+  appId = "1:655847610145:web:0fa5f6e4067766fd0f1060"

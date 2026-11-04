@@ -1,0 +1,15 @@
+{{- $items := slice -}}
+{{- range .Pages.ByDate.Reverse -}}
+  {{- $count := 0 -}}
+  {{- range .Params.sections }}{{ $count = add $count (len .items) }}{{ end -}}
+  {{- $items = $items | append (dict
+      "slug" .File.ContentBaseName
+      "title" .Title
+      "status" (.Params.status | default "open")
+      "audience" (.Params.audience | default "")
+      "date" (.Date.Format "2006-01-02")
+      "questions" $count
+      "sections" .Params.sections
+      "url" .RelPermalink) -}}
+{{- end -}}
+{{- dict "questionnaires" $items | jsonify (dict "indent" "  ") -}}

@@ -1,0 +1,73 @@
+rules_version = '2';
+
+// Who may do what (the console at openlucid.nl/admin/ and the questionnaires at /questions/):
+//
+//   anyone          adds one response to a questionnaire (create only)
+//   respondent      reads and edits the responses sent with their own (verified) email address
+//   client          same as respondent, for now
+//   researcher      reads all responses
+//   admin           reads, edits and deletes everything, and sets people's roles
+//
+// Roles live in users/{uid}.role. Everyone who signs in gets a users doc with role "respondent";
+// only an admin can change a role. New answers are emailed to the maintainer by website/functions.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function verifiedEmail() { return signedIn() && request.auth.token.email_verified == true ? request.auth.token.email : null; }
+    function userDoc() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasRole(roles) { return signedIn() && exists(userDoc()) && get(userDoc()).data.role in roles; }
+    function isAdmin() { return hasRole(['admin']); }
+    function ownsResponse(d) { return verifiedEmail() != null && 'email' in d && d.email == verifiedEmail(); }
+
+    function validName(d) { return !('name' in d) || (d.name is string && d.name.size() <= 200); }
+    function validAnswers(d) { return d.answers is map && d.answers.size() > 0 && d.answers.size() <= 60; }
+
+    function isNewResponse(d) {
+      return d.keys().hasAll(['questionnaire', 'title', 'answers', 'sentAt', 'form'])
+        && d.keys().hasOnly(['questionnaire', 'title', 'answers', 'name', 'email', 'sentAt', 'form'])
+        && d.form == 2
+        && d.sentAt == request.time
+        && d.questionnaire is string && d.questionnaire.matches('[a-z0-9-]{1,80}')
+        && d.title is string && d.title.size() <= 200
+        && validAnswers(d)
+        && validName(d)
+        && (!('email' in d) || (d.email is string && d.email.size() <= 200 && d.email.matches('[^@ ]+@[^@ ]+[.][^@ ]+')));
+    }
+
+    // A respondent may change their answers and name, nothing else.
+    function isOwnEdit() {
+      let d = request.resource.data;
+      return d.diff(resource.data).affectedKeys().hasOnly(['answers', 'name', 'updatedAt'])
+        && d.updatedAt == request.time
+        && validAnswers(d)
+        && validName(d);
+    }
+
+    match /responses/{id} {
+      allow create: if isNewResponse(request.resource.data);
+      allow read: if hasRole(['admin', 'researcher']) || ownsResponse(resource.data);
+      allow update: if isAdmin() || (ownsResponse(resource.data) && isOwnEdit());
+      allow delete: if isAdmin();
+    }
+
+    match /users/{uid} {
+      allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      // Your own profile, created on first sign-in, always as a respondent.
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['email', 'role', 'createdAt'])
+        && request.resource.data.role == 'respondent'
+        && request.resource.data.email == verifiedEmail()
+        && request.resource.data.createdAt == request.time;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+        && request.resource.data.role in ['admin', 'researcher', 'client', 'respondent'];
+      allow delete: if isAdmin();
+    }
+
+    // Everything else stays closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
