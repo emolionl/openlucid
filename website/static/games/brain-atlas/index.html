@@ -31,6 +31,8 @@
     left:max(14px,env(safe-area-inset-left,0px));
     max-width:min(80vw,280px);
   }
+  #header .home-link{pointer-events:auto;display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted);text-decoration:none;margin-bottom:8px;}
+  #header .home-link:hover{color:var(--accent);}
   #header .eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
   #header .title{font-family:var(--font-display);font-weight:800;font-size:22px;color:var(--accent);margin-top:2px;}
   #header .sub{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;}
@@ -204,6 +206,7 @@
 <div id="loading"><div class="spinner"></div>Loading atlas…</div>
 
 <div class="hud panel" id="header">
+  <a class="home-link" href="/">← openlucid.nl</a>
   <div class="eyebrow">OpenLucid · educational game</div>
   <div class="title">OpenLucid Brain Atlas</div>
   <div class="sub">Drag to orbit, scroll to zoom. Explode the view, then click a region to learn what it does — and when it matters for sleep.</div>
