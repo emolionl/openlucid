@@ -1,23 +1,26 @@
 {{ define "main" }}
-<section class="page">
+<section class="page{{ if eq .Section "journey" }} page-wide{{ end }}">
   <h1 class="page-title">{{ .Title }}</h1>
   {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
   {{ if eq .Section "journey" }}
-    {{/* On GitHub the journey's README lists the days in a table; here a timeline with the conclusions
-         does that job, so the overview alone tells the story. */}}
-    <ol class="timeline">
+    {{/* On GitHub the journey's README lists the days in a table; here a zigzag timeline with the
+         conclusions does that job, so the overview alone tells the story. */}}
+    <ol class="zig-timeline">
       {{ range .Pages.ByDate.Reverse }}
-      <li class="timeline-item">
-        <div class="timeline-dot" aria-hidden="true"></div>
-        <a class="timeline-card" href="{{ .RelPermalink }}">
-          <div class="kicker">{{ .Date.Format "2 January 2006" }}{{ with .Params.outcome }} · <span class="outcome">{{ . }}</span>{{ end }}</div>
-          <h3>{{ .Title }}</h3>
-          {{ with .Params.tldr }}
-            <ul>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ul>
-          {{ else }}
-            <p>{{ .Description }}</p>
-          {{ end }}
-          <span class="more">Read the full story</span>
+      <li class="zig-item">
+        <span class="zig-dot" aria-hidden="true"></span>
+        <a class="zig-card" href="{{ .RelPermalink }}">
+          <span class="zig-date">{{ .Date.Format "2 Jan 2006" }}</span>
+          <div class="zig-body">
+            {{ with .Params.outcome }}<span class="outcome">{{ . }}</span>{{ end }}
+            <h3>{{ .Title }}</h3>
+            {{ with .Params.tldr }}
+              <ul>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ul>
+            {{ else }}
+              <p>{{ .Description }}</p>
+            {{ end }}
+            <span class="more">Read the full story</span>
+          </div>
         </a>
       </li>
       {{ end }}
