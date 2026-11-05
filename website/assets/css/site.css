@@ -74,6 +74,8 @@ img { max-width: 100%; height: auto; }
 .nav-links a { color: var(--muted); }
 .nav-links a:hover, .nav-links a.active { color: var(--text); text-decoration: none; }
 
+.pill-gold { background: var(--moonlight) !important; }
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -462,6 +464,18 @@ img { max-width: 100%; height: auto; }
   text-decoration: none;
 }
 .prose a:has(img) img { display: block; width: 100%; height: auto; }
+
+.prose a[href="#todo-donate-link"] {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--moonlight);
+  color: #0c1124;
+  font-weight: 600;
+  text-decoration: none;
+}
+.prose a[href="#todo-donate-link"]:hover { background: #f5d488; }
 .prose strong { color: var(--text); }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 

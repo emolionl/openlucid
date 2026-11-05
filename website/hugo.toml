@@ -78,9 +78,14 @@ disableKinds = ["taxonomy", "term"]
   weight = 5
 
 [[menus.main]]
+  name = "Donate"
+  pageRef = "/donate"
+  weight = 6
+
+[[menus.main]]
   name = "GitHub"
   url = "https://github.com/emolionl/openlucid"
-  weight = 6
+  weight = 7
 
 # Public Firebase web config (safe to publish; access is decided by firestore.rules).
 [params.firebase]

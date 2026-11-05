@@ -33,6 +33,8 @@
         {{ range site.Menus.main }}
           {{ if eq .Name "GitHub" }}
             <a class="pill" href="{{ .URL }}">GitHub</a>
+          {{ else if eq .Name "Donate" }}
+            <a class="pill pill-gold" href="{{ .URL | relURL }}">☕ Donate</a>
           {{ else }}
             <a href="{{ .URL | relURL }}"{{ if or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) }} class="active"{{ end }}>{{ .Name }}</a>
           {{ end }}
