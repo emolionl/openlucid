@@ -547,7 +547,7 @@ img { max-width: 100%; height: auto; }
    finish before the next dot can appear. */
 .zig-item { position: relative; width: calc(50% - 32px); margin-bottom: 30px; }
 .zig-item:nth-child(odd) { float: left; clear: left; }
-.zig-item:nth-child(even) { float: right; clear: right; margin-top: 30px; }
+.zig-item:nth-child(even) { float: right; clear: right; margin-top: 80px; }
 
 .zig-dot {
   position: absolute;
