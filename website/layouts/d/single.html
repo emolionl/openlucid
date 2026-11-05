@@ -1,0 +1,61 @@
+{{ define "main" }}
+{{/* A shared document, read straight out of Firestore "documents" (rules: website/firestore.rules).
+     Anyone with the link (the id itself) can read one; nothing here is listed or indexed. Written and
+     edited from the console's Documents page, not from Hugo content. */}}
+<div class="page doc-page">
+  <p class="crumb"><a href="{{ "/" | relURL }}">‹ OpenLucid</a></p>
+  <div id="doc-loading"><p class="muted">Loading…</p></div>
+  <div id="doc-content" hidden>
+    <h1 class="page-title" id="doc-title"></h1>
+    <p class="meta" id="doc-meta" hidden></p>
+    <div class="prose" id="doc-body"></div>
+  </div>
+  <div id="doc-error" hidden>
+    <h1>Can't find this document</h1>
+    <p class="muted">The link may be incomplete, or the document was removed.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ",
+    authDomain: "openlucid.firebaseapp.com",
+    projectId: "openlucid",
+    appId: "1:655847610145:web:0fa5f6e4067766fd0f1060",
+  });
+  const db = getFirestore(app);
+
+  const loadingEl = document.getElementById("doc-loading");
+  const contentEl = document.getElementById("doc-content");
+  const errorEl = document.getElementById("doc-error");
+  const id = new URLSearchParams(location.search).get("id");
+
+  async function run() {
+    if (!id) { loadingEl.hidden = true; errorEl.hidden = false; return; }
+    try {
+      const snap = await getDoc(doc(db, "documents", id));
+      if (!snap.exists()) { loadingEl.hidden = true; errorEl.hidden = false; return; }
+      const d = snap.data();
+      document.title = d.title + " · OpenLucid";
+      document.getElementById("doc-title").textContent = d.title;
+      if (d.audience) {
+        const meta = document.getElementById("doc-meta");
+        meta.textContent = "For " + d.audience;
+        meta.hidden = false;
+      }
+      document.getElementById("doc-body").innerHTML = window.marked.parse(d.body || "");
+      loadingEl.hidden = true;
+      contentEl.hidden = false;
+    } catch (e) {
+      console.error(e);
+      loadingEl.hidden = true;
+      errorEl.hidden = false;
+    }
+  }
+  run();
+</script>
+{{ end }}

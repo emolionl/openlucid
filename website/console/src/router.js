@@ -12,6 +12,9 @@ const routes = [
   { path: "/responses/:id/edit", name: "edit", component: () => import("./views/EditResponse.vue") },
   { path: "/questionnaires", name: "questionnaires", component: () => import("./views/Questionnaires.vue"), meta: { roles: STAFF } },
   { path: "/users", name: "users", component: () => import("./views/Users.vue"), meta: { roles: ["admin"] } },
+  { path: "/documents", name: "documents", component: () => import("./views/Documents.vue"), meta: { roles: STAFF } },
+  { path: "/documents/new", name: "document-new", component: () => import("./views/DocumentEditor.vue"), meta: { roles: STAFF } },
+  { path: "/documents/:id/edit", name: "document-edit", component: () => import("./views/DocumentEditor.vue"), meta: { roles: STAFF } },
   { path: "/mine", name: "mine", component: () => import("./views/MyAnswers.vue") },
   { path: "/:rest(.*)*", name: "home", redirect: () => ({ name: "overview" }) },
 ];

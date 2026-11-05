@@ -27,6 +27,8 @@ export const SITE = "https://openlucid.nl";
 
 export const editUrl = (r) => `/responses/${r.id}/edit`;
 
+export const docLink = (id) => `${SITE}/d/?id=${id}`;
+
 let questionnairesPromise;
 /** The questionnaires published on the website, with their questions (Hugo writes /questions/index.json). */
 export function loadQuestionnaires() {

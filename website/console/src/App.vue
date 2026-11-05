@@ -24,6 +24,7 @@ const groups = [
   {
     title: "Project",
     links: [
+      { to: "/documents", label: "Documents", roles: ["admin", "researcher"], icon: "M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" },
       { to: "/users", label: "Users & roles", roles: ["admin"], icon: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14a6.5 6.5 0 0 1 3.5 6" },
     ],
   },
