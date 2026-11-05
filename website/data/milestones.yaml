@@ -1,0 +1,55 @@
+tracks:
+  - name: "Neuroscience"
+    note: "Citizen neuroscience, in dialogue with Donders Institute's Sleep & Memory Lab — Martin Dresler, Dreamento, ezscore-f, eegFloss."
+    link: "/research/"
+    linkLabel: "Read the research notes"
+    items:
+      - label: "Literature & field review (sleep staging, EOG, dream signalling)"
+        status: done
+      - label: "Hardware reality check (Muse S electrode contact, DIY EOG options)"
+        status: done
+      - label: "Recording and validating real nights at home"
+        status: active
+      - label: "Data-quality study with the lab's own tooling"
+        status: planned
+  - name: "Software — app & server"
+    note: "The app and the Diary Keeper backend, both open source."
+    link: "/download/"
+    linkLabel: "Download the app"
+    items:
+      - label: "App, web view and server say hello"
+        status: done
+      - label: "Live EEG, contact check, eye check over Bluetooth"
+        status: done
+      - label: "The Diary Keeper: multi-user backend, nights, journal"
+        status: done
+      - label: "Record a whole night, then sync it to the server"
+        status: active
+      - label: "One-click installers for every platform"
+        status: planned
+  - name: "ML & neural networks"
+    note: "Where the brainwaves turn into sleep stages and signals."
+    link: "https://github.com/emolionl/openlucid#roadmap"
+    linkLabel: "See the full roadmap"
+    items:
+      - label: "Sleep staging with YASA"
+        status: planned
+      - label: "Live staging and the \"stable REM\" rule"
+        status: planned
+      - label: "Detecting the left-right-left-right eye signal"
+        status: planned
+      - label: "Sound cues: evening training, playback during REM"
+        status: planned
+  - name: "Series & education"
+    note: "The story of lucid dreaming, told across centuries — and taught alongside the code."
+    link: "/videos/"
+    linkLabel: "Watch the series"
+    items:
+      - label: "Episode 1, \"The Bell\" — produced and published"
+        status: done
+      - label: "Episode 4 script written, pending the real people's review"
+        status: active
+      - label: "MBO curriculum piloting (AI-assisted software education)"
+        status: active
+      - label: "Episodes 2, 3, 5–8 — concept stage"
+        status: planned

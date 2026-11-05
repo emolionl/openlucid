@@ -552,6 +552,50 @@ img { max-width: 100%; height: auto; }
 .timeline-card li { margin: 4px 0; }
 .timeline-card .more { display: inline-block; margin-top: 10px; color: var(--lavender); font-size: 0.92rem; }
 
+.milestones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 32px; }
+.milestone-track {
+  padding: 24px 22px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+}
+.milestone-track h3 { margin: 0 0 6px; font-size: 1.1rem; letter-spacing: -0.02em; }
+.milestone-note { margin: 0 0 16px; color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
+.milestone-list { list-style: none; margin: 0 0 14px; padding: 0; }
+.milestone-item {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+.milestone-item:first-child { border-top: none; }
+.milestone-dot { flex: none; width: 9px; height: 9px; margin-top: 4px; border-radius: 50%; border: 2px solid var(--muted); background: transparent; }
+.milestone-label { flex: 1; color: var(--muted); }
+.milestone-status { flex: none; font-size: 0.74rem; color: var(--muted); opacity: 0.7; }
+.milestone-item.status-done .milestone-dot { border-color: var(--lavender); background: var(--lavender); }
+.milestone-item.status-done .milestone-label { color: var(--text); }
+.milestone-item.status-active .milestone-dot {
+  border-color: var(--moonlight);
+  background: var(--moonlight);
+  animation: milestone-pulse 1.8s ease-in-out infinite;
+}
+.milestone-item.status-active .milestone-label { color: var(--text); }
+.milestone-item.status-active .milestone-status { color: var(--moonlight); opacity: 1; font-weight: 600; }
+@keyframes milestone-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240, 196, 104, 0.55); }
+  50% { box-shadow: 0 0 0 5px rgba(240, 196, 104, 0); }
+}
+.milestone-track .more { display: inline-block; color: var(--lavender); font-size: 0.88rem; }
+@media (max-width: 900px) {
+  .milestones { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .milestones { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 960px) {
   .article-grid { display: block; max-width: var(--narrow); }
   .toc-side { display: none; }

@@ -11,7 +11,7 @@ __pycache__/
 *.db
 *.sqlite
 *.edf
-data/
+/backend/data/
 
 # Web
 node_modules/
