@@ -27,6 +27,4 @@ Not a vague "support the project" ask — concretely, a donation is roughly the 
 
 That's entirely fine. Reading [the journey](/journey/), starring the repo on [GitHub](https://github.com/emolionl/openlucid), or just using the app is already plenty. This page exists because a few people asked whether they could help, not because anything here is gated.
 
-[☕ Buy me a coffee](#todo-donate-link)
-
-*This link is a placeholder — the actual account isn't set up yet.*
+[☕ Donate via PayPal](https://www.paypal.com/donate/?hosted_button_id=AQTRVWB9864C4)

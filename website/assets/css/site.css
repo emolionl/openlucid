@@ -465,7 +465,7 @@ img { max-width: 100%; height: auto; }
 }
 .prose a:has(img) img { display: block; width: 100%; height: auto; }
 
-.prose a[href="#todo-donate-link"] {
+.prose a[href^="https://www.paypal.com/donate"] {
   display: inline-block;
   margin-top: 8px;
   padding: 12px 24px;
@@ -475,7 +475,7 @@ img { max-width: 100%; height: auto; }
   font-weight: 600;
   text-decoration: none;
 }
-.prose a[href="#todo-donate-link"]:hover { background: #f5d488; }
+.prose a[href^="https://www.paypal.com/donate"]:hover { background: #f5d488; }
 .prose strong { color: var(--text); }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 
