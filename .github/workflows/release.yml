@@ -1,6 +1,11 @@
-# Builds the downloads when a version tag is pushed (for example: git tag v0.4.0-preview && git push --tags)
+# Builds the downloads when a version tag is pushed (for example: git tag v0.4.0 && git push --tags)
 # and attaches them to the GitHub release. Tags with a dash (v0.4.0-preview) become pre-releases.
 # Free on GitHub for public repositories.
+#
+# The app version baked into the build is <tag, minus the v prefix>+<run number>, e.g.
+# tag v0.4.0 on the 47th workflow run becomes 0.4.0+47 — the build number after "+" is what
+# the in-app auto-updater (desktop_updater) compares to decide whether a newer version exists,
+# so it must strictly increase release to release; the GitHub Actions run number already does.
 name: Release
 
 on:
@@ -26,22 +31,80 @@ jobs:
           flutter-version: 3.35.7
           channel: stable
           cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compute the release version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { 'v0.0.0-dev' }
+          $semver = $tag.TrimStart('v')
+          $version = "$semver+$($env:GITHUB_RUN_NUMBER)"
+          Write-Host "Version: $version"
+          "version=$version" | Out-File -Append $env:GITHUB_OUTPUT
+          (Get-Content pubspec.yaml) -replace '^version:.*', "version: $version" | Set-Content pubspec.yaml
+
       - run: flutter pub get
       - run: flutter build windows --release
 
-      - name: Zip
+      - name: Zip (portable, no-install fallback)
         shell: pwsh
         run: |
-          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME.TrimStart('v') } else { 'dev' }
+          $version = "${{ steps.version.outputs.version }}"
           $zip = "OpenLucid-$version-windows-x64.zip"
           Copy-Item -Recurse build/windows/x64/runner/Release OpenLucid
           Compress-Archive -Path OpenLucid -DestinationPath $zip
           "ZIP=frontend/desktop/$zip" | Out-File -Append $env:GITHUB_ENV
 
+      - name: Fetch the existing release manifest, if any
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path publish/releases | Out-Null
+          try {
+            Invoke-WebRequest -Uri "https://emolionl.github.io/openlucid/releases/manifest.json" -OutFile publish/releases/manifest.json -ErrorAction Stop
+            Write-Host "Found an existing manifest; this platform's entry will be replaced, others kept."
+          } catch {
+            Write-Host "No existing manifest yet (first release) - starting fresh."
+          }
+
+      - name: Generate the auto-updater's hashes + manifest
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          python tools/generate_release_manifest.py `
+            --src build/windows/x64/runner/Release `
+            --dest "publish/releases/windows/$version" `
+            --manifest publish/releases/manifest.json `
+            --version $version --platform windows `
+            --url "https://emolionl.github.io/openlucid/releases/windows/$version" `
+            --changelog "OpenLucid $version"
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DAppVersion=$version" `
+            "/DSourceDir=$PWD\build\windows\x64\runner\Release" `
+            "/DOutputDir=$PWD\dist" `
+            windows\installer\openlucid.iss
+          $installer = Get-ChildItem dist\OpenLucid-Setup-*.exe | Select-Object -First 1
+          if (-not $installer) { throw "Installer build produced no .exe" }
+          "INSTALLER=frontend/desktop/dist/$($installer.Name)" | Out-File -Append $env:GITHUB_ENV
+
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-zip
-          path: ${{ env.ZIP }}
+          name: windows-release
+          path: |
+            ${{ env.ZIP }}
+            ${{ env.INSTALLER }}
+            frontend/desktop/publish/releases/manifest.json
 
       - name: Attach to the release
         if: github.ref_type == 'tag'
@@ -57,4 +120,12 @@ jobs:
             if ($tag.Contains('-')) { $extra += '--prerelease' }
             gh release create $tag --title "OpenLucid $($tag.TrimStart('v'))" --generate-notes @extra
           }
-          gh release upload $tag $env:ZIP --clobber
+          gh release upload $tag $env:ZIP $env:INSTALLER --clobber
+
+      - name: Publish release files to GitHub Pages (for the auto-updater)
+        if: github.ref_type == 'tag'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/desktop/publish
+          keep_files: true

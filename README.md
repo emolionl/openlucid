@@ -14,11 +14,11 @@ Will it give you lucid dreams? Honest answer: maybe, sometimes. Sound cues durin
 
 ## Download
 
-The goal is to make this as easy as possible: download, unzip, double-click.
+The goal is to make this as easy as possible: download, run the installer, done. It updates itself after that.
 
 | Part | Platform | Status |
 |---|---|---|
-| The app | Windows | **Preview**: [download the zip](https://github.com/emolionl/openlucid/releases), unzip, run `openlucid.exe` |
+| The app | Windows | **Preview**: [download the installer](https://github.com/emolionl/openlucid/releases) and run it |
 | The app | Android | Builds from the code; not tested with a headband yet |
 | The app | iPhone and iPad, Mac, Linux | Later, from the same Flutter code |
 | The Diary Keeper (server) | Any computer with Python 3.11+, or Docker | Works; you start it yourself (below) |

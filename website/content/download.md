@@ -2,7 +2,7 @@
 title: "Download"
 description: "OpenLucid for Windows today; the server for any computer; Android, iPhone, Mac and Linux later. Free and open source."
 tldr:
-  - "Windows: download, unzip, double-click. No installer, no account."
+  - "Windows: one installer, no account needed. It updates itself after that."
   - "It's an early preview: it records nights and checks your headband, it doesn't play sound cues yet."
   - "The Diary Keeper server runs on any computer with Python or Docker. Android, iPhone and iPad, Mac and Linux come later, from the same code."
 ---
@@ -13,12 +13,12 @@ OpenLucid should be something you can try tonight without being a programmer. So
 
 ## Windows (preview)
 
-**[Download OpenLucid for Windows](https://github.com/emolionl/openlucid/releases)** (64-bit, about 12 MB)
+**[Download OpenLucid for Windows](https://github.com/emolionl/openlucid/releases)** (64-bit, `OpenLucid-Setup-*.exe`)
 
-1. Download the `.zip` file from the newest release (for example `OpenLucid-0.3.0-preview-windows-x64.zip`) and unzip it anywhere, for example in your Documents folder.
-2. Open the `OpenLucid` folder and double-click `openlucid.exe`.
-3. Windows may warn you with "Windows protected your PC", because the app isn't signed yet (signing certificates cost money; it's on the list). Click **More info**, then **Run anyway**. If you'd rather not, you can build the app yourself from the code (below).
-4. Try it with **Fake Moose**, the built-in simulated headband, or connect a **Muse** (Muse 2016, Muse 2 or Muse S) over Bluetooth.
+1. Download the installer from the newest release and run it. It installs to your own user folder, not Program Files, so it doesn't ask for admin rights.
+2. Windows may warn you with "Windows protected your PC", because the app isn't signed yet (signing certificates cost money; it's on the list). Click **More info**, then **Run anyway**. If you'd rather not, you can build the app yourself from the code (below).
+3. Try it with **Fake Moose**, the built-in simulated headband, or connect a **Muse** (Muse 2016, Muse 2 or Muse S) over Bluetooth.
+4. After that, OpenLucid checks for new versions itself and offers to update in place — see it under Settings → About. Prefer no installer? A portable `.zip` is also attached to every release.
 
 What this preview can do:
 

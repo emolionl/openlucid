@@ -6,9 +6,12 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <desktop_updater/desktop_updater_plugin_c_api.h>
 #include <universal_ble/universal_ble_plugin_c_api.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  DesktopUpdaterPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("DesktopUpdaterPluginCApi"));
   UniversalBlePluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("UniversalBlePluginCApi"));
 }

@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:desktop_updater/desktop_updater.dart';
+import 'package:desktop_updater/widget/update_direct_card.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/diary_keeper.dart';
 import '../../app/settings.dart';
+import '../../services/update_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key, required this.settings});
@@ -111,6 +116,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+              if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) ...[
+                const SizedBox(height: 16),
+                DesktopUpdateDirectCard(controller: UpdateService.controller, child: const SizedBox()),
+              ],
             ],
           ),
         ),

@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  desktop_updater: ^1.4.0
   http: ^1.6.0
   path_provider: ^2.1.5
   shared_preferences: ^2.5.5
