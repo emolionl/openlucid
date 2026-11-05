@@ -7,4 +7,6 @@ Interactive ways to learn the science behind OpenLucid, built to play, not just 
 
 ### [Brain Atlas →](/games/brain-atlas/)
 
+[![OpenLucid Brain Atlas: an exploded 3D brain, regions colored by lobe, with an info panel explaining the hippocampus](/games/brain-atlas-preview.gif)](/games/brain-atlas/)
+
 Drive a rover across an exploded 3D brain, reseat a drifting electrode, and read a live EEG/EOG/EMG trace — including the exact "real event or artifact?" call OpenLucid's cueing engine has to make every few minutes, all night. Free, no signup. Read the [science behind the call](/research/reading-a-sleep-trace-real-event-or-artifact/) afterward.

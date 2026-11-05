@@ -53,7 +53,7 @@ disableKinds = ["taxonomy", "term"]
   weight = 0
 
 [[menus.main]]
-  name = "Games"
+  name = "Neuroscience Games"
   pageRef = "/games"
   weight = 1
 

@@ -186,6 +186,36 @@ img { max-width: 100%; height: auto; }
 
 .hero-video figcaption a { color: var(--lavender); font-weight: 600; }
 
+.game-showcase {
+  display: block;
+  max-width: 880px;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 40px 120px rgba(140, 152, 255, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+.game-showcase:hover { text-decoration: none; }
+.game-showcase .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: var(--bg-card); overflow: hidden; }
+.game-showcase .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+.game-showcase:hover .frame img { transform: scale(1.03); }
+.game-showcase .play-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(12, 17, 36, 0.75);
+  backdrop-filter: blur(6px);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.game-showcase .caption { padding: 20px 24px; background: var(--bg-card); }
+.game-showcase .caption .kicker { color: var(--moonlight); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.game-showcase .caption h3 { margin: 6px 0 8px; font-size: 1.35rem; letter-spacing: -0.02em; }
+.game-showcase .caption p { margin: 0; color: var(--muted); font-size: 0.96rem; }
+
 .eyebrow {
   margin: 0 0 10px;
   color: var(--moonlight);
@@ -422,6 +452,16 @@ img { max-width: 100%; height: auto; }
 .prose p, .prose li { color: #d8dbef; }
 .prose li { margin: 6px 0; }
 .prose p, .prose li { overflow-wrap: anywhere; }
+.prose a:has(img) {
+  display: block;
+  max-width: 720px;
+  margin: 4px 0 20px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 40px 120px rgba(140, 152, 255, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+}
+.prose a:has(img) img { display: block; width: 100%; height: auto; }
 .prose strong { color: var(--text); }
 .prose hr { border: 0; border-top: 1px solid var(--line); margin: 40px 0; }
 
