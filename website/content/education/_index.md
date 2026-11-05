@@ -22,6 +22,11 @@ paths:
     desc: "Run OpenLucid from the source: the app, the Diary Keeper server, and the tools researchers use to check a recording."
     url: "/docs/"
     linktext: "Read the docs"
+  - kicker: "Take"
+    title: "The neuroscience course"
+    desc: "What you'd actually need to know to work on this: the real science, the electrodes, the signal, the build — reading, hands-on labs with our own data, and a small game per idea."
+    url: "/course/"
+    linktext: "Start the course"
 ---
 
-Four ways into OpenLucid, depending on what you're here for.
+Five ways into OpenLucid, depending on what you're here for.

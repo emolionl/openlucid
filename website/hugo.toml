@@ -46,6 +46,13 @@ disableKinds = ["taxonomy", "term"]
   [[module.mounts]]
     source = "../docs/agentic/README.md"
     target = "content/learn/_index.md"
+  [[module.mounts]]
+    source = "../docs/neuroscience"
+    target = "content/course"
+    excludeFiles = ["README.md"]
+  [[module.mounts]]
+    source = "../docs/neuroscience/README.md"
+    target = "content/course/_index.md"
 
 [[menus.main]]
   name = "Download"
