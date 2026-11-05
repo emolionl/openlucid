@@ -1,19 +1,37 @@
 {{ $statusLabel := dict "done" "Done" "active" "In progress" "planned" "Planned" }}
-<div class="milestones">
+<div class="roadmap">
   {{ range site.Data.milestones.tracks }}
-  <div class="milestone-track reveal">
-    <h3>{{ .name }}</h3>
-    {{ with .note }}<p class="milestone-note">{{ . }}</p>{{ end }}
-    <ol class="milestone-list">
-      {{ range .items }}
-      <li class="milestone-item status-{{ .status }}">
-        <span class="milestone-dot" aria-hidden="true"></span>
-        <span class="milestone-label">{{ .label }}</span>
-        <span class="milestone-status">{{ index $statusLabel .status }}</span>
-      </li>
-      {{ end }}
-    </ol>
-    {{ $track := . }}
+  {{ $track := . }}
+  {{ $total := len .items }}
+  {{ $done := 0 }}
+  {{ range .items }}{{ if eq .status "done" }}{{ $done = add $done 1 }}{{ end }}{{ end }}
+  {{ $gaps := sub $total 1 }}
+  <div class="road-track reveal">
+    <div class="road-head">
+      <h3>{{ .name }}</h3>
+      {{ with .note }}<p class="road-note">{{ . }}</p>{{ end }}
+    </div>
+    <div class="road-scroll-wrap">
+      <button class="road-arrow road-arrow-left" type="button" aria-label="Scroll {{ .name }} backward">&lsaquo;</button>
+      <div class="road-scroll">
+        <div class="road-line-wrap" style="width: calc({{ $total }} * 200px);">
+          {{ if gt $gaps 0 }}
+          <div class="road-rail-bg" style="width: calc({{ $gaps }} * 200px);"></div>
+          <div class="road-rail-fill" style="width: calc({{ $done }} * 200px);"></div>
+          {{ end }}
+          <ol class="road-line">
+            {{ range .items }}
+            <li class="road-stop status-{{ .status }}">
+              <span class="road-dot" aria-hidden="true"></span>
+              <span class="road-status">{{ index $statusLabel .status }}</span>
+              <span class="road-title">{{ .label }}</span>
+            </li>
+            {{ end }}
+          </ol>
+        </div>
+      </div>
+      <button class="road-arrow road-arrow-right" type="button" aria-label="Scroll {{ .name }} forward">&rsaquo;</button>
+    </div>
     {{ with .link }}<a class="more" href="{{ if hasPrefix . "http" }}{{ . }}{{ else }}{{ . | relURL }}{{ end }}">{{ $track.linkLabel }}</a>{{ end }}
   </div>
   {{ end }}

@@ -75,6 +75,18 @@
       }
     }, { threshold: 0.12 });
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    // Roadmap lanes: arrow buttons scroll their own lane sideways, not the page.
+    document.querySelectorAll('.road-scroll-wrap').forEach((wrap) => {
+      const scroller = wrap.querySelector('.road-scroll');
+      const step = () => scroller.clientWidth * 0.8;
+      wrap.querySelector('.road-arrow-left')?.addEventListener('click', () => {
+        scroller.scrollBy({ left: -step(), behavior: 'smooth' });
+      });
+      wrap.querySelector('.road-arrow-right')?.addEventListener('click', () => {
+        scroller.scrollBy({ left: step(), behavior: 'smooth' });
+      });
+    });
   </script>
 </body>
 </html>
