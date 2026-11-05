@@ -86,6 +86,11 @@
       wrap.querySelector('.road-arrow-right')?.addEventListener('click', () => {
         scroller.scrollBy({ left: step(), behavior: 'smooth' });
       });
+
+      // Open each lane already scrolled to where the work actually is,
+      // instead of always starting at the first (oldest) item.
+      const here = scroller.querySelector('.road-stop.status-active') || [...scroller.querySelectorAll('.road-stop.status-done')].pop();
+      here?.scrollIntoView({ block: 'nearest', inline: 'center' });
     });
   </script>
 </body>
