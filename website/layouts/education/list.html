@@ -10,6 +10,7 @@
     <div class="path-list">
       {{ range .paths }}
       <a class="path-item reveal" href="{{ .url | relURL }}">
+        {{ with .img }}<span class="path-thumb"><img src="{{ . | relURL }}" alt="" loading="lazy"></span>{{ end }}
         <span class="path-body">
           <span class="kicker">{{ .kicker }}</span>
           <h3>{{ .title }}</h3>

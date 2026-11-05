@@ -421,6 +421,16 @@ img { max-width: 100%; height: auto; }
   font-weight: 700;
   font-size: 1.15rem;
 }
+.path-thumb {
+  flex: 0 0 auto;
+  width: 96px;
+  height: 96px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+}
+.path-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .path-body { flex: 1 1 auto; padding-top: 4px; }
 .path-body .kicker { color: var(--moonlight); font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .path-body h3 { margin: 6px 0 6px; font-size: 1.2rem; letter-spacing: -0.02em; }
@@ -429,6 +439,7 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 640px) {
   .path-item { gap: 14px; }
   .path-num { width: 36px; height: 36px; font-size: 1rem; }
+  .path-thumb { width: 64px; height: 64px; border-radius: 12px; }
 }
 
 /* ---------- Content pages (journey, docs, videos) ---------- */

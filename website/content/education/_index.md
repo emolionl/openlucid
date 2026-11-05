@@ -10,11 +10,13 @@ groups:
         desc: "Explode a 3D brain, drive a rover, read a live EEG/EOG/EMG trace — the judgment calls OpenLucid's cueing engine makes all night, turned into something you can play with."
         url: "/games/"
         linktext: "Play a game"
+        img: "/education/thumb-games.jpg"
       - kicker: "Watch"
         title: "The video series"
         desc: "Are You Dreaming? — the history of lucid dreaming, animated. One ~2-minute episode so far, scripts for the rest already written."
         url: "/videos/"
         linktext: "Watch or read the scripts"
+        img: "/education/thumb-video-series.jpg"
   - title: "Want to actually understand the science?"
     intro: "Lucid dreaming and sleep-EEG, properly — not just enough to play a game."
     paths:
@@ -23,11 +25,13 @@ groups:
         desc: "A real course: readings, hands-on labs with our own recorded data, and a small game per idea. Every chapter sourced, and honest about what it doesn't show."
         url: "/course/"
         linktext: "Start the course"
+        img: "/education/thumb-course.jpg"
       - kicker: "Look up"
         title: "The research notes"
         desc: "Quick, sourced answers if you don't want the whole course: what's proven, what's just our own testing, with prices and specs where they matter."
         url: "/research/"
         linktext: "Read the research"
+        img: "/education/thumb-research.jpg"
   - title: "Want to build or contribute code?"
     intro: "For developers, or anyone curious how a solo builder works with AI agents on something real."
     paths:
@@ -36,11 +40,13 @@ groups:
         desc: "How OpenLucid itself was built by one person working with AI coding agents: the method, the real scripts, the real mistakes, and exercises."
         url: "/learn/"
         linktext: "Learn the method"
+        img: "/education/thumb-learn.jpg"
       - kicker: "Build"
         title: "The docs"
         desc: "Run OpenLucid from the source: the app, the Diary Keeper server, and the tools researchers use to check a recording."
         url: "/docs/"
         linktext: "Read the docs"
+        img: "/education/thumb-docs.jpg"
 ---
 
 Pick the row that matches why you're here — each one stands on its own, no need to go in order.
