@@ -845,3 +845,39 @@ img { max-width: 100%; height: auto; }
   @keyframes q-check { to { stroke-dashoffset: 0; } }
 }
 .qform[hidden], .q-thanks[hidden] { display: none; }
+
+/* ---------- Consent bar (bottom, sticky, dismiss is purely local) ---------- */
+
+.consent-bar {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  justify-content: space-between;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.consent-bar[hidden] { display: none; }
+.consent-bar p { margin: 0; flex: 1 1 320px; color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+.consent-bar p a { color: var(--lavender); }
+.consent-bar .button {
+  flex: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 10px 22px;
+  font-size: 0.92rem;
+}
+@media (max-width: 600px) {
+  .consent-bar { left: 10px; right: 10px; bottom: 10px; padding: 14px 16px; }
+}

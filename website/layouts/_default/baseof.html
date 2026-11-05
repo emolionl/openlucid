@@ -48,9 +48,16 @@
       <p><strong>OpenLucid</strong> is free and open source (MIT). Educational, not medical advice: a consumer EEG headband is not a medical device, and nothing here diagnoses or treats anything. Sound cues only.</p>
       <div class="footer-links">
         {{ range site.Menus.main }}<a href="{{ .URL | relURL }}">{{ .Name }}</a>{{ end }}
+        <a href="{{ "privacy/" | relURL }}">Privacy</a>
+        <a href="{{ "terms/" | relURL }}">Terms</a>
       </div>
     </div>
   </footer>
+
+  <div class="consent-bar" id="consent-bar" hidden>
+    <p>This site stores a few small things on your own device — that you've seen this message, a draft of the questions form if you start one — and, only if you submit it, your answers go to Firebase (Google Cloud, Europe). No ads, no trackers. <a href="{{ "privacy/" | relURL }}">Privacy</a> · <a href="{{ "terms/" | relURL }}">Terms</a></p>
+    <button class="button" type="button" id="consent-accept">Got it</button>
+  </div>
 
   <script>
     // Phone menu: the hamburger opens and closes the links; Escape or a tap on a link closes it.
@@ -96,6 +103,19 @@
         scroller.scrollLeft = here.offsetLeft - (scroller.clientWidth - here.offsetWidth) / 2;
       }
     });
+
+    // Consent bar: shown once per browser until dismissed, never again after.
+    // No reload either way — this is just a local note, not a consent gate.
+    try {
+      const bar = document.getElementById('consent-bar');
+      if (bar && !localStorage.getItem('ol-consent-seen')) {
+        bar.hidden = false;
+        document.getElementById('consent-accept').addEventListener('click', () => {
+          bar.hidden = true;
+          try { localStorage.setItem('ol-consent-seen', '1'); } catch (e) {}
+        });
+      }
+    } catch (e) {}
   </script>
 </body>
 </html>
