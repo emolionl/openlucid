@@ -676,6 +676,10 @@ img { max-width: 100%; height: auto; }
 .road-title { display: block; padding-right: 20px; color: var(--text); font-size: 0.92rem; line-height: 1.35; }
 .road-stop.status-planned .road-title { color: var(--muted); }
 
+.road-stop-link { display: block; text-decoration: none; }
+.road-stop-link:hover .road-title { color: var(--lavender); text-decoration: underline; }
+.road-stop-link:hover .road-dot { filter: brightness(1.2); }
+
 .road-track .more { display: inline-block; margin-top: 14px; color: var(--lavender); font-size: 0.88rem; }
 
 @media (max-width: 640px) {

@@ -21,10 +21,19 @@
           {{ end }}
           <ol class="road-line">
             {{ range .items }}
+            {{ $item := . }}
             <li class="road-stop status-{{ .status }}">
-              <span class="road-dot" aria-hidden="true"></span>
-              <span class="road-status">{{ index $statusLabel .status }}</span>
-              <span class="road-title">{{ .label }}</span>
+              {{ if .link }}
+              <a class="road-stop-link" href="{{ if hasPrefix $item.link "http" }}{{ $item.link }}{{ else }}{{ $item.link | relURL }}{{ end }}">
+                <span class="road-dot" aria-hidden="true"></span>
+                <span class="road-status">{{ index $statusLabel $item.status }}</span>
+                <span class="road-title">{{ $item.label }}</span>
+              </a>
+              {{ else }}
+                <span class="road-dot" aria-hidden="true"></span>
+                <span class="road-status">{{ index $statusLabel $item.status }}</span>
+                <span class="road-title">{{ $item.label }}</span>
+              {{ end }}
             </li>
             {{ end }}
           </ol>

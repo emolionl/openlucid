@@ -6,12 +6,16 @@ tracks:
     items:
       - label: "Literature & field review (sleep staging, EOG, dream signalling)"
         status: done
+        link: "/research/eeg-and-eog-options/"
       - label: "Hardware reality check (Muse S electrode contact, DIY EOG options)"
         status: done
+        link: "/journey/2026-11-02-day-04c-contact-check-before-the-first-night/"
       - label: "Recording and validating real nights at home"
         status: active
+        link: "/research/reading-a-sleep-trace-real-event-or-artifact/"
       - label: "Data-quality study with the lab's own tooling"
         status: planned
+        link: "/proposal/"
   - name: "Software — app & server"
     note: "The app and the Diary Keeper backend, both open source."
     link: "/download/"
@@ -19,14 +23,19 @@ tracks:
     items:
       - label: "App, web view and server say hello"
         status: done
+        link: "/journey/2026-10-31-day-00-a-name-and-a-skeleton/"
       - label: "Live EEG, contact check, eye check over Bluetooth"
         status: done
+        link: "/journey/2026-11-01-day-01-the-headband-on-the-table/"
       - label: "The Diary Keeper: multi-user backend, nights, journal"
         status: done
+        link: "/journey/2026-11-01-day-02-the-diary-keeper-grows-up/"
       - label: "Record a whole night, then sync it to the server"
         status: active
+        link: "/journey/2026-11-02-day-04b-building-the-night-recorder/"
       - label: "One-click installers for every platform"
         status: planned
+        link: "https://github.com/emolionl/openlucid#roadmap"
   - name: "ML & neural networks"
     note: "Where the brainwaves turn into sleep stages and signals."
     link: "https://github.com/emolionl/openlucid#roadmap"
@@ -47,9 +56,12 @@ tracks:
     items:
       - label: "Episode 1, \"The Bell\" — produced and published"
         status: done
+        link: "/videos/are-you-dreaming-01-the-bell/"
       - label: "Episode 4 script written, pending the real people's review"
         status: active
+        link: "/videos/are-you-dreaming-series/"
       - label: "MBO curriculum piloting (AI-assisted software education)"
         status: active
       - label: "Episodes 2, 3, 5–8 — concept stage"
         status: planned
+        link: "/videos/are-you-dreaming-series/"
