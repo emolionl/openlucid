@@ -497,13 +497,20 @@ img { max-width: 100%; height: auto; }
 .meta { margin: 0 0 40px; color: var(--muted); font-size: 0.9rem; }
 .tag { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(140, 152, 255, 0.14); color: var(--lavender); font-size: 0.78rem; font-weight: 600; }
 
-/* Hall of Fame: a vertical timeline of lucid-dream research milestones. */
-.hof-legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 36px; }
+/* Hall of Fame: research grouped into sections, each a vertical timeline. */
 .hof-tag { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
 .hof-established { background: rgba(140, 152, 255, 0.14); color: var(--lavender); }
 .hof-reported { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
 .hof-contested { background: rgba(240, 196, 104, 0.16); color: var(--moonlight); }
 .hof-historical { background: rgba(255, 255, 255, 0.05); color: var(--muted); border: 1px dashed var(--line); }
+
+.hof-jump { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 20px 0 48px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.hof-jump a { color: var(--lavender); font-size: 0.9rem; text-decoration: none; }
+.hof-jump a:hover { text-decoration: underline; }
+
+.hof-section { margin-bottom: 56px; }
+.hof-section h2 { margin: 0 0 8px; font-size: 1.6rem; letter-spacing: -0.02em; scroll-margin-top: 72px; }
+.hof-section-intro { margin: 0 0 28px; color: var(--muted); max-width: 720px; }
 
 .hof-timeline { list-style: none; margin: 0; padding: 4px 0 0 28px; border-left: 2px solid var(--line); }
 .hof-item { position: relative; padding: 0 0 36px 24px; }
@@ -512,8 +519,12 @@ img { max-width: 100%; height: auto; }
 .hof-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; }
 .hof-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
 .hof-year { font-weight: 700; color: var(--text); font-size: 0.95rem; }
-.hof-card h2 { margin: 2px 0 6px; font-size: 1.2rem; letter-spacing: -0.02em; }
+.hof-card h3 { margin: 2px 0 6px; font-size: 1.2rem; letter-spacing: -0.02em; }
 .hof-who { margin: 0 0 10px; color: var(--muted); font-size: 0.88rem; font-style: italic; }
+.hof-rating { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 10px; }
+.hof-stars { color: var(--moonlight); font-size: 1rem; letter-spacing: 1px; }
+.hof-cites { color: var(--muted); font-size: 0.82rem; }
+.hof-no-rating { color: var(--muted); font-size: 0.82rem; font-style: italic; }
 .hof-card p { margin: 0 0 10px; }
 .hof-note { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 10px; }
 .hof-link a { color: var(--lavender); }
