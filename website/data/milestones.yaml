@@ -17,7 +17,7 @@ tracks:
         status: planned
         link: "/proposal/"
   - name: "Software — app & server"
-    note: "The app and the Diary Keeper backend, both open source."
+    note: "The app and the Diary Keeper backend, both open source. Short tests work; a full night still depends on electrode contact holding, which the Muse doesn't yet."
     link: "/download/"
     linkLabel: "Download the app"
     items:
@@ -30,9 +30,9 @@ tracks:
       - label: "The Diary Keeper: multi-user backend, nights, journal"
         status: done
         link: "/journey/2026-11-01-day-02-the-diary-keeper-grows-up/"
-      - label: "Record a whole night, then sync it to the server"
+      - label: "Record a whole night — blocked on reliable Muse contact, then sync it to the server"
         status: active
-        link: "/journey/2026-11-02-day-04b-building-the-night-recorder/"
+        link: "/journey/2026-11-02-day-04c-contact-check-before-the-first-night/"
       - label: "One-click installers for every platform"
         status: planned
         link: "https://github.com/emolionl/openlucid#roadmap"

@@ -88,9 +88,13 @@
       });
 
       // Open each lane already scrolled to where the work actually is,
-      // instead of always starting at the first (oldest) item.
+      // instead of always starting at the first (oldest) item. Set
+      // scrollLeft directly (not scrollIntoView) so this can't also drag
+      // the whole page down to a lane that's still off-screen on load.
       const here = scroller.querySelector('.road-stop.status-active') || [...scroller.querySelectorAll('.road-stop.status-done')].pop();
-      here?.scrollIntoView({ block: 'nearest', inline: 'center' });
+      if (here) {
+        scroller.scrollLeft = here.offsetLeft - (scroller.clientWidth - here.offsetWidth) / 2;
+      }
     });
   </script>
 </body>
