@@ -5,8 +5,9 @@
   {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
   <div class="prose">{{ .Content }}</div>
 
-  {{ $open := where .Pages "Params.status" "ne" "closed" }}
-  {{ $closed := where .Pages "Params.status" "eq" "closed" }}
+  {{ $listed := where .Pages "Params.unlisted" "ne" true }}
+  {{ $open := where $listed "Params.status" "ne" "closed" }}
+  {{ $closed := where $listed "Params.status" "eq" "closed" }}
   {{ range $group := slice (dict "title" "Open for answers" "pages" $open) (dict "title" "Closed" "pages" $closed) }}
     {{ if $group.pages }}
     <h2 class="q-list-title">{{ $group.title }}</h2>
