@@ -1,61 +1,84 @@
 {{ define "main" }}
 {{/* A timeline of real lucid-dream research, grouped into sections (content/halloffame.md front matter).
-     Each entry carries a confidence flag (established/reported/contested/historical) in the same
-     truth-ledger spirit as the Dresler script review page, plus a star rating (0-5) driven off real
-     citation counts researched separately — the two are independent axes, not the same thing. */}}
-<div class="page">
-  <h1 class="page-title">{{ .Title }}</h1>
-  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
-  <div class="prose">{{ .Content }}</div>
+     The section headings live in front matter, not in .Content, so the "On this page" nav here is built
+     by hand from .Params.sections (same markup/CSS as _default/single.html's auto-generated TOC) rather
+     than from .TableOfContents. Each entry carries a confidence flag (established/reported/contested/
+     historical) in the same truth-ledger spirit as the Dresler script review page, plus a star rating
+     (0-5) driven off real citation counts researched separately — the two are independent axes. */}}
+{{ $sections := .Params.sections }}
+<div class="article-grid">
+  <article class="article-main">
+    <h1 class="page-title">{{ .Title }}</h1>
+    {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
 
-  <nav class="hof-jump" aria-label="Jump to section">
-    {{ range .Params.sections }}<a href="#{{ anchorize .title }}">{{ .title }}</a>{{ end }}
-  </nav>
+    <details class="toc-mobile">
+      <summary>On this page</summary>
+      <nav>
+        <ul>
+          {{ range $sections }}<li><a href="#{{ anchorize .title }}">{{ .title }}</a></li>{{ end }}
+          <li><a href="#animal-studies">Animal studies</a></li>
+        </ul>
+      </nav>
+    </details>
 
-  {{ range .Params.sections }}
-  {{ $section := . }}
-  <section class="hof-section">
-    <h2 id="{{ anchorize .title }}">{{ .title }}</h2>
-    {{ with .intro }}<p class="hof-section-intro">{{ . }}</p>{{ end }}
+    <div class="prose">{{ .Content }}</div>
 
-    {{ if .milestones }}
-    <ol class="hof-timeline">
-      {{ range .milestones }}
-      {{ $m := . }}
-      <li class="hof-item">
-        <span class="hof-dot"></span>
-        <div class="hof-card">
-          <div class="hof-card-head">
-            <span class="hof-year">{{ $m.year }}</span>
-            <span class="hof-tag hof-{{ $m.confidence }}">
-              {{ if eq $m.confidence "established" }}Well established
-              {{ else if eq $m.confidence "reported" }}Reported, not independently verified
-              {{ else if eq $m.confidence "contested" }}Contested
-              {{ else }}Historical precedent
+    {{ range $sections }}
+    <section class="hof-section">
+      <h2 id="{{ anchorize .title }}">{{ .title }}</h2>
+      {{ with .intro }}<p class="hof-section-intro">{{ . }}</p>{{ end }}
+
+      {{ if .milestones }}
+      <ol class="hof-timeline">
+        {{ range .milestones }}
+        {{ $m := . }}
+        <li class="hof-item">
+          <span class="hof-dot"></span>
+          <div class="hof-card">
+            <div class="hof-card-head">
+              <span class="hof-year">{{ $m.year }}</span>
+              <span class="hof-tag hof-{{ $m.confidence }}">
+                {{ if eq $m.confidence "established" }}Well established
+                {{ else if eq $m.confidence "reported" }}Reported, not independently verified
+                {{ else if eq $m.confidence "contested" }}Contested
+                {{ else }}Historical precedent
+                {{ end }}
+              </span>
+            </div>
+            <h3>{{ $m.title }}</h3>
+            <p class="hof-who">{{ $m.who }}{{ with $m.citation }} — {{ . }}{{ end }}</p>
+
+            <div class="hof-rating">
+              {{ if gt (int $m.stars) 0 }}
+                <span class="hof-stars" aria-label="{{ $m.stars }} out of 5 stars">{{ range seq 5 }}{{ if le . (int $m.stars) }}★{{ else }}☆{{ end }}{{ end }}</span>
+                {{ with $m.citations }}<span class="hof-cites">{{ . }}</span>{{ end }}
+              {{ else }}
+                <span class="hof-no-rating">{{ $m.rating_note | default "No citation count applies" }}</span>
               {{ end }}
-            </span>
-          </div>
-          <h3>{{ $m.title }}</h3>
-          <p class="hof-who">{{ $m.who }}{{ with $m.citation }} — {{ . }}{{ end }}</p>
+            </div>
 
-          <div class="hof-rating">
-            {{ if gt (int $m.stars) 0 }}
-              <span class="hof-stars" aria-label="{{ $m.stars }} out of 5 stars">{{ range seq 5 }}{{ if le . (int $m.stars) }}★{{ else }}☆{{ end }}{{ end }}</span>
-              {{ with $m.citations }}<span class="hof-cites">{{ . }}</span>{{ end }}
-            {{ else }}
-              <span class="hof-no-rating">{{ $m.rating_note | default "No citation count applies" }}</span>
-            {{ end }}
+            <p>{{ $m.summary }}</p>
+            {{ with $m.note }}<p class="hof-note">{{ . }}</p>{{ end }}
+            {{ with $m.link }}<p class="hof-link"><a href="{{ . }}" target="_blank" rel="noopener">{{ $m.link_label | default "Read more" }} ↗</a></p>{{ end }}
           </div>
-
-          <p>{{ $m.summary }}</p>
-          {{ with $m.note }}<p class="hof-note">{{ . }}</p>{{ end }}
-          {{ with $m.link }}<p class="hof-link"><a href="{{ . }}" target="_blank" rel="noopener">{{ $m.link_label | default "Read more" }} ↗</a></p>{{ end }}
-        </div>
-      </li>
+        </li>
+        {{ end }}
+      </ol>
       {{ end }}
-    </ol>
+    </section>
     {{ end }}
-  </section>
-  {{ end }}
+  </article>
+
+  <aside class="toc-side" aria-label="On this page">
+    <div class="toc-sticky">
+      <p class="toc-title">On this page</p>
+      <nav>
+        <ul>
+          {{ range $sections }}<li><a href="#{{ anchorize .title }}">{{ .title }}</a></li>{{ end }}
+          <li><a href="#animal-studies">Animal studies</a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
 </div>
 {{ end }}

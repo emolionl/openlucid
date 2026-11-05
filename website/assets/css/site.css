@@ -504,10 +504,6 @@ img { max-width: 100%; height: auto; }
 .hof-contested { background: rgba(240, 196, 104, 0.16); color: var(--moonlight); }
 .hof-historical { background: rgba(255, 255, 255, 0.05); color: var(--muted); border: 1px dashed var(--line); }
 
-.hof-jump { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 20px 0 48px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
-.hof-jump a { color: var(--lavender); font-size: 0.9rem; text-decoration: none; }
-.hof-jump a:hover { text-decoration: underline; }
-
 .hof-section { margin-bottom: 56px; }
 .hof-section h2 { margin: 0 0 8px; font-size: 1.6rem; letter-spacing: -0.02em; scroll-margin-top: 72px; }
 .hof-section-intro { margin: 0 0 28px; color: var(--muted); max-width: 720px; }
