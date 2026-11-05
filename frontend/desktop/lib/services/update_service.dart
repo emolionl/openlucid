@@ -1,10 +1,10 @@
 import 'package:desktop_updater/updater_controller.dart';
 import 'package:flutter/foundation.dart';
 
-/// Where releases live. GitHub Pages, not a backend OpenLucid doesn't have:
-/// .github/workflows/release.yml publishes the manifest and every version's
-/// raw files there on each tagged release.
-const releaseManifestUrl = 'https://emolionl.github.io/openlucid/releases/manifest.json';
+/// Where releases live: a Firebase Hosting site of its own (openlucid-releases),
+/// separate from the main website so .github/workflows/release.yml can deploy
+/// it on every tagged release without ever touching openlucid.nl's own deploy.
+const releaseManifestUrl = 'https://openlucid-releases.web.app/manifest.json';
 
 /// Singleton access to [DesktopUpdaterController].
 ///

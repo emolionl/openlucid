@@ -61,9 +61,10 @@ jobs:
       - name: Fetch the existing release manifest, if any
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path publish/releases | Out-Null
+          $dist = "$env:GITHUB_WORKSPACE\website\releases-dist"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
           try {
-            Invoke-WebRequest -Uri "https://emolionl.github.io/openlucid/releases/manifest.json" -OutFile publish/releases/manifest.json -ErrorAction Stop
+            Invoke-WebRequest -Uri "https://openlucid-releases.web.app/manifest.json" -OutFile "$dist\manifest.json" -ErrorAction Stop
             Write-Host "Found an existing manifest; this platform's entry will be replaced, others kept."
           } catch {
             Write-Host "No existing manifest yet (first release) - starting fresh."
@@ -73,12 +74,13 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.version }}"
+          $dist = "$env:GITHUB_WORKSPACE\website\releases-dist"
           python tools/generate_release_manifest.py `
             --src build/windows/x64/runner/Release `
-            --dest "publish/releases/windows/$version" `
-            --manifest publish/releases/manifest.json `
+            --dest "$dist\windows\$version" `
+            --manifest "$dist\manifest.json" `
             --version $version --platform windows `
-            --url "https://emolionl.github.io/openlucid/releases/windows/$version" `
+            --url "https://openlucid-releases.web.app/windows/$version" `
             --changelog "OpenLucid $version"
 
       - name: Install Inno Setup
@@ -104,7 +106,7 @@ jobs:
           path: |
             ${{ env.ZIP }}
             ${{ env.INSTALLER }}
-            frontend/desktop/publish/releases/manifest.json
+            website/releases-dist/manifest.json
 
       - name: Attach to the release
         if: github.ref_type == 'tag'
@@ -122,10 +124,17 @@ jobs:
           }
           gh release upload $tag $env:ZIP $env:INSTALLER --clobber
 
-      - name: Publish release files to GitHub Pages (for the auto-updater)
+      - name: Publish release files to Firebase Hosting (for the auto-updater)
         if: github.ref_type == 'tag'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/desktop/publish
-          keep_files: true
+        shell: pwsh
+        working-directory: website
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if (-not $env:FIREBASE_TOKEN) {
+            throw "FIREBASE_TOKEN secret is not set. Generate one with 'firebase login:ci' and add it as a repo secret (Settings -> Secrets and variables -> Actions)."
+          }
+          # --token is deprecated in the Firebase CLI but still works as of v14; openlucid-releases
+          # is its own Hosting site (separate from openlucid.nl's own deploy) so this can never
+          # clobber the main website, which stays on its own manual `hugo && firebase deploy`.
+          npx firebase-tools@14 deploy --only hosting:releases --token "$env:FIREBASE_TOKEN" --project openlucid

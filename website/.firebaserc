@@ -10,6 +10,9 @@
         ],
         "user": [
           "openlucid-user"
+        ],
+        "releases": [
+          "openlucid-releases"
         ]
       }
     }
