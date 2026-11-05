@@ -27,6 +27,19 @@ Windows may say "Windows protected your PC" because the app isn't signed yet: cl
 
 What the preview does: live brainwaves, a contact check per sensor, an eye check, and **recording a whole night** (EEG plus head movement, saved locally as EDF+ in a BIDS-EEG folder). Sleep stages and sound cues come next.
 
+## Architecture
+
+**The app is one Flutter codebase**, not rewritten per platform — Windows today, Android/iPhone and iPad/Mac/Linux from the exact same code as each is tested and shipped.
+
+**The Diary Keeper is Python**, on purpose: sleep-staging and EEG-analysis models — [YASA](https://github.com/raphaelvallat/yasa), the lab's own `ezscore-f` and `eegFloss` — are published in Python first, so the server can call them directly, no porting required.
+
+```
+Flutter app   →  Diary Keeper (Python)  →  SQLite file            (solo, default)
+Flutter apps  →  Diary Keeper (Python)  →  PostgreSQL in Docker   (a few people, opt-in)
+```
+
+Same code either way — see "The Diary Keeper (backend)" below for how to switch.
+
 ## What's in here
 
 ```

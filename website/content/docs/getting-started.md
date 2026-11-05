@@ -8,6 +8,19 @@ weight: 1
 
 On Windows, download the app from the [download page](../../download/), unzip it and double-click `openlucid.exe`. Nothing else is needed to try it with Fake Moose or record a night with a Muse.
 
+## How it's built
+
+**The app is one Flutter codebase**, not rewritten per platform — Windows today, Android/iPhone and iPad/Mac/Linux from the exact same code as each is tested and shipped.
+
+**The Diary Keeper is Python**, on purpose: sleep-staging and EEG-analysis models — [YASA](https://github.com/raphaelvallat/yasa), the lab's own `ezscore-f` and `eegFloss` — are published in Python first, so the server can call them directly, no porting required.
+
+```
+Flutter app   →  Diary Keeper (Python)  →  SQLite file            (solo, default)
+Flutter apps  →  Diary Keeper (Python)  →  PostgreSQL in Docker   (a few people, opt-in)
+```
+
+Same code either way — see "The Diary Keeper" below for how to switch.
+
 ## From the code
 
 OpenLucid has these parts:
