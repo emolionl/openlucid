@@ -65,3 +65,8 @@ tracks:
       - label: "Episodes 2, 3, 5–8 — concept stage"
         status: planned
         link: "/videos/are-you-dreaming-series/"
+      - label: "Bonus episode on Martin Dresler's EEG/fMRI study — concept sent for his review"
+        status: active
+      - label: "Neuroscience course skeleton — asking the field what to teach first"
+        status: active
+        link: "/course/"
