@@ -346,6 +346,41 @@ img { max-width: 100%; height: auto; }
 .grid { display: grid; gap: 20px; }
 .grid.four { grid-template-columns: repeat(4, 1fr); }
 .grid.three { grid-template-columns: repeat(3, 1fr); }
+.grid.two { grid-template-columns: repeat(2, 1fr); }
+
+/* ---------- Platform support row + architecture diagrams ---------- */
+
+.platform-row { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 28px; justify-content: center; }
+.platform {
+  flex: 1 1 140px;
+  max-width: 160px;
+  text-align: center;
+  padding: 22px 12px;
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+}
+.platform svg { width: 34px; height: 34px; stroke: var(--muted); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 12px; }
+.platform.live svg { stroke: var(--lavender); }
+.platform h4 { margin: 0 0 10px; font-size: 0.98rem; letter-spacing: -0.01em; }
+.platform .tag { margin-left: 0; background: rgba(140, 152, 255, 0.1); color: var(--muted); }
+.platform.live .tag { background: var(--lavender); color: #0c1124; }
+
+.arch-grid { margin-top: 28px; }
+.arch-tile .tag { margin-left: 0; margin-bottom: 14px; }
+.arch-diagram { display: flex; align-items: center; gap: 12px; margin: 6px 0 16px; }
+.arch-node {
+  flex: 1;
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: rgba(140, 152, 255, 0.08);
+  border: 1px dashed var(--line);
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.arch-node small { display: block; color: var(--muted); font-size: 0.76rem; margin-top: 4px; }
+.arch-arrow { flex: none; color: var(--lavender); font-size: 1.3rem; }
 
 .tile {
   background: var(--bg-card);
@@ -540,6 +575,7 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 900px) {
   .grid.four { grid-template-columns: repeat(2, 1fr); }
   .grid.three { grid-template-columns: 1fr; }
+  .grid.two { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {

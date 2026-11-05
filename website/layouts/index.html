@@ -142,12 +142,72 @@
 
 <section class="section alt">
   <div class="section-inner">
-    <h2 class="section-title reveal">The software.</h2>
+    <h2 class="section-title reveal">One codebase, every device.</h2>
+    <p class="section-lede reveal">Built once in Flutter — not rewritten per platform — so every device on this list runs the exact same app.</p>
+    <div class="platform-row reveal">
+      <div class="platform live">
+        <svg viewBox="0 0 40 40"><path d="M6 8h28v18H6z"/><path d="M16 30h8M20 26v4"/></svg>
+        <h4>Windows</h4>
+        <span class="tag">Available now</span>
+      </div>
+      <div class="platform">
+        <svg viewBox="0 0 40 40"><rect x="13" y="4" width="14" height="32" rx="3"/><path d="M13 28h14"/></svg>
+        <h4>Android</h4>
+        <span class="tag">Builds today</span>
+      </div>
+      <div class="platform">
+        <svg viewBox="0 0 40 40"><rect x="15" y="3" width="12" height="28" rx="2.5"/><rect x="5" y="15" width="16" height="22" rx="2.5"/></svg>
+        <h4>iPhone &amp; iPad</h4>
+        <span class="tag">Same code, later</span>
+      </div>
+      <div class="platform">
+        <svg viewBox="0 0 40 40"><path d="M8 10h24v14H8z"/><path d="M4 28h32l-3 4H7z"/></svg>
+        <h4>Mac</h4>
+        <span class="tag">Same code, later</span>
+      </div>
+      <div class="platform">
+        <svg viewBox="0 0 40 40"><rect x="6" y="8" width="28" height="20" rx="2"/><path d="M11 15l5 4-5 4M20 23h8"/></svg>
+        <h4>Linux</h4>
+        <span class="tag">Same code, later</span>
+      </div>
+    </div>
+
+    <h2 class="section-title reveal" style="margin-top: 64px;">Solo, or with a few people.</h2>
+    <p class="section-lede reveal">The same Diary Keeper server runs either way — you choose, nothing to rewrite.</p>
+    <div class="grid two arch-grid">
+      <div class="tile arch-tile reveal">
+        <span class="tag">Default</span>
+        <h3>Just you</h3>
+        <div class="arch-diagram">
+          <span class="arch-node">Your app<small>Flutter</small></span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-node">Diary Keeper<small>Python</small></span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-node">SQLite file<small>on your own laptop</small></span>
+        </div>
+        <p>Nothing extra to install. Your nights are files you own, and nowhere else.</p>
+      </div>
+      <div class="tile arch-tile reveal">
+        <span class="tag">Opt-in</span>
+        <h3>A few people, one server</h3>
+        <div class="arch-diagram">
+          <span class="arch-node">A few apps<small>Flutter</small></span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-node">Diary Keeper<small>Python</small></span>
+          <span class="arch-arrow">→</span>
+          <span class="arch-node">PostgreSQL<small>in Docker</small></span>
+        </div>
+        <p>Same code, one setting. Working and tested, still early — the first account becomes the admin.</p>
+      </div>
+    </div>
+    <p class="section-lede reveal" style="margin-top: 28px; text-align: left;">Why Python on the server, and not Flutter end to end: sleep science runs on it. YASA, and the lab's own ezscore-f and eegFloss, are published in Python first — so the Diary Keeper can call them directly, no porting required, the day they're wired in.</p>
+
+    <h2 class="section-title reveal" style="margin-top: 64px;">The software.</h2>
     <p class="section-lede reveal">Made to be as easy as possible: download the installer, run it, done. And every line open, if you'd rather build it yourself.</p>
     <div class="grid three">
       <div class="tile reveal">
         <h3>The app</h3>
-        <p>Windows today, as an early preview: live brainwaves, contact check, eye check and whole-night recording. Android, iPhone and iPad, Mac and Linux follow from the same code.</p>
+        <p>Windows today, as an early preview: live brainwaves, contact check, eye check and whole-night recording.</p>
         <p><a class="more" href="{{ "download/" | relURL }}">Download for Windows</a></p>
       </div>
       <div class="tile reveal">
