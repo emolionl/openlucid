@@ -391,6 +391,10 @@ img { max-width: 100%; height: auto; }
 .link-card p { margin: 0; color: var(--muted); font-size: 0.96rem; }
 .link-card .more { display: inline-block; margin-top: 14px; color: var(--lavender); font-size: 0.96rem; }
 
+.path-group { max-width: var(--wide); margin: 0 auto; }
+.path-group + .path-group { margin-top: 48px; }
+.path-group-title { margin: 0 0 6px; font-size: 1.4rem; letter-spacing: -0.02em; }
+.path-group-intro { margin: 0 0 8px; color: var(--muted); font-size: 0.96rem; }
 .path-list { max-width: var(--wide); margin: 0 auto; }
 .path-item {
   display: flex;

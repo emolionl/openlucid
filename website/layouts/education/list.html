@@ -3,18 +3,23 @@
   <h1 class="page-title">{{ .Title }}</h1>
   {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
   <div class="prose">{{ .Content }}</div>
-  <div class="path-list">
-    {{ range $i, $p := .Params.paths }}
-    <a class="path-item reveal" href="{{ $p.url | relURL }}">
-      <span class="path-num">{{ add $i 1 }}</span>
-      <span class="path-body">
-        <span class="kicker">{{ $p.kicker }}</span>
-        <h3>{{ $p.title }}</h3>
-        <p>{{ $p.desc }}</p>
-        <span class="more">{{ $p.linktext }}</span>
-      </span>
-    </a>
-    {{ end }}
+  {{ range .Params.groups }}
+  <div class="path-group">
+    <h2 class="path-group-title reveal">{{ .title }}</h2>
+    {{ with .intro }}<p class="path-group-intro reveal">{{ . }}</p>{{ end }}
+    <div class="path-list">
+      {{ range .paths }}
+      <a class="path-item reveal" href="{{ .url | relURL }}">
+        <span class="path-body">
+          <span class="kicker">{{ .kicker }}</span>
+          <h3>{{ .title }}</h3>
+          <p>{{ .desc }}</p>
+          <span class="more">{{ .linktext }}</span>
+        </span>
+      </a>
+      {{ end }}
+    </div>
   </div>
+  {{ end }}
 </section>
 {{ end }}
