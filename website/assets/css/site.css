@@ -497,6 +497,33 @@ img { max-width: 100%; height: auto; }
 .meta { margin: 0 0 40px; color: var(--muted); font-size: 0.9rem; }
 .tag { display: inline-block; margin-left: 8px; padding: 2px 10px; border-radius: 999px; background: rgba(140, 152, 255, 0.14); color: var(--lavender); font-size: 0.78rem; font-weight: 600; }
 
+/* Hall of Fame: a vertical timeline of lucid-dream research milestones. */
+.hof-legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 36px; }
+.hof-tag { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+.hof-established { background: rgba(140, 152, 255, 0.14); color: var(--lavender); }
+.hof-reported { background: rgba(255, 255, 255, 0.08); color: var(--muted); }
+.hof-contested { background: rgba(240, 196, 104, 0.16); color: var(--moonlight); }
+.hof-historical { background: rgba(255, 255, 255, 0.05); color: var(--muted); border: 1px dashed var(--line); }
+
+.hof-timeline { list-style: none; margin: 0; padding: 4px 0 0 28px; border-left: 2px solid var(--line); }
+.hof-item { position: relative; padding: 0 0 36px 24px; }
+.hof-item:last-child { padding-bottom: 4px; }
+.hof-dot { position: absolute; left: -35px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--lavender); border: 2px solid var(--bg); }
+.hof-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; }
+.hof-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+.hof-year { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+.hof-card h2 { margin: 2px 0 6px; font-size: 1.2rem; letter-spacing: -0.02em; }
+.hof-who { margin: 0 0 10px; color: var(--muted); font-size: 0.88rem; font-style: italic; }
+.hof-card p { margin: 0 0 10px; }
+.hof-note { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 10px; }
+.hof-link a { color: var(--lavender); }
+
+@media (max-width: 640px) {
+  .hof-timeline { padding-left: 18px; }
+  .hof-dot { left: -25px; }
+  .hof-card { padding: 16px 18px; }
+}
+
 .prose h2, .prose h3 { scroll-margin-top: 72px; }
 .prose a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .prose h2 { margin: 56px 0 14px; font-size: 1.75rem; letter-spacing: -0.025em; line-height: 1.2; }

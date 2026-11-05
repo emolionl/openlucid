@@ -75,6 +75,11 @@ disableKinds = ["taxonomy", "term"]
   weight = 3
 
 [[menus.main]]
+  name = "Hall of Fame"
+  pageRef = "/halloffame"
+  weight = 3.5
+
+[[menus.main]]
   name = "Questions"
   pageRef = "/questions"
   weight = 4

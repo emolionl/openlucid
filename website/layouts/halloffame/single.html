@@ -1,0 +1,43 @@
+{{ define "main" }}
+{{/* A vertical timeline of real lucid-dream research milestones (content/halloffame.md front matter).
+     Each entry carries its own confidence flag — established / reported / contested / historical —
+     the same truth-ledger ethic already used on the Dresler script review page. */}}
+<div class="page">
+  <h1 class="page-title">{{ .Title }}</h1>
+  {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+  <div class="prose">{{ .Content }}</div>
+
+  <div class="hof-legend">
+    <span class="hof-tag hof-established">Well established</span>
+    <span class="hof-tag hof-reported">Reported, not independently verified</span>
+    <span class="hof-tag hof-contested">Contested, needs a caveat</span>
+    <span class="hof-tag hof-historical">Historical precedent, not a study</span>
+  </div>
+
+  <ol class="hof-timeline">
+    {{ range .Params.milestones }}
+    {{ $m := . }}
+    <li class="hof-item">
+      <span class="hof-dot"></span>
+      <div class="hof-card">
+        <div class="hof-card-head">
+          <span class="hof-year">{{ $m.year }}</span>
+          <span class="hof-tag hof-{{ $m.confidence }}">
+            {{ if eq $m.confidence "established" }}Well established
+            {{ else if eq $m.confidence "reported" }}Reported, not independently verified
+            {{ else if eq $m.confidence "contested" }}Contested
+            {{ else }}Historical precedent
+            {{ end }}
+          </span>
+        </div>
+        <h2>{{ $m.title }}</h2>
+        <p class="hof-who">{{ $m.who }}{{ with $m.citation }} — {{ . }}{{ end }}</p>
+        <p>{{ $m.summary }}</p>
+        {{ with $m.note }}<p class="hof-note">{{ . }}</p>{{ end }}
+        {{ with $m.link }}<p class="hof-link"><a href="{{ . }}" target="_blank" rel="noopener">{{ $m.link_label | default "Read more" }} ↗</a></p>{{ end }}
+      </div>
+    </li>
+    {{ end }}
+  </ol>
+</div>
+{{ end }}
