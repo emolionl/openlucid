@@ -131,28 +131,38 @@
     prose.normalize();
     for (const r of revs) {
       if (!r.anchor) continue;
-      const mark = highlightAnchor(prose, r.anchor);
-      if (!mark) continue;
-      mark.title = r.summary;
-      mark.addEventListener("click", () => jumpTo(r.id));
-      const proseRect = prose.getBoundingClientRect();
-      const markRect = mark.getBoundingClientRect();
-      const dot = document.createElement("span");
-      dot.className = "doc-mark-dot";
-      dot.title = r.summary;
-      dot.style.top = (markRect.top - proseRect.top) + "px";
-      dot.addEventListener("click", () => jumpTo(r.id));
-      prose.appendChild(dot);
+      try {
+        const mark = highlightAnchor(prose, r.anchor);
+        if (!mark) continue;
+        mark.title = r.summary;
+        mark.addEventListener("click", () => jumpTo(r.id));
+        const proseRect = prose.getBoundingClientRect();
+        const markRect = mark.getBoundingClientRect();
+        const dot = document.createElement("span");
+        dot.className = "doc-mark-dot";
+        dot.title = r.summary;
+        dot.style.top = (markRect.top - proseRect.top) + "px";
+        dot.addEventListener("click", () => jumpTo(r.id));
+        prose.appendChild(dot);
+      } catch (e) {
+        console.error("doc-mark: couldn't place a marker for", r.id, e);
+      }
     }
   }
+
+  const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
   async function loadHistory() {
     const snap = await getDocs(query(collection(db, "documents", id, "revisions"), orderBy("createdAt", "desc")));
     const section = document.getElementById("doc-history");
-    if (snap.empty) { section.hidden = true; renderMarks([]); return; }
+    if (snap.empty) { section.hidden = true; await nextFrame(); renderMarks([]); return; }
     const revs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     document.getElementById("doc-history-list").innerHTML = revs.map(renderRevCard).join("");
     section.hidden = false;
+    // Wait a couple of frames so the browser has fully laid out the newly-inserted prose before we
+    // walk its text nodes and measure positions — doing this immediately was occasionally placing
+    // markers inconsistently.
+    await nextFrame();
     renderMarks(revs);
   }
 
