@@ -177,6 +177,7 @@ button[disabled] { opacity: 0.55; cursor: default; }
 .rev-added, .rev-removed { margin: 6px 0 0; font-size: 0.9rem; }
 .rev-added { color: var(--lavender); }
 .rev-removed { color: var(--muted); text-decoration: line-through; }
+.rev-anchor { margin: 6px 0 0; font-size: 0.88rem; font-style: italic; color: var(--muted); }
 
 /* ---------- Sign-in choices ---------- */
 

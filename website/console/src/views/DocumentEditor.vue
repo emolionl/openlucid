@@ -18,7 +18,7 @@ const status = ref("");
 const savedId = ref(isNew.value ? "" : route.params.id);
 
 const revisions = ref([]);
-const revForm = reactive({ summary: "", why: "", section: "", added: "", removed: "" });
+const revForm = reactive({ summary: "", why: "", section: "", added: "", removed: "", anchor: "" });
 const revSaving = ref(false);
 const revStatus = ref("");
 
@@ -51,9 +51,10 @@ async function addRevision() {
   if (revForm.section.trim()) data.section = revForm.section.trim();
   if (revForm.added.trim()) data.added = revForm.added.trim();
   if (revForm.removed.trim()) data.removed = revForm.removed.trim();
+  if (revForm.anchor.trim()) data.anchor = revForm.anchor.trim();
   try {
     await addDoc(collection(db, "documents", savedId.value, "revisions"), data);
-    revForm.summary = ""; revForm.why = ""; revForm.section = ""; revForm.added = ""; revForm.removed = "";
+    revForm.summary = ""; revForm.why = ""; revForm.section = ""; revForm.added = ""; revForm.removed = ""; revForm.anchor = "";
     revStatus.value = "";
     await loadRevisions();
   } catch (e) {
@@ -170,11 +171,13 @@ async function copy() {
             <button v-if="isAdmin()" type="button" class="ghost small" @click="removeRevision(r)">Delete</button>
           </div>
           <p class="muted">{{ r.why }}</p>
+          <p v-if="r.anchor" class="rev-anchor">“{{ r.anchor }}”</p>
           <p v-if="r.added" class="rev-added">+ {{ r.added }}</p>
           <p v-if="r.removed" class="rev-removed">− {{ r.removed }}</p>
         </div>
       </div>
       <p v-else class="muted">No history entries yet.</p>
+      <p class="muted small">You can also select text directly on the public page (signed in there as staff) to add an entry anchored to that exact phrase.</p>
 
       <form class="edit-form" @submit.prevent="addRevision" style="margin-top: 20px">
         <div class="card edit-q">
@@ -183,6 +186,9 @@ async function copy() {
 
           <label class="field-label" for="rev-section">Section (optional)</label>
           <input id="rev-section" v-model="revForm.section" type="text" maxlength="50" placeholder="e.g. 2a / 2b">
+
+          <label class="field-label" for="rev-anchor">Anchor text (optional) — the exact phrase in the document, for a marker next to it</label>
+          <input id="rev-anchor" v-model="revForm.anchor" type="text" maxlength="1000" placeholder="Paste the exact sentence or phrase this is about">
 
           <label class="field-label" for="rev-why">Why</label>
           <textarea id="rev-why" v-model="revForm.why" rows="3" maxlength="2000"></textarea>

@@ -79,12 +79,13 @@ service cloud.firestore {
         && d.why is string && d.why.size() > 0 && d.why.size() <= 2000
         && (!('section' in d) || (d.section is string && d.section.size() <= 50))
         && (!('added' in d) || (d.added is string && d.added.size() <= 5000))
-        && (!('removed' in d) || (d.removed is string && d.removed.size() <= 5000));
+        && (!('removed' in d) || (d.removed is string && d.removed.size() <= 5000))
+        && (!('anchor' in d) || (d.anchor is string && d.anchor.size() > 0 && d.anchor.size() <= 1000));
     }
 
     function isNewRevision(d) {
       return d.keys().hasAll(['summary', 'why', 'createdAt'])
-        && d.keys().hasOnly(['summary', 'why', 'section', 'added', 'removed', 'createdAt'])
+        && d.keys().hasOnly(['summary', 'why', 'section', 'added', 'removed', 'anchor', 'createdAt'])
         && d.createdAt == request.time
         && validRevision(d);
     }

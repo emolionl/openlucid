@@ -1,9 +1,12 @@
 {{ define "main" }}
 {{/* A shared document, read straight out of Firestore "documents" (rules: website/firestore.rules).
-     Anyone with the link (the id itself) can read one; nothing here is listed or indexed. Written and
-     edited from the console's Documents page, not from Hugo content. Below the document itself, a plain-
-     language changelog (documents/{id}/revisions) shows what changed and why, like a commit log — hover
-     a summary to see the reasoning, additions are highlighted, removals struck through. */}}
+     Anyone with the link (the id itself) can read one; nothing here is listed or indexed.
+
+     Below the document, a plain-language changelog (documents/{id}/revisions) shows what changed and
+     why, like a commit log — hover a summary for the reasoning, additions highlighted, removals struck
+     through. Staff who sign in here (Google) can select text in the document itself and mark it as
+     changed; that selected phrase becomes the revision's "anchor", which is how every visitor sees a
+     small dot in the margin next to the exact spot that changed, clicking either jumps to that entry. */}}
 <div class="page doc-page">
   <p class="crumb"><a href="{{ "/" | relURL }}">‹ OpenLucid</a></p>
   <div id="doc-loading"><p class="muted">Loading…</p></div>
@@ -14,7 +17,7 @@
 
     <section id="doc-history" hidden>
       <h2>Edit history</h2>
-      <p class="muted">What changed since this was first written, and why — hover a title for the reasoning.</p>
+      <p class="muted">What changed since this was first written, and why — hover a title for the reasoning, or click a marked phrase in the text above.</p>
       <ol id="doc-history-list" class="doc-rev-list"></ol>
     </section>
   </div>
@@ -24,10 +27,30 @@
   </div>
 </div>
 
+<button type="button" id="doc-signin" class="doc-signin-btn" hidden>Sign in to edit</button>
+<div id="doc-edit-bar" class="doc-edit-bar" hidden>
+  <span id="doc-edit-who"></span>
+  <button type="button" id="doc-signout" class="ghost-btn">Sign out</button>
+</div>
+
+<button type="button" id="doc-mark-btn" class="doc-mark-btn" hidden>Mark as changed</button>
+<div id="doc-mark-panel" class="doc-mark-panel" hidden>
+  <p class="doc-mark-quote" id="doc-mark-quote"></p>
+  <label>Summary<input id="mark-summary" type="text" maxlength="200" placeholder="What changed, in a few words"></label>
+  <label>Section (optional)<input id="mark-section" type="text" maxlength="50" placeholder="e.g. 2a / 2b"></label>
+  <label>Why<textarea id="mark-why" rows="3" maxlength="2000"></textarea></label>
+  <div class="doc-mark-actions">
+    <button type="button" id="mark-save" class="button">Save</button>
+    <button type="button" id="mark-cancel" class="ghost-btn">Cancel</button>
+  </div>
+  <p id="mark-status" class="muted small"></p>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
+  import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ",
@@ -35,6 +58,7 @@
     projectId: "openlucid",
     appId: "1:655847610145:web:0fa5f6e4067766fd0f1060",
   });
+  const auth = getAuth(app);
   const db = getFirestore(app);
 
   const loadingEl = document.getElementById("doc-loading");
@@ -49,26 +73,87 @@
     return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   };
 
+  function renderRevCard(r) {
+    const section = r.section ? `<span class="tag">${esc(r.section)}</span>` : "";
+    const added = r.added ? `<p class="doc-rev-added">+ ${esc(r.added)}</p>` : "";
+    const removed = r.removed ? `<p class="doc-rev-removed">− ${esc(r.removed)}</p>` : "";
+    return `<li class="doc-rev" id="rev-${r.id}">
+      <div class="doc-rev-head">
+        ${section}
+        <span class="doc-rev-summary" data-tooltip="${esc(r.why)}">${esc(r.summary)}</span>
+        <span class="doc-rev-date">${when(r.createdAt)}</span>
+      </div>
+      ${added}
+      ${removed}
+    </li>`;
+  }
+
+  // Finds the first text node under root containing `needle` and wraps just that span in a <mark>,
+  // so a dot can be placed next to exactly where the change is, not just at the top of the document.
+  function findTextNode(root, needle) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const idx = node.textContent.indexOf(needle);
+      if (idx !== -1) return { node, idx };
+    }
+    return null;
+  }
+
+  function highlightAnchor(root, needle) {
+    const hit = findTextNode(root, needle);
+    if (!hit) return null;
+    const range = document.createRange();
+    range.setStart(hit.node, hit.idx);
+    range.setEnd(hit.node, hit.idx + needle.length);
+    const mark = document.createElement("mark");
+    mark.className = "doc-anchor-mark";
+    try {
+      range.surroundContents(mark);
+      return mark;
+    } catch (e) {
+      return null; // the phrase crosses a formatting boundary (bold/italic/etc.) — skip rather than break the page
+    }
+  }
+
+  function jumpTo(revId) {
+    const el = document.getElementById("rev-" + revId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("flash");
+    setTimeout(() => el.classList.remove("flash"), 1600);
+  }
+
+  function renderMarks(revs) {
+    const prose = document.getElementById("doc-body");
+    document.querySelectorAll(".doc-mark-dot").forEach((el) => el.remove());
+    document.querySelectorAll(".doc-anchor-mark").forEach((el) => el.replaceWith(document.createTextNode(el.textContent)));
+    prose.normalize();
+    for (const r of revs) {
+      if (!r.anchor) continue;
+      const mark = highlightAnchor(prose, r.anchor);
+      if (!mark) continue;
+      mark.title = r.summary;
+      mark.addEventListener("click", () => jumpTo(r.id));
+      const proseRect = prose.getBoundingClientRect();
+      const markRect = mark.getBoundingClientRect();
+      const dot = document.createElement("span");
+      dot.className = "doc-mark-dot";
+      dot.title = r.summary;
+      dot.style.top = (markRect.top - proseRect.top) + "px";
+      dot.addEventListener("click", () => jumpTo(r.id));
+      prose.appendChild(dot);
+    }
+  }
+
   async function loadHistory() {
     const snap = await getDocs(query(collection(db, "documents", id, "revisions"), orderBy("createdAt", "desc")));
-    if (snap.empty) return;
-    const list = document.getElementById("doc-history-list");
-    list.innerHTML = snap.docs.map((d) => {
-      const r = d.data();
-      const section = r.section ? `<span class="tag">${esc(r.section)}</span>` : "";
-      const added = r.added ? `<p class="doc-rev-added">+ ${esc(r.added)}</p>` : "";
-      const removed = r.removed ? `<p class="doc-rev-removed">− ${esc(r.removed)}</p>` : "";
-      return `<li class="doc-rev">
-        <div class="doc-rev-head">
-          ${section}
-          <span class="doc-rev-summary" data-tooltip="${esc(r.why)}">${esc(r.summary)}</span>
-          <span class="doc-rev-date">${when(r.createdAt)}</span>
-        </div>
-        ${added}
-        ${removed}
-      </li>`;
-    }).join("");
-    document.getElementById("doc-history").hidden = false;
+    const section = document.getElementById("doc-history");
+    if (snap.empty) { section.hidden = true; renderMarks([]); return; }
+    const revs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    document.getElementById("doc-history-list").innerHTML = revs.map(renderRevCard).join("");
+    section.hidden = false;
+    renderMarks(revs);
   }
 
   async function run() {
@@ -84,10 +169,13 @@
         meta.textContent = "For " + d.audience;
         meta.hidden = false;
       }
-      document.getElementById("doc-body").innerHTML = window.marked.parse(d.body || "");
+      const prose = document.getElementById("doc-body");
+      prose.style.position = "relative";
+      prose.innerHTML = window.marked.parse(d.body || "");
       loadingEl.hidden = true;
       contentEl.hidden = false;
-      loadHistory().catch((e) => console.error(e));
+      await loadHistory().catch((e) => console.error(e));
+      attachEditing();
     } catch (e) {
       console.error(e);
       loadingEl.hidden = true;
@@ -95,5 +183,92 @@
     }
   }
   run();
+
+  // ---- Staff sign-in + "select text to mark a change" ----
+
+  let canEdit = false;
+  let pendingText = "";
+
+  function attachEditing() {
+    const signinBtn = document.getElementById("doc-signin");
+    const bar = document.getElementById("doc-edit-bar");
+    const whoEl = document.getElementById("doc-edit-who");
+    const markBtn = document.getElementById("doc-mark-btn");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        canEdit = false;
+        bar.hidden = true;
+        signinBtn.hidden = false;
+        markBtn.hidden = true;
+        return;
+      }
+      signinBtn.hidden = true;
+      let role = null;
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        role = snap.exists() ? snap.data().role : null;
+      } catch (e) { console.error(e); }
+      canEdit = role === "admin" || role === "researcher";
+      whoEl.textContent = canEdit ? `Editing as ${user.email}` : `Signed in as ${user.email} (no edit access)`;
+      bar.hidden = false;
+    });
+
+    signinBtn.addEventListener("click", async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { console.error(e); }
+    });
+    document.getElementById("doc-signout").addEventListener("click", () => signOut(auth));
+
+    document.addEventListener("mouseup", () => {
+      if (!canEdit) return;
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) { markBtn.hidden = true; return; }
+      const text = sel.toString().trim();
+      const prose = document.getElementById("doc-body");
+      if (!text || text.length < 3 || !prose.contains(sel.anchorNode)) { markBtn.hidden = true; return; }
+      pendingText = text;
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      markBtn.style.top = (window.scrollY + rect.bottom + 8) + "px";
+      markBtn.style.left = Math.max(16, window.scrollX + rect.left) + "px";
+      markBtn.hidden = false;
+    });
+
+    markBtn.addEventListener("click", () => {
+      const panel = document.getElementById("doc-mark-panel");
+      document.getElementById("doc-mark-quote").textContent = "“" + pendingText + "”";
+      document.getElementById("mark-summary").value = "";
+      document.getElementById("mark-section").value = "";
+      document.getElementById("mark-why").value = "";
+      document.getElementById("mark-status").textContent = "";
+      panel.style.top = markBtn.style.top;
+      panel.style.left = markBtn.style.left;
+      markBtn.hidden = true;
+      panel.hidden = false;
+    });
+
+    document.getElementById("mark-cancel").addEventListener("click", () => {
+      document.getElementById("doc-mark-panel").hidden = true;
+    });
+
+    document.getElementById("mark-save").addEventListener("click", async () => {
+      const summary = document.getElementById("mark-summary").value.trim();
+      const why = document.getElementById("mark-why").value.trim();
+      const section = document.getElementById("mark-section").value.trim();
+      const statusEl = document.getElementById("mark-status");
+      if (!summary || !why) { statusEl.textContent = "A summary and a reason are both needed."; return; }
+      statusEl.textContent = "Saving…";
+      const data = { summary, why, anchor: pendingText, createdAt: serverTimestamp() };
+      if (section) data.section = section;
+      try {
+        await addDoc(collection(db, "documents", id, "revisions"), data);
+        document.getElementById("doc-mark-panel").hidden = true;
+        window.getSelection().removeAllRanges();
+        await loadHistory();
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = "Saving didn't work. Try again.";
+      }
+    });
+  }
 </script>
 {{ end }}

@@ -528,6 +528,47 @@ img { max-width: 100%; height: auto; }
 .doc-rev-added, .doc-rev-removed { margin: 10px 0 0; font-size: 0.9rem; line-height: 1.45; }
 .doc-rev-added { color: var(--lavender); }
 .doc-rev-removed { color: var(--muted); text-decoration: line-through; }
+.doc-rev.flash { animation: doc-flash 1.6s ease; }
+@keyframes doc-flash { 0%, 100% { box-shadow: none; } 25% { box-shadow: 0 0 0 3px var(--lavender); } }
+
+/* Staff sign-in and in-page "select text to mark a change" (/d/?id=… only). */
+.doc-signin-btn, .doc-edit-bar {
+  position: fixed; top: 16px; right: 16px; z-index: 40;
+  font-size: 0.85rem; border-radius: 999px;
+}
+.doc-signin-btn { background: var(--lavender); color: #0c1124; border: none; padding: 9px 18px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+.doc-edit-bar { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--line); color: var(--muted); padding: 8px 8px 8px 16px; }
+.ghost-btn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; }
+
+.doc-mark-btn {
+  position: absolute; z-index: 50;
+  background: var(--lavender); color: #0c1124; border: none; border-radius: 999px;
+  padding: 8px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+.doc-mark-panel {
+  position: absolute; z-index: 50; width: 320px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  display: grid; gap: 10px;
+}
+.doc-mark-quote { margin: 0; padding: 8px 10px; background: var(--bg-card); border-left: 3px solid var(--lavender); border-radius: 6px; font-size: 0.85rem; color: var(--muted); font-style: italic; max-height: 80px; overflow: auto; }
+.doc-mark-panel label { display: grid; gap: 4px; font-size: 0.82rem; color: var(--muted); }
+.doc-mark-panel input, .doc-mark-panel textarea { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--text); font: inherit; }
+.doc-mark-actions { display: flex; gap: 8px; }
+.doc-mark-panel .small { font-size: 0.78rem; min-height: 1.2em; }
+
+.doc-anchor-mark { background: rgba(140, 152, 255, 0.18); border-bottom: 1px dotted var(--lavender); cursor: pointer; }
+.doc-mark-dot {
+  position: absolute; left: 100%; margin-left: 14px;
+  width: 9px; height: 9px; border-radius: 50%; background: var(--lavender);
+  cursor: pointer; transition: transform 0.15s;
+}
+.doc-mark-dot:hover { transform: scale(1.6); }
+
+@media (max-width: 900px) {
+  .doc-mark-dot { display: none; }
+}
 
 /* Hall of Fame: research grouped into sections, each a vertical timeline. */
 .hof-tag { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
