@@ -7,24 +7,39 @@
      through. Staff who sign in here (Google) can select text in the document itself and mark it as
      changed; that selected phrase becomes the revision's "anchor", which is how every visitor sees a
      small dot in the margin next to the exact spot that changed, clicking either jumps to that entry. */}}
-<div class="page doc-page">
-  <p class="crumb"><a href="{{ "/" | relURL }}">‹ OpenLucid</a></p>
-  <div id="doc-loading"><p class="muted">Loading…</p></div>
-  <div id="doc-content" hidden>
-    <h1 class="page-title" id="doc-title"></h1>
-    <p class="meta" id="doc-meta" hidden></p>
-    <div class="prose" id="doc-body"></div>
+<div class="article-grid">
+  <article class="article-main">
+    <p class="crumb"><a href="{{ "/" | relURL }}">‹ OpenLucid</a></p>
+    <div id="doc-loading"><p class="muted">Loading…</p></div>
+    <div id="doc-content" hidden>
+      <h1 class="page-title" id="doc-title"></h1>
+      <p class="meta" id="doc-meta" hidden></p>
 
-    <section id="doc-history" hidden>
-      <h2>Edit history</h2>
-      <p class="muted">What changed since this was first written, and why — hover a title for the reasoning, or click a marked phrase in the text above.</p>
-      <ol id="doc-history-list" class="doc-rev-list"></ol>
-    </section>
-  </div>
-  <div id="doc-error" hidden>
-    <h1>Can't find this document</h1>
-    <p class="muted">The link may be incomplete, or the document was removed.</p>
-  </div>
+      <details class="toc-mobile" id="doc-toc-mobile" hidden>
+        <summary>On this page</summary>
+        <nav><ul id="doc-toc-mobile-list"></ul></nav>
+      </details>
+
+      <div class="prose" id="doc-body"></div>
+
+      <section id="doc-history" hidden>
+        <h2>Edit history</h2>
+        <p class="muted">What changed since this was first written, and why — hover a title for the reasoning, or click a marked phrase in the text above.</p>
+        <ol id="doc-history-list" class="doc-rev-list"></ol>
+      </section>
+    </div>
+    <div id="doc-error" hidden>
+      <h1>Can't find this document</h1>
+      <p class="muted">The link may be incomplete, or the document was removed.</p>
+    </div>
+  </article>
+
+  <aside class="toc-side" id="doc-toc-side" aria-label="On this page" hidden>
+    <div class="toc-sticky">
+      <p class="toc-title">On this page</p>
+      <nav><ul id="doc-toc-side-list"></ul></nav>
+    </div>
+  </aside>
 </div>
 
 <button type="button" id="doc-signin" class="doc-signin-btn" hidden>Sign in to edit</button>
@@ -116,6 +131,30 @@
     }
   }
 
+  // Builds "On this page" from the document's own ## headings (there's no Hugo-side TOC here, since
+  // the content comes from Firestore, not markdown files Hugo itself renders).
+  function buildToc() {
+    const prose = document.getElementById("doc-body");
+    const headings = [...prose.querySelectorAll("h2")];
+    const mobile = document.getElementById("doc-toc-mobile");
+    const side = document.getElementById("doc-toc-side");
+    if (!headings.length) { mobile.hidden = true; side.hidden = true; return; }
+    const used = new Set();
+    const items = headings.map((h) => {
+      let base = h.textContent.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-") || "section";
+      let id = base, n = 2;
+      while (used.has(id)) id = base + "-" + (n++);
+      used.add(id);
+      h.id = id;
+      return { id, text: h.textContent };
+    });
+    const listHtml = items.map((it) => `<li><a href="#${it.id}">${esc(it.text)}</a></li>`).join("");
+    document.getElementById("doc-toc-mobile-list").innerHTML = listHtml;
+    document.getElementById("doc-toc-side-list").innerHTML = listHtml;
+    mobile.hidden = false;
+    side.hidden = false;
+  }
+
   function jumpTo(revId) {
     const el = document.getElementById("rev-" + revId);
     if (!el) return;
@@ -182,6 +221,7 @@
       const prose = document.getElementById("doc-body");
       prose.style.position = "relative";
       prose.innerHTML = window.marked.parse(d.body || "");
+      buildToc();
       loadingEl.hidden = true;
       contentEl.hidden = false;
       await loadHistory().catch((e) => console.error(e));
