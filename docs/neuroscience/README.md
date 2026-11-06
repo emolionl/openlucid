@@ -9,6 +9,8 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 
 **Status:** skeleton first. Chapters marked **written** are real; everything else is a placeholder with its scope decided, filled in gradually — see [the journey](/journey/) for when each one lands. Several already exist as [research notes](/research/) and just need restructuring into this shape, not writing from scratch.
 
+**Using OpenLucid doesn't require any of this.** Every "reading" chapter needs no install and no code — it's for understanding, not building. A few chapters go further and include an optional, clearly-marked code-level section for people who want to contribute, not just read; skip it and the chapter still stands on its own.
+
 ## Part I — The Signal, and the Story
 
 | # | Chapter | Category · type | Status |
@@ -28,7 +30,7 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 | 8 | Real event or artifact? Reading a trace | Practice · reading + game | Written as [research](/research/reading-a-sleep-trace-real-event-or-artifact/) + [Brain Atlas](/games/brain-atlas/) already exists as the game |
 | 9 | Build your own EOG — electronics for a DIY sensor | Practice · reading + lab | Expand from [DIY EOG with an ESP32](/research/diy-eog-esp32/) — add the *why*, not just the *how* |
 | 10 | How a night gets saved — EDF+, BIDS, data standards | Science · reading | Expand from [how sleep EEG is saved](/research/eeg-data-standards/) |
-| 11 | From signal to sleep stage — what a classifier actually does | Science · reading | Not written — needs checkpoint 04 (sleep staging) to exist first |
+| 11 | [From signal to sleep stage — what a classifier actually does](11-from-signal-to-sleep-stage.md) | Science · reading | **Written** — conceptual read, no code required; the hands-on lab with our own data still needs checkpoint 04 (sleep staging) to exist first |
 | 12 | Connecting it to OpenLucid's own code | Practice · reading + lab | Not written |
 
 ## Part III — Practice, and Where You Come In
@@ -46,6 +48,7 @@ Any chapter built on someone else's real, documented research gets its own revie
 
 - **Category badge:** Science · Tradition · Disputed · Open question · Practice.
 - **Type:** Reading (just the chapter) · Lab (a hands-on exercise with real OpenLucid data, no install needed where possible) · Game (a small interactive piece teaching one idea, linked from [Neuroscience Games](/games/)).
+- **Level, inside a chapter:** the main text is always plain language — no code, nothing to install, written for someone who just wants to understand. Where a chapter has real code or training detail worth showing, it goes under its own clearly marked "Going deeper" section at the end, so a reader knows exactly where the no-code part ends.
 - **Done when:** one concrete, checkable sentence — what you'd be able to do or recognise if the chapter actually landed.
 - **What this doesn't show:** the chapter's own honest limits, every time, not just for the contested ones.
 - **References:** full citations, the same discipline [the research notes](/research/) already use.

@@ -1,7 +1,17 @@
 {{ define "main" }}
-<section class="page{{ if eq .Section "journey" }} page-wide{{ end }}">
+{{ $toc := .TableOfContents }}
+{{ $sections := len (findRE "<li>" $toc) }}
+{{ $withToc := and (ge $sections 3) (ne .Section "journey") }}
+<div class="{{ if $withToc }}article-grid{{ else }}page{{ if eq .Section "journey" }} page-wide{{ end }}{{ end }}">
+<section class="{{ if $withToc }}article-main{{ end }}">
   <h1 class="page-title">{{ .Title }}</h1>
   {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+  {{ if $withToc }}
+  <details class="toc-mobile">
+    <summary>On this page</summary>
+    {{ $toc }}
+  </details>
+  {{ end }}
   {{ if eq .Section "journey" }}
     {{/* On GitHub the journey's README lists the days in a table; here a zigzag timeline with the
          conclusions does that job, so the overview alone tells the story. */}}
@@ -41,4 +51,13 @@
     </div>
   {{ end }}
 </section>
+{{ if $withToc }}
+<aside class="toc-side" aria-label="On this page">
+  <div class="toc-sticky">
+    <p class="toc-title">On this page</p>
+    {{ $toc }}
+  </div>
+</aside>
+{{ end }}
+</div>
 {{ end }}
