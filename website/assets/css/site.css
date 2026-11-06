@@ -533,7 +533,7 @@ img { max-width: 100%; height: auto; }
 
 /* Staff sign-in and in-page "select text to mark a change" (/d/?id=… only). */
 .doc-signin-btn, .doc-edit-bar {
-  position: fixed; top: 16px; right: 16px; z-index: 40;
+  position: fixed; top: 69px; right: 16px; z-index: 40;
   font-size: 0.85rem; border-radius: 999px;
 }
 .doc-signin-btn { background: var(--lavender); color: #0c1124; border: none; padding: 9px 18px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
@@ -558,7 +558,7 @@ img { max-width: 100%; height: auto; }
 .doc-mark-actions { display: flex; gap: 8px; }
 .doc-mark-panel .small { font-size: 0.78rem; min-height: 1.2em; }
 
-.doc-anchor-mark { background: rgba(140, 152, 255, 0.18); border-bottom: 1px dotted var(--lavender); cursor: pointer; }
+.doc-anchor-mark { background: rgba(140, 152, 255, 0.28); color: var(--text); border-bottom: 1px dotted var(--lavender); border-radius: 3px; padding: 0 1px; cursor: pointer; }
 .doc-mark-dot {
   position: absolute; left: 100%; margin-left: 14px;
   width: 9px; height: 9px; border-radius: 50%; background: var(--lavender);
