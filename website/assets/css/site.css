@@ -538,6 +538,7 @@ img { max-width: 100%; height: auto; }
 }
 .doc-signin-btn { background: var(--lavender); color: #0c1124; border: none; padding: 9px 18px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
 .doc-edit-bar { display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--line); color: var(--muted); padding: 8px 8px 8px 16px; }
+.doc-signin-btn[hidden], .doc-edit-bar[hidden] { display: none; }
 .ghost-btn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 5px 12px; font-size: 0.8rem; cursor: pointer; }
 
 .doc-mark-btn {
