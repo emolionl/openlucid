@@ -1,7 +1,9 @@
 {{ define "main" }}
 {{/* A shared document, read straight out of Firestore "documents" (rules: website/firestore.rules).
      Anyone with the link (the id itself) can read one; nothing here is listed or indexed. Written and
-     edited from the console's Documents page, not from Hugo content. */}}
+     edited from the console's Documents page, not from Hugo content. Below the document itself, a plain-
+     language changelog (documents/{id}/revisions) shows what changed and why, like a commit log — hover
+     a summary to see the reasoning, additions are highlighted, removals struck through. */}}
 <div class="page doc-page">
   <p class="crumb"><a href="{{ "/" | relURL }}">‹ OpenLucid</a></p>
   <div id="doc-loading"><p class="muted">Loading…</p></div>
@@ -9,6 +11,12 @@
     <h1 class="page-title" id="doc-title"></h1>
     <p class="meta" id="doc-meta" hidden></p>
     <div class="prose" id="doc-body"></div>
+
+    <section id="doc-history" hidden>
+      <h2>Edit history</h2>
+      <p class="muted">What changed since this was first written, and why — hover a title for the reasoning.</p>
+      <ol id="doc-history-list" class="doc-rev-list"></ol>
+    </section>
   </div>
   <div id="doc-error" hidden>
     <h1>Can't find this document</h1>
@@ -19,7 +27,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ",
@@ -33,6 +41,35 @@
   const contentEl = document.getElementById("doc-content");
   const errorEl = document.getElementById("doc-error");
   const id = new URLSearchParams(location.search).get("id");
+
+  const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const when = (ts) => {
+    if (!ts) return "";
+    const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  async function loadHistory() {
+    const snap = await getDocs(query(collection(db, "documents", id, "revisions"), orderBy("createdAt", "desc")));
+    if (snap.empty) return;
+    const list = document.getElementById("doc-history-list");
+    list.innerHTML = snap.docs.map((d) => {
+      const r = d.data();
+      const section = r.section ? `<span class="tag">${esc(r.section)}</span>` : "";
+      const added = r.added ? `<p class="doc-rev-added">+ ${esc(r.added)}</p>` : "";
+      const removed = r.removed ? `<p class="doc-rev-removed">− ${esc(r.removed)}</p>` : "";
+      return `<li class="doc-rev">
+        <div class="doc-rev-head">
+          ${section}
+          <span class="doc-rev-summary" data-tooltip="${esc(r.why)}">${esc(r.summary)}</span>
+          <span class="doc-rev-date">${when(r.createdAt)}</span>
+        </div>
+        ${added}
+        ${removed}
+      </li>`;
+    }).join("");
+    document.getElementById("doc-history").hidden = false;
+  }
 
   async function run() {
     if (!id) { loadingEl.hidden = true; errorEl.hidden = false; return; }
@@ -50,6 +87,7 @@
       document.getElementById("doc-body").innerHTML = window.marked.parse(d.body || "");
       loadingEl.hidden = true;
       contentEl.hidden = false;
+      loadHistory().catch((e) => console.error(e));
     } catch (e) {
       console.error(e);
       loadingEl.hidden = true;

@@ -1,9 +1,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { doc, getDoc, addDoc, updateDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, addDoc, updateDoc, deleteDoc, collection, query, orderBy, getDocs, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
-import { docLink } from "../lib/format";
+import { isAdmin } from "../session";
+import { docLink, when } from "../lib/format";
 
 const route = useRoute();
 const router = useRouter();
@@ -16,12 +17,24 @@ const saving = ref(false);
 const status = ref("");
 const savedId = ref(isNew.value ? "" : route.params.id);
 
+const revisions = ref([]);
+const revForm = reactive({ summary: "", why: "", section: "", added: "", removed: "" });
+const revSaving = ref(false);
+const revStatus = ref("");
+
+async function loadRevisions() {
+  if (!savedId.value) return;
+  const snap = await getDocs(query(collection(db, "documents", savedId.value, "revisions"), orderBy("createdAt", "desc")));
+  revisions.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
 onMounted(async () => {
   if (isNew.value) return;
   try {
     const snap = await getDoc(doc(db, "documents", route.params.id));
     if (!snap.exists()) { problem.value = "This document doesn't exist, or it was deleted."; return; }
     Object.assign(form, { title: "", audience: "", status: "draft", ...snap.data() });
+    await loadRevisions();
   } catch (e) {
     console.error(e);
     problem.value = "This document couldn't be loaded.";
@@ -29,6 +42,33 @@ onMounted(async () => {
     loading.value = false;
   }
 });
+
+async function addRevision() {
+  if (!revForm.summary.trim() || !revForm.why.trim()) { revStatus.value = "A summary and a reason are both needed."; return; }
+  revSaving.value = true;
+  revStatus.value = "Saving…";
+  const data = { summary: revForm.summary.trim(), why: revForm.why.trim(), createdAt: serverTimestamp() };
+  if (revForm.section.trim()) data.section = revForm.section.trim();
+  if (revForm.added.trim()) data.added = revForm.added.trim();
+  if (revForm.removed.trim()) data.removed = revForm.removed.trim();
+  try {
+    await addDoc(collection(db, "documents", savedId.value, "revisions"), data);
+    revForm.summary = ""; revForm.why = ""; revForm.section = ""; revForm.added = ""; revForm.removed = "";
+    revStatus.value = "";
+    await loadRevisions();
+  } catch (e) {
+    console.error(e);
+    revStatus.value = "Saving didn't work. Try again.";
+  } finally {
+    revSaving.value = false;
+  }
+}
+
+async function removeRevision(rev) {
+  if (!confirm(`Delete the "${rev.summary}" history entry? This can't be undone.`)) return;
+  await deleteDoc(doc(db, "documents", savedId.value, "revisions", rev.id));
+  revisions.value = revisions.value.filter((r) => r.id !== rev.id);
+}
 
 async function save() {
   if (!form.title.trim() || !form.body.trim()) { status.value = "A title and some content are both needed."; return; }
@@ -112,5 +152,52 @@ async function copy() {
         </template>
       </div>
     </form>
+
+    <template v-if="savedId">
+      <div class="page-head" style="margin-top: 40px">
+        <div>
+          <h2>History</h2>
+          <p class="muted">What changed and why — shown on the public page, like a commit log.</p>
+        </div>
+      </div>
+
+      <div v-if="revisions.length" class="rev-list">
+        <div v-for="r in revisions" :key="r.id" class="card rev-entry">
+          <div class="rev-head">
+            <span class="pill" v-if="r.section">{{ r.section }}</span>
+            <strong>{{ r.summary }}</strong>
+            <span class="muted nowrap" style="margin-left: auto">{{ when(r.createdAt) }}</span>
+            <button v-if="isAdmin()" type="button" class="ghost small" @click="removeRevision(r)">Delete</button>
+          </div>
+          <p class="muted">{{ r.why }}</p>
+          <p v-if="r.added" class="rev-added">+ {{ r.added }}</p>
+          <p v-if="r.removed" class="rev-removed">− {{ r.removed }}</p>
+        </div>
+      </div>
+      <p v-else class="muted">No history entries yet.</p>
+
+      <form class="edit-form" @submit.prevent="addRevision" style="margin-top: 20px">
+        <div class="card edit-q">
+          <label class="field-label" for="rev-summary">Summary (the commit subject)</label>
+          <input id="rev-summary" v-model="revForm.summary" type="text" maxlength="200" placeholder="e.g. Defined &quot;research-usable&quot; precisely">
+
+          <label class="field-label" for="rev-section">Section (optional)</label>
+          <input id="rev-section" v-model="revForm.section" type="text" maxlength="50" placeholder="e.g. 2a / 2b">
+
+          <label class="field-label" for="rev-why">Why</label>
+          <textarea id="rev-why" v-model="revForm.why" rows="3" maxlength="2000"></textarea>
+
+          <label class="field-label" for="rev-added">What was added (optional)</label>
+          <textarea id="rev-added" v-model="revForm.added" rows="3" maxlength="5000"></textarea>
+
+          <label class="field-label" for="rev-removed">What was removed (optional)</label>
+          <textarea id="rev-removed" v-model="revForm.removed" rows="3" maxlength="5000"></textarea>
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary" :disabled="revSaving">Add to history</button>
+          <span class="status">{{ revStatus }}</span>
+        </div>
+      </form>
+    </template>
   </template>
 </template>

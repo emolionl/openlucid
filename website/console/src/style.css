@@ -167,6 +167,16 @@ button[disabled] { opacity: 0.55; cursor: default; }
 .edit-q textarea { resize: vertical; min-height: 80px; }
 .sticky-actions { position: sticky; bottom: 12px; padding: 12px 16px; border-radius: 16px; background: rgba(19, 26, 53, 0.95); border: 1px solid var(--line-strong); }
 .ghost-link { color: var(--muted); }
+.nowrap { white-space: nowrap; }
+
+/* ---------- Document history ---------- */
+
+.rev-list { display: grid; gap: 12px; max-width: 760px; }
+.rev-entry { padding: 16px 20px; }
+.rev-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.rev-added, .rev-removed { margin: 6px 0 0; font-size: 0.9rem; }
+.rev-added { color: var(--lavender); }
+.rev-removed { color: var(--muted); text-decoration: line-through; }
 
 /* ---------- Sign-in choices ---------- */
 

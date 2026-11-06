@@ -74,6 +74,21 @@ service cloud.firestore {
         && validDocument(d);
     }
 
+    function validRevision(d) {
+      return d.summary is string && d.summary.size() > 0 && d.summary.size() <= 200
+        && d.why is string && d.why.size() > 0 && d.why.size() <= 2000
+        && (!('section' in d) || (d.section is string && d.section.size() <= 50))
+        && (!('added' in d) || (d.added is string && d.added.size() <= 5000))
+        && (!('removed' in d) || (d.removed is string && d.removed.size() <= 5000));
+    }
+
+    function isNewRevision(d) {
+      return d.keys().hasAll(['summary', 'why', 'createdAt'])
+        && d.keys().hasOnly(['summary', 'why', 'section', 'added', 'removed', 'createdAt'])
+        && d.createdAt == request.time
+        && validRevision(d);
+    }
+
     // Working documents (e.g. the PhD proposal draft): readable by anyone who has the direct link
     // (the id itself, an unguessable auto-id, is the access control — never listable publicly), but
     // only staff can see the list, and only staff can write.
@@ -83,6 +98,14 @@ service cloud.firestore {
       allow create: if hasRole(['admin', 'researcher']) && isNewDocument(request.resource.data);
       allow update: if hasRole(['admin', 'researcher']) && isDocumentEdit();
       allow delete: if isAdmin();
+
+      // A plain-language changelog, like commits: append-only (no update), same "anyone with the
+      // link can read" rule as the document itself.
+      match /revisions/{revId} {
+        allow get, list: if true;
+        allow create: if hasRole(['admin', 'researcher']) && isNewRevision(request.resource.data);
+        allow delete: if isAdmin();
+      }
     }
 
     match /users/{uid} {
