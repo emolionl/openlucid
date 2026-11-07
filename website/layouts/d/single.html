@@ -131,6 +131,41 @@
     }
   }
 
+  // Wraps stretches of the document between ::edukacija::/::neuroscience:: marker lines (each on
+  // their own paragraph in the source markdown) in a labelled, colored box, so a reader can tell at
+  // a glance which parts are pedagogy and which are the neuroscience/engineering work itself. A bare
+  // "::end::" line, or the next ## heading, closes the open box without opening a new one.
+  const TAG_DEFS = {
+    edukacija: { label: "Education", cls: "tag-edu" },
+    neuroscience: { label: "Neuroscience / engineering", cls: "tag-neuro" },
+    mixed: { label: "Mixed — education + neuroscience", cls: "tag-mixed" },
+  };
+  function applyContentTags() {
+    const prose = document.getElementById("doc-body");
+    const markerRe = /^::(edukacija|neuroscience|mixed|end)::$/;
+    let current = null;
+    for (const el of [...prose.children]) {
+      if (el.tagName === "H2") { current = null; continue; }
+      const text = el.tagName === "P" ? el.textContent.trim() : "";
+      const m = markerRe.exec(text);
+      if (m) {
+        const key = m[1];
+        if (key === "end" || !TAG_DEFS[key]) { current = null; el.remove(); continue; }
+        const def = TAG_DEFS[key];
+        const wrapper = document.createElement("div");
+        wrapper.className = "doc-tag-block " + def.cls;
+        const label = document.createElement("span");
+        label.className = "doc-tag-label";
+        label.textContent = def.label;
+        wrapper.appendChild(label);
+        el.replaceWith(wrapper);
+        current = wrapper;
+        continue;
+      }
+      if (current) current.appendChild(el);
+    }
+  }
+
   // Builds "On this page" from the document's own ## headings (there's no Hugo-side TOC here, since
   // the content comes from Firestore, not markdown files Hugo itself renders).
   function buildToc() {
@@ -221,6 +256,7 @@
       const prose = document.getElementById("doc-body");
       prose.style.position = "relative";
       prose.innerHTML = window.marked.parse(d.body || "");
+      applyContentTags();
       buildToc();
       loadingEl.hidden = true;
       contentEl.hidden = false;

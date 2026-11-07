@@ -571,6 +571,18 @@ img { max-width: 100%; height: auto; }
   .doc-mark-dot { display: none; }
 }
 
+/* Document pages: colored border + label around a stretch of text, so a reader can tell at a
+   glance whether a passage is pedagogy/education or the neuroscience/engineering work itself —
+   driven by ::edukacija::/::neuroscience::/::end:: marker lines in the document's own markdown. */
+.doc-tag-block { border-left: 3px solid var(--line); border-radius: 0 10px 10px 0; padding: 4px 18px 2px; margin: 18px 0; background: var(--bg-card); }
+.doc-tag-label { display: inline-block; margin: 10px 0 2px; padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+.doc-tag-block.tag-edu { border-left-color: var(--moonlight); }
+.doc-tag-block.tag-edu .doc-tag-label { background: rgba(240, 196, 104, 0.16); color: var(--moonlight); }
+.doc-tag-block.tag-neuro { border-left-color: var(--lavender); }
+.doc-tag-block.tag-neuro .doc-tag-label { background: rgba(140, 152, 255, 0.14); color: var(--lavender); }
+.doc-tag-block.tag-mixed { border-left-color: #7fd8a6; }
+.doc-tag-block.tag-mixed .doc-tag-label { background: rgba(127, 216, 166, 0.14); color: #7fd8a6; }
+
 /* Hall of Fame: research grouped into sections, each a vertical timeline. */
 .hof-tag { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
 .hof-established { background: rgba(140, 152, 255, 0.14); color: var(--lavender); }
