@@ -47,8 +47,9 @@ tracks:
         status: planned
       - label: "Detecting the left-right-left-right eye signal"
         status: planned
-      - label: "Sound cues: evening training, playback during REM"
+      - label: "Sound cues: evening training, playback during REM (Targeted Lucidity Reactivation — validated in the lab, shown at home without real sleep-stage sensing)"
         status: planned
+        link: "https://github.com/emolionl/openlucid#roadmap"
   - name: "Series & education"
     note: "The story of lucid dreaming, told across centuries — and taught alongside the code."
     link: "/videos/"
@@ -70,3 +71,5 @@ tracks:
       - label: "Neuroscience course skeleton — asking the field what to teach first"
         status: active
         link: "/course/"
+      - label: "Expert feedback widget on every page — so anyone who knows the field can flag what's wrong in a chapter or research note"
+        status: planned

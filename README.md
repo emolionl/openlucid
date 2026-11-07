@@ -122,7 +122,7 @@ Each step is a checkpoint (a git tag such as `checkpoint-03`), so you can always
 | 04 | Sleep staging of a recorded night with [YASA](https://github.com/raphaelvallat/yasa), hypnogram |
 | 05 | Live staging and the "stable REM" rule |
 | 06 | Detect the left-right-left-right eye signal |
-| 07 | Sound cues: evening training, playback during stable REM |
+| 07 | Sound cues: evening training, playback during stable REM — Targeted Lucidity Reactivation, validated in the lab ([Carr, Konkoly et al. 2023](https://doi.org/10.1037/cns0000227)) and shown at home with a real control ([Konkoly et al. 2024](https://doi.org/10.1016/j.concog.2024.103759)); their home app had no sleep-stage sensing at all (just phone movement), so checkpoints 04/05 give OpenLucid's version a real advantage: cueing during *actual* detected REM, not a guess |
 | 08 | Morning report and dream journal |
 | 09 | Export and honest analysis of your own nights |
 | 10 | One-click installers for every platform |

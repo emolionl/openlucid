@@ -44,6 +44,8 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 
 Any chapter built on someone else's real, documented research gets its own review-request page before it's treated as final — the same pattern already built for [the Dresler documentary concept](/questions/the-scanner-script-review/): the chapter in full, our own truth ledger, then specific questions, sent directly to whoever's work it's based on. Not every chapter needs one — only the ones making a real claim about someone's real findings.
 
+That's the heavyweight path, for a named expert whose own work is cited. **Still planned:** a lightweight feedback widget on every page of this course (and the research notes), so anyone with real knowledge of the field can flag what's wrong in a chapter without needing a dedicated review page first.
+
 ## Format, for when a chapter actually gets written
 
 - **Category badge:** Science · Tradition · Disputed · Open question · Practice.
