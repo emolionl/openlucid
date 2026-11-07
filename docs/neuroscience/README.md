@@ -15,7 +15,7 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 
 | # | Chapter | Category · type | Status |
 |---|---|---|---|
-| 1 | Why dreaming is measurable at all — REM, sleep stages, a night's architecture | Science · reading | Not written |
+| 1 | Why dreaming is measurable at all — REM, sleep stages, a night's architecture | Science · reading | Not written — must explain polysomnography (PSG): the multi-channel EEG+EOG+EMG(+more) lab setup that makes a sleep stage a checkable claim, not a guess. Good candidate for an animation (a person wired up, the channels moving together to call REM) |
 | 2 | The 2012 case that changed the question — Dresler's EEG/fMRI study | Science · reading | Not written — draft exists as [a concept pending Dresler's review](/questions/the-scanner-script-review/) |
 | 3 | A thousand years before the scanner — dream yoga and the historical record | Tradition · reading | Written as [Episode 1, "The Bell"](/videos/are-you-dreaming-01-the-bell/) — needs a reading version |
 | 4 | What's disputed, and why that's fine — induction methods, supplements, binaural beats | Disputed · reading | Not written |
@@ -47,7 +47,7 @@ Any chapter built on someone else's real, documented research gets its own revie
 ## Format, for when a chapter actually gets written
 
 - **Category badge:** Science · Tradition · Disputed · Open question · Practice.
-- **Type:** Reading (just the chapter) · Lab (a hands-on exercise with real OpenLucid data, no install needed where possible) · Game (a small interactive piece teaching one idea, linked from [Neuroscience Games](/games/)).
+- **Type:** Reading (just the chapter) · Lab (a hands-on exercise with real OpenLucid data, no install needed where possible) · Game (a small interactive piece teaching one idea, linked from [Neuroscience Games](/games/)) · Animation (a short explainer animation embedded in the chapter, for ideas that are easier to show moving than to describe — e.g. a PSG setup, or channels moving together to call REM).
 - **Level, inside a chapter:** the main text is always plain language — no code, nothing to install, written for someone who just wants to understand. Where a chapter has real code or training detail worth showing, it goes under its own clearly marked "Going deeper" section at the end, so a reader knows exactly where the no-code part ends.
 - **Done when:** one concrete, checkable sentence — what you'd be able to do or recognise if the chapter actually landed.
 - **What this doesn't show:** the chapter's own honest limits, every time, not just for the contested ones.
