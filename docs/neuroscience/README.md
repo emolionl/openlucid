@@ -30,7 +30,7 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 | 8 | Real event or artifact? Reading a trace | Practice · reading + game | Written as [research](/research/reading-a-sleep-trace-real-event-or-artifact/) + [Brain Atlas](/games/brain-atlas/) already exists as the game |
 | 9 | Build your own EOG — electronics for a DIY sensor | Practice · reading + lab | Expand from [DIY EOG with an ESP32](/research/diy-eog-esp32/) — add the *why*, not just the *how* |
 | 10 | How a night gets saved — EDF+, BIDS, data standards | Science · reading | Expand from [how sleep EEG is saved](/research/eeg-data-standards/) |
-| 11 | [From signal to sleep stage — what a classifier actually does](11-from-signal-to-sleep-stage.md) | Science · reading | **Written** — conceptual read, no code required; the hands-on lab with our own data still needs checkpoint 04 (sleep staging) to exist first |
+| 11 | [From signal to sleep stage — what a classifier actually does](11-from-signal-to-sleep-stage.md) | Science · reading | **Written** — conceptual read, no code required; the hands-on lab with our own data still needs checkpoint 04 (sleep staging) to exist first. **Still planned:** an animation contrasting Konkoly et al. (2024)'s home app — a fixed 6-hour timer, cues paused for 5 minutes after any phone movement, nothing that actually confirms REM — against real EEG-based staging, so the "guessing vs. knowing" gap is immediately obvious without reading a word |
 | 12 | Connecting it to OpenLucid's own code | Practice · reading + lab | Not written |
 
 ## Part III — Practice, and Where You Come In
