@@ -1,7 +1,9 @@
 ---
-title: "11. From signal to sleep stage"
+title: "9. How does a computer recognise a sleep stage?"
 description: "What a classifier actually does when OpenLucid (or the lab tools it builds on) decides you're probably dreaming — in plain language first, the code second."
-weight: 11
+weight: 9
+# The old address (lesson 11 before the course became one night) still works.
+aliases: ["/course/11-from-signal-to-sleep-stage/"]
 tldr:
   - "A classifier turns one 30-second slice of raw EEG into a label (Wake/N1/N2/N3/REM) plus a confidence number — it never just 'sees' sleep stages the way a person scoring a chart does."
   - "Three different Donders-lab tools do three different jobs here, and it's easy to conflate them: YASA stages (OpenLucid's own planned approach), DreamentoScorer and ezscore-f also stage but are tuned to different hardware, and eegFloss doesn't stage at all — it screens whether a recording is clean enough to trust first."
@@ -10,11 +12,11 @@ tldr:
 
 > Educational, not medical advice.
 
-## Do you need this chapter?
+## Do you need this lesson?
 
 No — not to just use OpenLucid. The app is meant to make this call for you and tell you in plain terms ("you're probably dreaming now"), the same way it already aims to for signal quality. Skip this one and come back if you're curious, or if you want to help build the staging feature itself.
 
-This chapter is for people who want to understand *how* that call gets made — or eventually help make it. The first two sections are plain language, no code. The last section ("Going deeper") is for people planning to touch the actual training code; it's clearly marked so you know exactly where to stop.
+This lesson is for people who want to understand *how* that call gets made — or eventually help make it. The first two sections are plain language, no code. The last section ("Going deeper") is for people planning to touch the actual training code; it's clearly marked so you know exactly where to stop.
 
 ## The four-step pipeline, in plain language
 
@@ -41,16 +43,16 @@ The proposal behind OpenLucid's research phase name-checks several Donders-lab t
 
 - **eegFloss** — this is not a stage classifier. It's an artifact/usability filter (its model is called *eegUsability*) that flags which channel-epochs are too contaminated to trust, plus a second model (*eegMobility*) for detecting time-in-bed. It was trained on 15 participants over 127 nights of labelled ZMax data.
 
-Why the distinction matters in practice: a "research-usable" recording, in the plan this chapter connects to, means passing *both* kinds of check — enough epochs surviving eegFloss's quality screen, *and* being scorable by a staging classifier like ezscore-f above a set confidence threshold. One without the other isn't enough: a perfectly clean recording a classifier can't confidently stage isn't usable, and neither is a confidently-staged recording built on contaminated data.
+Why the distinction matters in practice: a "research-usable" recording, in the plan this lesson connects to, means passing *both* kinds of check — enough epochs surviving eegFloss's quality screen, *and* being scorable by a staging classifier like ezscore-f above a set confidence threshold. One without the other isn't enough: a perfectly clean recording a classifier can't confidently stage isn't usable, and neither is a confidently-staged recording built on contaminated data.
 
 ## Where OpenLucid actually fits today
 
 None of this is live in OpenLucid yet. Two separate things are true at once, and it's worth keeping them apart:
 
-- OpenLucid's own staging (the "Sleep staging with YASA" item on [the roadmap](https://github.com/emolionl/openlucid#roadmap)) is **planned**, not built — this chapter has no hands-on lab with real OpenLucid staging data yet because that data doesn't exist yet.
+- OpenLucid's own staging (the "Sleep staging with YASA" item on [the roadmap](https://github.com/emolionl/openlucid#roadmap)) is **planned**, not built — this lesson has no hands-on lab with real OpenLucid staging data yet because that data doesn't exist yet.
 - Going further — integrating and then training/extending the lab's own ezscore-f/eegFloss pipeline on newly pooled volunteer recordings, rather than building a new model architecture — is a later-stage plan tied to a specific research phase, not a near-term OpenLucid feature.
 
-When OpenLucid's own staging checkpoint lands, this chapter gets a real hands-on lab section using actual recorded data, and chapter 12 ("Connecting it to OpenLucid's own code," not yet written) becomes writable.
+When OpenLucid's own staging checkpoint lands, this lesson gets a real hands-on lab section using actual recorded data.
 
 ---
 
@@ -106,7 +108,7 @@ The two working, published recipes above point in genuinely different directions
 
 Both are real, both are published with real numbers to beat, and now it's clear exactly which one you'd actually be signing up for.
 
-This is also the honest boundary OpenLucid's own curriculum plan draws for students: understanding *what* a model like this does and *which* choices (features, hyperparameters) actually matter, well enough to test and trust a result — without needing to derive the underlying math. Contributing actual training code is opt-in, for people who want to go further, not assumed of everyone reading this chapter.
+This is also the honest boundary OpenLucid's own curriculum plan draws for students: understanding *what* a model like this does and *which* choices (features, hyperparameters) actually matter, well enough to test and trust a result — without needing to derive the underlying math. Contributing actual training code is opt-in, for people who want to go further, not assumed of everyone reading this lesson.
 
 ## Done when
 

@@ -1,17 +1,21 @@
 {{/* The verification label on a Markdown page. Pages in the sections listed in hugo.toml
      (params.verifySections) or with `verify: true` in their front matter get one.
 
-     For now every such page is "Not yet verified": the review workflow (reviews/ in Firestore,
+     For now every such page is "Not yet verified" (red): the review workflow (reviews/ in Firestore,
      assets/js/verification.js) runs on /d/ documents first. Markdown pages join it in step 3, when a
-     build step exports their review data so the real labels end up in the HTML. */}}
+     build step exports their review data so the real labels (green once reviewed) end up in the HTML. */}}
 {{ $labelled := or (.Params.verify) (in (site.Params.verifySections | default slice) .Section) }}
 {{ if $labelled }}
 <div class="verify verify-static">
-  <details>
-    <summary class="verify-chip grey">Not yet verified</summary>
-    <div class="verify-panel">
-      <p class="verify-scope">Nobody has checked the sources on this page against the originals yet. Until someone does, treat its claims and figures as unverified.</p>
-      <p class="muted">How we verify: each cited claim is checked by three independent Claude runs, each with only the claim and the source. If they disagree, or any of them couldn't read the full text, a person checks it. A named reviewer then signs off what they checked. The labels say exactly what was checked, never that a whole page is correct.</p>
+  <details class="verify-callout unverified">
+    <summary>
+      <span class="verify-icon" aria-hidden="true">!</span>
+      <span class="verify-callout-text"><strong>Not yet verified.</strong> The sources on this page haven't been checked against the originals yet.</span>
+      <span class="verify-more">What this means</span>
+    </summary>
+    <div class="verify-callout-body">
+      <p>Until someone checks them, treat the claims and figures here as unverified.</p>
+      <p class="muted">How we verify: each cited claim is checked by three independent Claude runs, each with only the claim and the source. If they disagree, or any of them couldn't read the full text, a person checks it. A named reviewer then signs off what they checked, and this label turns green. The labels say exactly what was checked, never that a whole page is correct.</p>
     </div>
   </details>
 </div>

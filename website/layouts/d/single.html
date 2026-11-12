@@ -456,7 +456,7 @@
   }
 
   function showUnverified(note) {
-    document.getElementById("verify-labels").replaceChildren(chip("Not yet verified", "grey"));
+    document.getElementById("verify-labels").replaceChildren(chip("Not yet verified", "unverified"));
     document.getElementById("verify-panel").innerHTML = `<p class="verify-scope">${esc(note)}</p>`;
     document.getElementById("doc-verify").hidden = false;
   }

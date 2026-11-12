@@ -1,0 +1,122 @@
+{{ define "main" }}
+{{/* The course overview as one night: a hypnogram of a typical night on top, then the four parts as
+     stages of that night, each lesson a card with its topic, format, status and verification. The
+     lessons come from the front matter of docs/neuroscience/README.md (parts:, extras:). */}}
+{{ $topics := dict
+  "neuroscience" (dict "label" "Neuroscience" "cls" "t-neuro")
+  "signal" (dict "label" "Signal & hardware" "cls" "t-signal")
+  "data" (dict "label" "Data & code" "cls" "t-data")
+  "lucid" (dict "label" "Lucid dreaming" "cls" "t-lucid") }}
+{{ $formats := dict "reading" "Reading" "lab" "Lab with real data" "game" "Game" "animation" "Animation" "video" "Video" }}
+{{ $statuses := dict
+  "written" (dict "label" "Written" "cls" "s-written")
+  "research" (dict "label" "Exists as research" "cls" "s-research")
+  "planned" (dict "label" "Planned" "cls" "s-planned") }}
+
+{{ $all := slice }}
+{{ range .Params.parts }}{{ range .lessons }}{{ $all = $all | append . }}{{ end }}{{ end }}
+{{ $written := where $all "status" "written" }}
+{{ $research := where $all "status" "research" }}
+
+<div class="page page-wide course">
+  <header class="course-hero">
+    <p class="course-eyebrow">The course · {{ len $all }} lessons · {{ len $written }} written</p>
+    <h1 class="page-title">{{ .Title }}</h1>
+    {{ with .Description }}<p class="page-lede">{{ . }}</p>{{ end }}
+
+    <figure class="course-night">
+      <svg viewBox="0 0 1000 200" role="img" aria-labelledby="night-title night-desc">
+        <title id="night-title">One night, stage by stage</title>
+        <desc id="night-desc">A hypnogram: from lights out at 22:30 to waking at 06:30, sleep moves through stages in about five cycles. Deep sleep (N3) comes mostly early in the night; REM periods get longer towards morning.</desc>
+        <g class="night-grid">
+          <line x1="60" y1="24" x2="980" y2="24"/><line x1="60" y1="58" x2="980" y2="58"/><line x1="60" y1="92" x2="980" y2="92"/><line x1="60" y1="126" x2="980" y2="126"/><line x1="60" y1="160" x2="980" y2="160"/>
+        </g>
+        <g class="night-axis">
+          <text x="50" y="28">Awake</text><text x="50" y="62">REM</text><text x="50" y="96">N1</text><text x="50" y="130">N2</text><text x="50" y="164">N3</text>
+        </g>
+        <g class="night-times">
+          <text x="60" y="190">22:30</text><text x="290" y="190">00:30</text><text x="520" y="190">02:30</text><text x="750" y="190">04:30</text><text x="980" y="190">06:30</text>
+        </g>
+        <polyline class="night-line" points="60.0,24 75.3,24 75.3,92 94.5,92 94.5,126 132.8,126 132.8,160 203.8,160 203.8,126 228.7,126 228.7,58 247.8,58 247.8,126 299.6,126 299.6,160 347.5,160 347.5,126 389.7,126 389.7,58 428.0,58 428.0,126 510.4,126 510.4,160 535.3,160 535.3,126 573.7,126 573.7,58 631.2,58 631.2,126 721.3,126 721.3,58 792.2,58 792.2,92 803.7,92 803.7,126 865.0,126 865.0,58 957.0,58 957.0,24 980.0,24"/>
+        <g class="night-rem">
+          <line x1="228.7" y1="58" x2="247.8" y2="58"/><line x1="389.7" y1="58" x2="428.0" y2="58"/><line x1="573.7" y1="58" x2="631.2" y2="58"/><line x1="721.3" y1="58" x2="792.2" y2="58"/><line x1="865.0" y1="58" x2="957.0" y2="58"/>
+        </g>
+      </svg>
+      <figcaption>One night, about five cycles of roughly 90 minutes. <span class="rem-key">REM</span> periods get longer towards morning. An illustration of a typical night, not a real recording: the course follows our own nights in the <a href="/journey/">journey</a>.</figcaption>
+    </figure>
+
+    <div class="course-legend" aria-label="What the labels mean">
+      <span class="muted">Topics:</span>
+      {{ range $k, $t := $topics }}<span class="course-tag {{ $t.cls }}">{{ $t.label }}</span>{{ end }}
+      <span class="muted">Status:</span>
+      <span class="course-status s-written">Written</span>
+      <span class="course-status s-research">Exists as research</span>
+      <span class="course-status s-planned">Planned</span>
+    </div>
+  </header>
+
+  <div class="course-parts">
+    {{ $n := 0 }}
+    {{ range .Params.parts }}
+      {{ $n = add $n 1 }}
+      {{ $done := len (where .lessons "status" "written") }}
+      <section class="course-part" aria-labelledby="part-{{ $n }}">
+        <div class="course-part-head">
+          <span class="course-part-n">Part {{ $n }}</span>
+          <h2 id="part-{{ $n }}">{{ .title }}</h2>
+          <span class="course-part-count">{{ len .lessons }} lessons · {{ $done }} written</span>
+        </div>
+        <ol class="course-lessons">
+          {{ range .lessons }}
+            {{ $st := index $statuses (.status | default "planned") }}
+            <li class="lesson {{ $st.cls }}">
+              <span class="lesson-n" aria-hidden="true">{{ .num }}</span>
+              <div class="lesson-body">
+                <h3>{{ if .url }}<a href="{{ .url }}">{{ .q }}</a>{{ else }}{{ .q }}{{ end }}</h3>
+                {{ with .hint }}<p class="lesson-hint">{{ . }}</p>{{ end }}
+                <div class="lesson-tags">
+                  <span class="course-status {{ $st.cls }}">{{ $st.label }}</span>
+                  {{ if .url }}<span class="course-unverified" title="The sources in this lesson haven't been checked against the originals yet.">Not yet verified</span>{{ end }}
+                  {{ range .topics }}{{ with index $topics . }}<span class="course-tag {{ .cls }}">{{ .label }}</span>{{ end }}{{ end }}
+                  {{ range .formats }}<span class="course-format">{{ index $formats . | default . }}</span>{{ end }}
+                </div>
+                {{ with .note }}<p class="lesson-note">{{ . }}</p>{{ end }}
+                {{ if or .source .game }}
+                <p class="lesson-links">
+                  {{ with .source }}<a href="{{ . }}">What it builds on</a>{{ end }}
+                  {{ with .game }}<a href="{{ . }}">Play the game</a>{{ end }}
+                </p>
+                {{ end }}
+                {{ if .url }}<a class="more" href="{{ .url }}">{{ if eq .status "written" }}Read the lesson{{ else }}Read it now{{ end }}</a>{{ end }}
+              </div>
+            </li>
+          {{ end }}
+        </ol>
+      </section>
+    {{ end }}
+  </div>
+
+  {{ with .Params.extras }}
+  <section class="course-extras" aria-labelledby="extras-title">
+    <h2 id="extras-title">Extras, outside the main path</h2>
+    <div class="course-extras-grid">
+      {{ range . }}
+      <div class="extra">
+        <h3>{{ if .url }}<a href="{{ .url }}">{{ .title }}</a>{{ else }}{{ .title }}{{ end }}</h3>
+        <p>{{ .desc }}</p>
+        <div class="lesson-tags">
+          {{ if not .url }}<span class="course-status s-planned">Planned</span>{{ end }}
+          {{ range .topics }}{{ with index $topics . }}<span class="course-tag {{ .cls }}">{{ .label }}</span>{{ end }}{{ end }}
+          {{ range .formats }}<span class="course-format">{{ index $formats . | default . }}</span>{{ end }}
+        </div>
+      </div>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+
+  <section class="course-about" aria-label="About this course">
+    <div class="prose">{{ .Content }}</div>
+  </section>
+</div>
+{{ end }}

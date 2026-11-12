@@ -1,6 +1,116 @@
 ---
 title: "Learn: Neuroscience & Lucid Dreaming"
 description: "One night with an EEG headband, followed from start to finish: what sleep is, how a device hears the brain, and how a computer turns that into an answer. Written so that anyone, even a child, can follow it."
+# The lessons, rendered by website/layouts/course/list.html as one night (on GitHub, as a table).
+#   topics:  neuroscience | signal (signal & hardware) | data (data & code) | lucid (lucid dreaming)
+#   formats: reading | lab | game | animation | video
+#   status:  written (a lesson) | research (exists as a research note, to be reshaped) | planned
+parts:
+  - title: "What happens when I sleep?"
+    lessons:
+      - num: 1
+        q: "Why does sleep come in stages?"
+        hint: "A night as a journey through stages, in cycles of roughly 90 minutes."
+        topics: [neuroscience]
+        formats: [reading]
+        status: planned
+      - num: 2
+        q: "What is REM, and why do we dream then?"
+        hint: "Eyes move fast, muscles go slack, and the brain is almost as active as when awake."
+        topics: [neuroscience]
+        formats: [reading]
+        status: planned
+      - num: 3
+        q: "How do scientists know which stage I'm in?"
+        hint: "Polysomnography (PSG) watches three things: brain (EEG), eyes (EOG) and muscles (EMG)."
+        topics: [neuroscience, signal]
+        formats: [reading, animation]
+        status: planned
+        note: "Good candidate for an animation: three lines moving together to call REM."
+  - title: "How does a device hear the brain?"
+    lessons:
+      - num: 4
+        q: "What does an electrode actually measure?"
+        topics: [signal]
+        formats: [reading]
+        status: planned
+        note: "Expands the research note on EEG and eye-movement options."
+        source: "/research/eeg-and-eog-options/"
+      - num: 5
+        q: "Why does contact matter so much?"
+        topics: [signal]
+        formats: [reading, lab]
+        status: planned
+        note: "Lab: our own contact-check numbers from the journey."
+        source: "/journey/2026-11-02-day-04c-contact-check-before-the-first-night/"
+      - num: 6
+        q: "Real signal or noise?"
+        hint: "Blinks, movement, sweat."
+        topics: [signal]
+        formats: [reading, game]
+        status: research
+        url: "/research/reading-a-sleep-trace-real-event-or-artifact/"
+        note: "Game: Brain Atlas."
+        game: "/games/brain-atlas/"
+  - title: "From signal to answer"
+    lessons:
+      - num: 7
+        q: "Which device should I choose?"
+        topics: [signal]
+        formats: [reading]
+        status: planned
+        note: "Built on Table 1 of Jafarzadeh Esfahani et al. (2024, pp. 953–956), by category, not device by device. The table reflects 2023, so every device we name gets checked against a current source before publishing. Use the table's price ranges, never guessed prices."
+      - num: 8
+        q: "How does a night get saved?"
+        topics: [data]
+        formats: [reading]
+        status: planned
+        note: "Short, from the research note on how sleep EEG is saved."
+        source: "/research/eeg-data-standards/"
+      - num: 9
+        q: "How does a computer recognise a sleep stage?"
+        topics: [data, neuroscience]
+        formats: [reading, lab, animation]
+        status: written
+        url: "/course/09-how-a-computer-recognises-a-sleep-stage/"
+        note: "The hands-on lab with our own data needs checkpoint 04 (sleep staging) first. Still planned: an animation contrasting Konkoly et al. (2024)'s home app, which ran on a fixed timer and never confirmed REM, with real EEG-based staging."
+  - title: "Lucid dreaming and you"
+    lessons:
+      - num: 10
+        q: "How can a dreamer give a signal with their eyes?"
+        hint: "The left-right-left-right (LRLR) eye signal."
+        topics: [lucid, signal]
+        formats: [reading]
+        status: planned
+        note: "Expands the research note on a DIY EOG with an ESP32."
+        source: "/research/diy-eog-esp32/"
+      - num: 11
+        q: "What does nobody know yet, and how can I help?"
+        topics: [lucid]
+        formats: [reading]
+        status: planned
+        note: "Ties to the donate page and the open questionnaires."
+        source: "/questions/"
+extras:
+  - title: "A thousand years before the scanner"
+    desc: "Dream yoga, written as Episode 1, \"The Bell\"."
+    topics: [lucid]
+    url: "/videos/are-you-dreaming-01-the-bell/"
+    formats: [video]
+  - title: "The 2012 case that changed the question"
+    desc: "Dresler's EEG/fMRI study, a draft pending Dresler's review."
+    topics: [neuroscience, lucid]
+    url: "/questions/the-scanner-script-review/"
+    formats: [reading]
+  - title: "What's disputed, and why that's fine"
+    desc: "Induction methods, supplements, binaural beats."
+    topics: [lucid]
+    formats: [reading]
+  - title: "Build your own EOG"
+    desc: "The electronics, for people who want to build."
+    topics: [signal]
+    url: "/research/diy-eog-esp32/"
+    formats: [reading, lab]
 ---
 
 This course follows one story: **one night with an EEG headband**, from putting it on in the evening to reading a graph of your sleep stages in the morning. Every lesson answers one question, asked the way a curious child would ask it. Anything that doesn't move the story forward goes into the extras.
@@ -22,46 +132,6 @@ Narratives are especially useful when scientists explain science to people who a
 Serious games helped people learn and remember better than conventional instruction. They worked best when combined with other teaching, used over several sessions, or played in groups (Wouters et al., 2013). A later meta-analysis also found that digital games improved learning compared with lessons without games (Clark et al., 2016).
 
 One finding matters for how we build them: in Wouters et al. (2013), games **with** a narrative were not more effective, and the results hinted that games without one might work better. So the story lives in the course, and each game stays small and teaches exactly one idea, inside a lesson rather than instead of it.
-
-## The lessons: one night
-
-### Part 1 — What happens when I sleep?
-
-| # | Question | Status |
-|---|---|---|
-| 1 | Why does sleep come in stages? A night as a journey through stages, in cycles of roughly 90 minutes | Not written |
-| 2 | What is REM, and why do we dream then? Eyes move fast, muscles go slack, and the brain is almost as active as when awake | Not written |
-| 3 | How do scientists know which stage I'm in? Polysomnography (PSG) watches three things: brain (EEG), eyes (EOG) and muscles (EMG) | Not written. Good candidate for an animation: three lines moving together to call REM |
-
-### Part 2 — How does a device hear the brain?
-
-| # | Question | Status |
-|---|---|---|
-| 4 | What does an electrode actually measure? | Not written. Expand from [EEG and eye-movement options](/research/eeg-and-eog-options/) |
-| 5 | Why does contact matter so much? | Not written. Lab: our own [contact-check numbers](/journey/2026-11-02-day-04c-contact-check-before-the-first-night/) |
-| 6 | Real signal or noise? Blinks, movement, sweat | Written as [research](/research/reading-a-sleep-trace-real-event-or-artifact/). Game: [Brain Atlas](/games/brain-atlas/) |
-
-### Part 3 — From signal to answer
-
-| # | Question | Status |
-|---|---|---|
-| 7 | Which device should I choose? | Not written. Built on Table 1 of Jafarzadeh Esfahani et al. (2024, pp. 953–956), by category, not device by device. The table reflects 2023, so every device we name gets checked against a current source before publishing. Use the table's price ranges, never guessed prices |
-| 8 | How does a night get saved? | Not written. Short, from [how sleep EEG is saved](/research/eeg-data-standards/) |
-| 9 | [How does a computer recognise a sleep stage?](11-from-signal-to-sleep-stage.md) | **Written.** The hands-on lab with our own data needs checkpoint 04 (sleep staging) first. Still planned: an animation contrasting Konkoly et al. (2024)'s home app, which ran on a fixed timer and never confirmed REM, with real EEG-based staging |
-
-### Part 4 — Lucid dreaming and you
-
-| # | Question | Status |
-|---|---|---|
-| 10 | How can a dreamer give a signal with their eyes? LRLR | Not written. Expand from [DIY EOG with an ESP32](/research/diy-eog-esp32/) |
-| 11 | What does nobody know yet, and how can I help? | Not written. Ties to [donate](/donate/) and the open questionnaire |
-
-### Extras, outside the main path
-
-- **A thousand years before the scanner:** dream yoga, written as [Episode 1, "The Bell"](/videos/are-you-dreaming-01-the-bell/)
-- **The 2012 case that changed the question:** Dresler's EEG/fMRI study, a draft [pending Dresler's review](/questions/the-scanner-script-review/)
-- **What's disputed, and why that's fine:** induction methods, supplements, binaural beats
-- **Build your own EOG:** the electronics, for people who want to build
 
 ## Required before writing code
 
