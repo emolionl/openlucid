@@ -12,11 +12,13 @@ const routes = [
   { path: "/responses/:id/edit", name: "edit", component: () => import("./views/EditResponse.vue") },
   { path: "/questionnaires", name: "questionnaires", component: () => import("./views/Questionnaires.vue"), meta: { roles: STAFF } },
   { path: "/users", name: "users", component: () => import("./views/Users.vue"), meta: { roles: ["admin"] } },
-  { path: "/documents", name: "documents", component: () => import("./views/Documents.vue"), meta: { roles: STAFF } },
+  { path: "/documents", name: "documents", component: () => import("./views/Documents.vue"), meta: { roles: [...STAFF, "reviewer"] } },
+  { path: "/documents/:id/review", name: "document-review", component: () => import("./views/ReviewDocument.vue"), meta: { roles: [...STAFF, "reviewer"] } },
   { path: "/documents/new", name: "document-new", component: () => import("./views/DocumentEditor.vue"), meta: { roles: STAFF } },
   { path: "/documents/:id/edit", name: "document-edit", component: () => import("./views/DocumentEditor.vue"), meta: { roles: STAFF } },
   { path: "/mine", name: "mine", component: () => import("./views/MyAnswers.vue") },
-  { path: "/:rest(.*)*", name: "home", redirect: () => ({ name: "overview" }) },
+  // Reviewers start at Documents (Overview is for staff only); everyone else at Overview.
+  { path: "/:rest(.*)*", name: "home", redirect: () => ({ name: session.role === "reviewer" ? "documents" : "overview" }) },
 ];
 
 export const router = createRouter({ history: createWebHistory("/"), routes });

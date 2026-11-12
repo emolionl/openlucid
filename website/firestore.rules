@@ -5,7 +5,8 @@ rules_version = '2';
 //   anyone          adds one response to a questionnaire (create only)
 //   respondent      reads and edits the responses sent with their own (verified) email address
 //   client          same as respondent, for now
-//   researcher      reads all responses
+//   researcher      reads all responses; writes documents
+//   reviewer        reviews sources and signs off pages (reviews/…); can't edit documents
 //   admin           reads, edits and deletes everything, and sets people's roles
 //
 // Roles live in users/{uid}.role. Everyone who signs in gets a users doc with role "respondent";
@@ -95,7 +96,7 @@ service cloud.firestore {
     // only staff can see the list, and only staff can write.
     match /documents/{id} {
       allow get: if true;
-      allow list: if hasRole(['admin', 'researcher']);
+      allow list: if hasRole(['admin', 'researcher', 'reviewer']);
       allow create: if hasRole(['admin', 'researcher']) && isNewDocument(request.resource.data);
       allow update: if hasRole(['admin', 'researcher']) && isDocumentEdit();
       allow delete: if isAdmin();
@@ -109,17 +110,138 @@ service cloud.firestore {
       }
     }
 
+    // ---- Review and verification (logic: website/assets/js/verification.js) ----
+    //
+    // Everything here is public to read, like the labels it feeds: anyone may see what was checked,
+    // by whom, and how. Agent checks are written only by the server (the Admin SDK skips these rules);
+    // human reviews are append-only and carry the reviewer's own uid and the name an admin gave them.
+    // The rules check who may write what; whether a status is still deserved (every claim supported,
+    // a review of the current text) is checked by assets/js/verification.js, which caps the status a
+    // page shows, so a stored status can never make a label claim more than the data supports.
+
+    function canWriteReviews() { return hasRole(['admin', 'researcher', 'reviewer']); }
+    function canSignOff() { return hasRole(['admin', 'reviewer']); }
+
+    // The ref must be the thing the id names: reviews/documents:<id> is about documents/<id>, and
+    // reviews/page:course:x about the Hugo page course/x.
+    function refMatchesId(d, contentId) {
+      return (d.kind == 'document' && d.ref.matches('documents/[A-Za-z0-9_-]+') && contentId == 'documents:' + d.ref.split('/')[1])
+        || (d.kind == 'page' && d.ref.matches('[a-z0-9/_-]+') && contentId == 'page:' + d.ref.replace('/', ':'));
+    }
+
+    function reviewExists(contentId) { return exists(/databases/$(database)/documents/reviews/$(contentId)); }
+
+    function validReviewDoc(d) {
+      return d.keys().hasAll(['title', 'kind', 'ref', 'status', 'updatedAt', 'updatedBy'])
+        && d.keys().hasOnly(['title', 'kind', 'ref', 'status', 'updatedAt', 'updatedBy'])
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 300
+        && d.kind in ['document', 'page']
+        && d.ref is string && d.ref.size() > 0 && d.ref.size() <= 300
+        && d.status in ['draft', 'ai-checked', 'human-reviewed', 'published']
+        && d.updatedAt == request.time
+        && d.updatedBy == request.auth.uid;
+    }
+
+    // Only reviewers and admins move a page past Draft, or keep it there once it is. Anyone who may
+    // write reviews may lower a page back to Draft: that only ever makes the label claim less.
+    function statusChangeAllowed(newStatus, oldStatus) {
+      return newStatus == oldStatus || newStatus == 'draft' || canSignOff();
+    }
+
+    function validSource(s) {
+      return s is map && s.keys().hasOnly(['doi', 'url', 'citation'])
+        && (!('doi' in s) || (s.doi is string && s.doi.size() <= 300))
+        && (!('url' in s) || (s.url is string && s.url.size() <= 2000 && s.url.matches('https?://.+')))
+        && (!('citation' in s) || (s.citation is string && s.citation.size() <= 1000));
+    }
+
+    function validClaim(d) {
+      return d.keys().hasAll(['quote', 'source', 'order', 'state', 'createdAt', 'createdBy'])
+        && d.keys().hasOnly(['quote', 'source', 'order', 'state', 'note', 'createdAt', 'createdBy', 'updatedAt'])
+        && d.quote is string && d.quote.size() > 0 && d.quote.size() <= 2000
+        && validSource(d.source)
+        && d.order is int
+        && d.state in ['active', 'removed']
+        && (!('note' in d) || (d.note is string && d.note.size() <= 2000));
+    }
+
+    function validHumanReview(d) {
+      return d.keys().hasAll(['reviewerUid', 'reviewerName', 'createdAt', 'contentHash', 'scope', 'checklist', 'verdicts'])
+        && d.keys().hasOnly(['reviewerUid', 'reviewerName', 'createdAt', 'contentHash', 'scope', 'checklist', 'verdicts', 'notes'])
+        && d.reviewerUid == request.auth.uid
+        && d.reviewerName is string && d.reviewerName.size() > 0
+        && d.reviewerName == get(userDoc()).data.displayName
+        && d.createdAt == request.time
+        && d.contentHash is string && d.contentHash.matches('[0-9a-f]{64}')
+        && d.scope is string && d.scope.size() > 0 && d.scope.size() <= 1000
+        && d.checklist is map && d.checklist.size() <= 20
+        && d.verdicts is map && d.verdicts.size() <= 300
+        && (!('notes' in d) || (d.notes is string && d.notes.size() <= 5000));
+    }
+
+    match /reviews/{contentId} {
+      allow get: if true;
+      allow list: if canWriteReviews();
+      allow create: if canWriteReviews() && validReviewDoc(request.resource.data)
+        && refMatchesId(request.resource.data, contentId)
+        && statusChangeAllowed(request.resource.data.status, 'draft');
+      allow update: if canWriteReviews() && validReviewDoc(request.resource.data)
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.ref == resource.data.ref
+        && statusChangeAllowed(request.resource.data.status, resource.data.status);
+      allow delete: if isAdmin();
+
+      match /claims/{claimId} {
+        allow get, list: if true;
+        allow create: if canWriteReviews() && validClaim(request.resource.data)
+          && reviewExists(contentId)
+          && request.resource.data.state == 'active'
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.createdBy == request.auth.uid
+          && !('updatedAt' in request.resource.data);
+        allow update: if canWriteReviews() && validClaim(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.createdBy == resource.data.createdBy
+          // A new sentence or source is a new claim (verdicts are about one exact version), so the
+          // quote and source of an existing claim never change in place.
+          && request.resource.data.quote == resource.data.quote
+          && request.resource.data.source == resource.data.source
+          && request.resource.data.updatedAt == request.time
+          // Removing or restoring a claim takes it off (or puts it back on) the list that has to be
+          // supported before Published, so only reviewers and admins may do it.
+          && (request.resource.data.state == resource.data.state || canSignOff());
+        allow delete: if isAdmin();
+
+        // One agent's check of this claim. Only the server writes these.
+        match /checks/{checkId} {
+          allow get, list: if true;
+          allow write: if false;
+        }
+      }
+
+      match /humanReviews/{reviewId} {
+        allow get, list: if true;
+        allow create: if canSignOff() && reviewExists(contentId) && validHumanReview(request.resource.data);
+        allow update, delete: if false;
+      }
+    }
+
     match /users/{uid} {
       allow read: if (signedIn() && request.auth.uid == uid) || isAdmin();
       // Your own profile, created on first sign-in, always as a respondent.
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['email', 'role', 'createdAt'])
         && request.resource.data.role == 'respondent'
+        && verifiedEmail() != null
         && request.resource.data.email == verifiedEmail()
         && request.resource.data.createdAt == request.time;
+      // Only admins set roles and the name shown on someone's reviews ("Reviewed by …"), so a
+      // reviewer can't sign under a name they picked themselves.
       allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
-        && request.resource.data.role in ['admin', 'researcher', 'client', 'respondent'];
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'displayName'])
+        && request.resource.data.role in ['admin', 'researcher', 'reviewer', 'client', 'respondent']
+        && (!('displayName' in request.resource.data) || (request.resource.data.displayName is string
+          && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 120));
       allow delete: if isAdmin();
     }
 

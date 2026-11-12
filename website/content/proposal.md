@@ -1,4 +1,5 @@
 ---
+verify: true
 title: "The proposal"
 description: "A short page for anyone who might want to help supervise this: what the PhD idea is, why I'm the one doing it, and what OpenLucid already proves."
 ---

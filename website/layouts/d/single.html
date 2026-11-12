@@ -15,6 +15,13 @@
       <h1 class="page-title" id="doc-title"></h1>
       <p class="meta" id="doc-meta" hidden></p>
 
+      {{/* Verification labels (reviews/documents:<id>, logic in assets/js/verification.js): the page
+           status, what 3 Claude runs found, and who reviewed it. Each label opens the claim list. */}}
+      <div class="verify" id="doc-verify" hidden>
+        <div class="verify-labels" id="verify-labels"></div>
+        <section class="verify-panel" id="verify-panel" hidden aria-label="What was verified"></section>
+      </div>
+
       <div class="doc-export-bar" id="doc-export-bar" hidden>
         <div class="doc-export-opts">
           <label><input type="checkbox" id="export-opt-history" checked> Include edit history</label>
@@ -78,6 +85,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
   import { getFirestore, doc, getDoc, collection, getDocs, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-lite.js";
+  {{ $verification := resources.Get "js/verification.js" | minify | fingerprint }}
+  import * as V from "{{ $verification.RelPermalink }}";
 
   const app = initializeApp({
     apiKey: "AIzaSyDTfhXqUfU05alHQMcYX-EuG2SG5HfPCIQ",
@@ -93,7 +102,7 @@
   const errorEl = document.getElementById("doc-error");
   const id = new URLSearchParams(location.search).get("id");
 
-  const esc = (s) => (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const when = (ts) => {
     if (!ts) return "";
     const d = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
@@ -214,6 +223,7 @@
   function renderMarks(revs) {
     const prose = document.getElementById("doc-body");
     document.querySelectorAll(".doc-mark-dot").forEach((el) => el.remove());
+    document.querySelectorAll(".doc-claim-mark").forEach((m) => m.replaceWith(...m.childNodes));
     document.querySelectorAll(".doc-anchor-mark").forEach((el) => el.replaceWith(document.createTextNode(el.textContent)));
     prose.normalize();
     for (const r of revs) {
@@ -283,6 +293,7 @@
       attachEditing();
       attachExport();
       loadHistory().catch((e) => console.error(e));
+      loadVerification(d.body || "");
     } catch (e) {
       console.error(e);
       loadingEl.hidden = true;
@@ -290,6 +301,222 @@
     }
   }
   run();
+
+  // ---- Verification labels and the claim list ----
+  // Logic in assets/js/verification.js. The labels say what was checked and by whom; the status shown
+  // is capped by what the review data supports right now, whatever status is stored.
+
+  const outcomeClass = (o) =>
+    o === "agents-agree" || o === "human-supported" ? "ok"
+      : o === "human-not-supported" ? "bad"
+      : o === "unchecked" || o === "removed" ? "none"
+      : "warn";
+
+  function chip(text, cls) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "verify-chip " + cls;
+    b.textContent = text;
+    b.setAttribute("aria-controls", "verify-panel");
+    b.setAttribute("aria-expanded", "false");
+    b.addEventListener("click", () => {
+      const panel = document.getElementById("verify-panel");
+      panel.hidden = !panel.hidden;
+      document.querySelectorAll(".verify-chip").forEach((c) => c.setAttribute("aria-expanded", String(!panel.hidden)));
+      if (!panel.hidden) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    return b;
+  }
+
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "");
+  const short = (s, n) => { const t = String(s ?? ""); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; };
+
+  // The text a reader sees, with whitespace collapsed, mapped back to text nodes so a quote can be
+  // found (and highlighted) even when it runs across a link, bold text or a revision marker.
+  function textIndex(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let text = "";
+    const map = [];
+    let space = true;
+    let node;
+    while ((node = walker.nextNode())) {
+      const t = node.textContent;
+      for (let i = 0; i < t.length; i++) {
+        const ch = /\s/.test(t[i]) ? " " : t[i];
+        if (ch === " " && space) continue;
+        space = ch === " ";
+        text += ch;
+        map.push([node, i]);
+      }
+    }
+    return { text, map };
+  }
+
+  function unwrapClaimMarks() {
+    document.querySelectorAll(".doc-claim-mark").forEach((m) => m.replaceWith(...m.childNodes));
+    document.getElementById("doc-body").normalize();
+  }
+
+  function showInText(quote) {
+    const needle = String(quote || "").replace(/\s+/g, " ").trim();
+    if (!needle) return false;
+    unwrapClaimMarks();
+    const prose = document.getElementById("doc-body");
+    const { text, map } = textIndex(prose);
+    const at = text.indexOf(needle);
+    if (at < 0) return false;
+    const [startNode, startOff] = map[at];
+    const [endNode, endOff] = map[at + needle.length - 1];
+    // Collect the text nodes first, then wrap each piece: changing the DOM while walking it skips nodes.
+    const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let on = false;
+    let n;
+    while ((n = walker.nextNode())) {
+      if (n === startNode) on = true;
+      if (on) nodes.push(n);
+      if (n === endNode) break;
+    }
+    let first = null;
+    for (const nd of nodes) {
+      const from = nd === startNode ? startOff : 0;
+      const to = nd === endNode ? endOff + 1 : nd.textContent.length;
+      if (to <= from) continue;
+      let piece = nd;
+      if (from > 0) piece = piece.splitText(from);
+      if (to - from < piece.textContent.length) piece.splitText(to - from);
+      if (!piece.textContent.trim()) continue; // whitespace between blocks (e.g. table cells) can't hold a mark
+      const mark = document.createElement("mark");
+      mark.className = "doc-claim-mark";
+      piece.parentNode.insertBefore(mark, piece);
+      mark.appendChild(piece);
+      first ||= mark;
+    }
+    first?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return Boolean(first);
+  }
+
+  function renderCheck(c) {
+    const access = { "full-text": "full text", "abstract-only": "abstract only", none: "no access" }[c.access] || String(c.access ?? "");
+    const bits = [V.VERDICT_LABELS[c.verdict] || "no verdict", access, c.location].filter(Boolean).map(esc).join(" · ");
+    const quote = c.sourceQuote ? `<q class="verify-source-quote">${esc(c.sourceQuote)}</q>${c.quoteFound === false ? ' <span class="verify-flag">not found in the source text</span>' : ""}` : "";
+    return `<li><span class="verify-run">Run ${esc(c.agent ?? "?")} · ${esc(c.model || "")} · ${day(V.millis(c.checkedAt))}</span> ${bits} ${quote}</li>`;
+  }
+
+  function renderClaim(s, i) {
+    const c = s.claim;
+    const link = V.sourceLink(c.source);
+    const cite = esc(c.source?.citation || link || "No source given");
+    const source = link ? `<a href="${esc(link)}" rel="noopener noreferrer" target="_blank">${cite}</a>` : cite;
+    const checks = s.run ? `<ul class="verify-checks">${s.run.checks.map(renderCheck).join("")}</ul>` : "";
+    const reasons = s.outcome === "needs-human" && !s.human && s.agent.reasons.length
+      ? `<p class="verify-reasons">Sent to a human because ${esc(s.agent.reasons.join("; "))}.</p>` : "";
+    const stale = s.outcome === "stale"
+      ? `<p class="verify-reasons">${s.quotePresent ? "The claim or its source was changed after it was checked." : "This sentence is no longer word-for-word in the text."} The earlier check doesn't count any more.</p>` : "";
+    const human = s.human
+      ? `<p class="verify-human"><strong>${esc(s.human.review.reviewerName)}</strong>, ${day(V.millis(s.human.review.createdAt))}: ${esc(V.VERDICT_LABELS[s.human.verdict] || s.human.verdict)}${s.human.location ? " · " + esc(s.human.location) : ""}${s.human.note ? " · " + esc(s.human.note) : ""}${s.humanTextChanged && !s.humanStale ? ' <span class="verify-flag">other parts of the text changed since</span>' : ""}</p>`
+      : "";
+    return `<li class="verify-claim">
+      <div class="verify-claim-head">
+        <span class="verify-n">${i + 1}</span>
+        <span class="verify-outcome ${outcomeClass(s.outcome)}">${esc(V.OUTCOME_LABELS[s.outcome] || s.outcome)}</span>
+      </div>
+      <blockquote>${esc(c.quote)}</blockquote>
+      <p class="verify-cite">Source: ${source} · <button type="button" class="verify-show" data-quote="${esc(c.quote)}">show in the text</button></p>
+      ${checks}${reasons}${stale}${human}
+    </li>`;
+  }
+
+  function renderPanel(summary, states, humanReviews) {
+    const reviews = [...humanReviews]
+      .filter((r) => r.verdicts && Object.keys(r.verdicts).length)
+      .sort((a, b) => V.millis(b.createdAt) - V.millis(a.createdAt))
+      .map((r) => {
+        const done = V.CHECKLIST.filter((x) => r.checklist?.[x.key] === true).map((x) => `<li>${esc(x.label)}</li>`).join("");
+        const old = r.contentHash !== summary.currentHash ? ' <span class="verify-flag">reviewed an earlier version of the text</span>' : "";
+        return `<li><strong>${esc(r.reviewerName || "Unknown reviewer")}</strong>, ${day(V.millis(r.createdAt))} · checked: ${esc(r.scope)}${old}
+          ${done ? `<ul class="verify-done">${done}</ul>` : ""}${r.notes ? `<p class="muted">${esc(r.notes)}</p>` : ""}</li>`;
+      }).join("");
+    return `
+      <p class="verify-scope">These labels say whether the sources we cite back up the specific claims listed below.
+        They don't mean everything on this page is correct, and anything not listed here wasn't checked.</p>
+      <p class="muted">A verdict is about one exact sentence and its source. It stops counting as soon as either changes.
+        Claims checked by agents count only when 3 independent Claude runs all read the full source and agree.</p>
+      <p class="muted">${summary.claims} ${summary.claims === 1 ? "claim" : "claims"} · ${summary.supported} supported · ${summary.problems} not or partly supported · ${summary.open} still open</p>
+      ${reviews ? `<h3>Human reviews</h3><ol class="verify-reviews">${reviews}</ol>` : ""}
+      ${states.length ? `<h3>Claims and sources</h3><ol class="verify-claims">${states.map(renderClaim).join("")}</ol>` : ""}`;
+  }
+
+  function attachPanelClicks() {
+    document.getElementById("verify-panel").addEventListener("click", (e) => {
+      const btn = e.target.closest(".verify-show");
+      if (!btn) return;
+      if (!showInText(btn.dataset.quote)) btn.textContent = "couldn't highlight this passage";
+    });
+  }
+
+  function showUnverified(note) {
+    document.getElementById("verify-labels").replaceChildren(chip("Not yet verified", "grey"));
+    document.getElementById("verify-panel").innerHTML = `<p class="verify-scope">${esc(note)}</p>`;
+    document.getElementById("doc-verify").hidden = false;
+  }
+
+  async function loadVerification(body) {
+    attachPanelClicks();
+    try {
+      await renderVerification(body);
+    } catch (e) {
+      console.error("verification:", e);
+      showUnverified("The verification details couldn't be loaded. Treat the claims on this page as unverified.");
+    }
+  }
+
+  async function renderVerification(body) {
+    const rid = V.reviewIdForDocument(id);
+    const [hash, reviewSnap, claimSnap, humanSnap] = await Promise.all([
+      V.contentHash(body),
+      getDoc(doc(db, "reviews", rid)),
+      getDocs(collection(db, "reviews", rid, "claims")),
+      getDocs(collection(db, "reviews", rid, "humanReviews")),
+    ]);
+    const claims = claimSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const checks = await Promise.all(claims.map((c) => getDocs(collection(db, "reviews", rid, "claims", c.id, "checks"))));
+    const humanReviews = humanSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const visible = textIndex(document.getElementById("doc-body")).text;
+    const states = claims
+      .map((c, i) => V.claimState(c, checks[i].docs.map((d) => ({ id: d.id, ...d.data() })), humanReviews, hash, V.quoteIn(visible, c.quote)))
+      .filter((s) => s.outcome !== "removed");
+    const review = reviewSnap.exists() ? reviewSnap.data() : null;
+    const summary = V.summarize({ review, states, humanReviews, currentHash: hash });
+
+    if (!review || (!summary.agentLabel && !summary.humanLabel)) {
+      showUnverified("Nobody has checked the sources on this page yet. Until someone does, treat its claims as unverified.");
+      if (states.length) document.getElementById("verify-panel").innerHTML += `<h3>Claims listed for checking</h3><ol class="verify-claims">${states.map(renderClaim).join("")}</ol>`;
+      return;
+    }
+
+    const labels = document.getElementById("verify-labels");
+    labels.replaceChildren();
+    const shown = V.shownStatus(review.status, summary);
+    const capped = shown !== review.status && V.STATUSES.includes(review.status);
+    labels.append(chip((V.STATUS_LABELS[shown] || "Draft") + (capped ? " · changed since review" : ""), "status-" + shown + (capped ? " stale" : "")));
+    const a = summary.agentLabel;
+    if (a) {
+      labels.append(chip(
+        `${a.agree} of ${a.claims} ${a.claims === 1 ? "claim" : "claims"} supported by 3 Claude runs` +
+          (a.toHuman ? ` · ${a.toHuman} sent to a human` : "") +
+          (a.overruled ? ` · ${a.overruled} overruled by a reviewer` : "") +
+          (a.claims - a.checked ? ` · ${a.claims - a.checked} not checked by agents` : "") +
+          (a.stale ? " · text changed since" : ""),
+        "ai" + (a.stale ? " stale" : "")));
+    }
+    const h = summary.humanLabel;
+    if (h) {
+      labels.append(chip(`Reviewed by ${h.name || "unknown"} · ${day(h.at)} · ${short(h.scope, 60)}` + (h.stale ? " · text changed since" : ""), "human" + (h.stale ? " stale" : "")));
+    }
+    document.getElementById("verify-panel").innerHTML = renderPanel(summary, states, humanReviews);
+    document.getElementById("doc-verify").hidden = false;
+  }
 
   // ---- Staff sign-in + "select text to mark a change" ----
 
@@ -393,8 +620,9 @@
   // unwraps the colored tag boxes back to plain content, and optionally drops the history section.
   function buildExportParts(opts) {
     const proseClone = document.getElementById("doc-body").cloneNode(true);
-    proseClone.querySelectorAll(".doc-mark-dot, .doc-anchor-mark").forEach((el) => {
+    proseClone.querySelectorAll(".doc-mark-dot, .doc-anchor-mark, .doc-claim-mark").forEach((el) => {
       if (el.classList.contains("doc-anchor-mark")) el.replaceWith(document.createTextNode(el.textContent));
+      else if (el.classList.contains("doc-claim-mark")) el.replaceWith(...el.childNodes); // keep the highlighted text itself
       else el.remove();
     });
     if (!opts.tags) {

@@ -6,5 +6,6 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   plugins: [vue()],
   build: { outDir: "dist", emptyOutDir: true },
-  server: { port: 5174 },
+  // ../assets/js/verification.js is shared with the website, so the dev server may read one level up.
+  server: { port: 5174, fs: { allow: [".."] } },
 });

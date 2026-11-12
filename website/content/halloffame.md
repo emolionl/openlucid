@@ -1,4 +1,5 @@
 ---
+verify: true
 title: "Hall of Fame"
 description: "Every significant piece of lucid-dream research we could find, not just the famous ones — rated by how often other papers actually cite it."
 type: "halloffame"

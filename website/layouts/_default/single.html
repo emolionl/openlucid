@@ -11,6 +11,7 @@
       {{ if not .Date.IsZero }}{{ .Date.Format "2 January 2006" }}{{ end }}
       {{ with .Params.status }}<span class="tag">{{ . }}</span>{{ end }}
     </p>
+    {{ partial "verification-label.html" . }}
     {{ with .Params.tldr }}
     <section class="tldr" aria-label="In short">
       <h2>In short</h2>

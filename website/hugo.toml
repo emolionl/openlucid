@@ -7,6 +7,8 @@ disableKinds = ["taxonomy", "term"]
   tagline = "An open-source dream machine you can build yourself"
   description = "OpenLucid listens to your sleep through a Muse EEG headband and whispers a sound cue when you are probably dreaming. Free, local, open source. Educational, not medical advice."
   repo = "https://github.com/emolionl/openlucid"
+  # Sections whose pages carry a verification label (layouts/partials/verification-label.html).
+  verifySections = ["course", "research"]
 
 [markup.goldmark.renderer]
   unsafe = false

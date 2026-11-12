@@ -48,3 +48,5 @@ promotion/video-scripts/video/
 # .github/workflows/release.yml and deployed straight to the
 # openlucid-releases Firebase Hosting site, never committed.
 website/releases-dist/
+website/tests/node_modules/
+*-debug.log

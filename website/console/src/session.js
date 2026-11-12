@@ -5,7 +5,7 @@ import { auth, db } from "./firebase";
 
 // Who is signed in, and their role from users/{uid}. A first sign-in creates that doc as "respondent";
 // only an admin can raise a role (see firestore.rules).
-export const ROLES = ["admin", "researcher", "client", "respondent"];
+export const ROLES = ["admin", "researcher", "reviewer", "client", "respondent"];
 
 export const session = reactive({ ready: false, user: null, role: null, problem: "" });
 
@@ -38,3 +38,5 @@ onAuthStateChanged(auth, async (user) => {
 
 export const seesAll = () => session.role === "admin" || session.role === "researcher";
 export const isAdmin = () => session.role === "admin";
+export const canEditDocuments = () => session.role === "admin" || session.role === "researcher";
+export const canSignOff = () => session.role === "admin" || session.role === "reviewer";
