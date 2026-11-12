@@ -11,6 +11,21 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 
 **Using OpenLucid doesn't require any of this.** Every "reading" chapter needs no install and no code — it's for understanding, not building. A few chapters go further and include an optional, clearly-marked code-level section for people who want to contribute, not just read; skip it and the chapter still stands on its own.
 
+## Foundation: required before writing code
+
+Chapters **1, 6, 7, 8 and 11** are the foundation. Anyone who wants to write OpenLucid's signal or sleep-scoring code works through these first, because you can't write good software for a measurement you don't understand.
+
+Their scope follows the programme of the Donders Sleep & Memory Lab's 2019 workshop *Introduction into Sleep Research Methods* ([programme](https://dreslerlab.org/workshop/)):
+- what sleep is and how it's measured
+- polysomnography and applying electrodes
+- sleep scoring by the AASM rules
+- analysis with open-source tools (SpiSOP, SleepTrip)
+
+Rules for these chapters:
+- Written in our own words, with links to the original sources. We never copy another course's material.
+- The AASM scoring manual is a paid publication. We describe its rules in our own words and cite it, and don't reproduce it.
+- **Still to do:** ask the Donders lab (sleep@donders.institute) whether a new edition of the workshop is planned.
+
 ## Part I — The Signal, and the Story
 
 | # | Chapter | Category · type | Status |
@@ -27,6 +42,7 @@ A course, not a reading list: each chapter has a reading, sometimes a hands-on l
 |---|---|---|---|
 | 6 | EEG in one picture — what an electrode actually measures | Science · reading | Expand from [EEG and eye-movement options](/research/eeg-and-eog-options/) |
 | 7 | Electrodes in practice — contact, impedance, why dry sensors fail | Practice · reading + lab | Lab: our own [contact-check numbers](/journey/2026-11-02-day-04c-contact-check-before-the-first-night/), already real data |
+| 7b | Choosing a device — PSG, modular boards, headbands, in-ear and patches, and why watches and rings aren't enough | Science · reading | Not written. Built on Table 1 of Jafarzadeh Esfahani et al. (2024, pp. 953–956), grouped by category, not device by device. The table reflects 2023, so every device we name gets checked against a current source (sale status, price, validation) before publishing. Use the table's price ranges, never guessed prices |
 | 8 | Real event or artifact? Reading a trace | Practice · reading + game | Written as [research](/research/reading-a-sleep-trace-real-event-or-artifact/) + [Brain Atlas](/games/brain-atlas/) already exists as the game |
 | 9 | Build your own EOG — electronics for a DIY sensor | Practice · reading + lab | Expand from [DIY EOG with an ESP32](/research/diy-eog-esp32/) — add the *why*, not just the *how* |
 | 10 | How a night gets saved — EDF+, BIDS, data standards | Science · reading | Expand from [how sleep EEG is saved](/research/eeg-data-standards/) |
