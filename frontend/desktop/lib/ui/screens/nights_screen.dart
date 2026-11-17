@@ -1,15 +1,18 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../app/account.dart';
 import '../../app/headband.dart';
 import '../../night/edf_writer.dart';
+import '../../sync/night_upload.dart';
 import '../theme.dart';
 import 'empty_state.dart';
 
 /// One recorded night on this device, read back from its BIDS folder.
 class NightOnDisk {
-  NightOnDisk(this.folder, this.started, this.epochs, this.quality, this.bytes, this.repaired);
+  NightOnDisk(this.folder, this.started, this.epochs, this.quality, this.bytes, this.repaired, {this.heartBeats = 0, this.uploadedAt});
 
   final Directory folder;
   final DateTime started;
@@ -17,6 +20,10 @@ class NightOnDisk {
   final Map<String, int> quality;
   final int bytes;
   final bool repaired;
+
+  /// Heartbeats recorded (0 without a strap), and when the night was last sent to the Diary Keeper.
+  final int heartBeats;
+  final DateTime? uploadedAt;
 
   Duration get length => Duration(seconds: epochs * 30);
 
@@ -55,15 +62,23 @@ class NightOnDisk {
         var epochs = 0;
         final tsv = File('${session.path}/openlucid/epochs.tsv');
         if (await tsv.exists()) {
-          for (final line in (await tsv.readAsLines()).skip(1)) {
+          final lines = await tsv.readAsLines();
+          // By column name: newer nights have more columns (heart rate, HRV) after quality.
+          final column = lines.isEmpty ? -1 : lines.first.split('\t').indexOf('quality');
+          for (final line in lines.skip(1)) {
             final cells = line.split('\t');
             if (cells.length < 3) continue;
             epochs++;
-            final q = cells[cells.length - 2];
+            final q = column >= 0 && column < cells.length ? cells[column] : cells[cells.length - 2];
             quality[q] = (quality[q] ?? 0) + 1;
           }
         }
-        nights.add(NightOnDisk(session, started, epochs, quality, bytes, repaired));
+        var heartBeats = 0;
+        final beats = File('${session.path}/openlucid/heartbeats.tsv');
+        if (await beats.exists()) heartBeats = max(0, (await beats.readAsLines()).length - 1);
+        final upload = await NightPackage.lastUpload(session);
+        nights.add(NightOnDisk(session, started, epochs, quality, bytes, repaired,
+            heartBeats: heartBeats, uploadedAt: DateTime.tryParse('${upload?['uploaded_at']}')?.toLocal()));
       }
     }
     nights.sort((a, b) => b.started.compareTo(a.started));
@@ -73,9 +88,10 @@ class NightOnDisk {
 
 /// The nights recorded on this device, newest first.
 class NightsScreen extends StatefulWidget {
-  const NightsScreen({super.key, required this.headband});
+  const NightsScreen({super.key, required this.headband, required this.account});
 
   final Headband headband;
+  final Account account;
 
   @override
   State<NightsScreen> createState() => _NightsScreenState();
@@ -126,7 +142,13 @@ class _NightsScreenState extends State<NightsScreen> {
             ),
             Text('Kept on this device in ${root.path}', style: text.bodySmall),
             const SizedBox(height: 12),
-            for (final night in nights) _NightTile(night: night, recording: recording == night.folder.path),
+            for (final night in nights)
+              _NightTile(
+                night: night,
+                recording: recording == night.folder.path,
+                account: widget.account,
+                onUploaded: () => setState(() => _nights = _load()),
+              ),
           ],
         );
       },
@@ -135,10 +157,12 @@ class _NightsScreenState extends State<NightsScreen> {
 }
 
 class _NightTile extends StatelessWidget {
-  const _NightTile({required this.night, required this.recording});
+  const _NightTile({required this.night, required this.recording, required this.account, required this.onUploaded});
 
   final NightOnDisk night;
   final bool recording;
+  final Account account;
+  final VoidCallback onUploaded;
 
   @override
   Widget build(BuildContext context) {
@@ -149,23 +173,44 @@ class _NightTile extends StatelessWidget {
     final h = night.length.inHours, m = night.length.inMinutes % 60;
     final good = night.epochs == 0 ? 0 : (100 * (night.quality['good'] ?? 0) / night.epochs).round();
     final mb = (night.bytes / 1e6).toStringAsFixed(1);
+    final u = night.uploadedAt;
     return Card(
-      child: ListTile(
+      child: ListenableBuilder(
+        listenable: account,
+        builder: (context, _) => ListTile(
         leading: Icon(recording ? Icons.fiber_manual_record : Icons.bedtime_outlined, color: recording ? Colors.red : null),
         title: Text(when, style: text.titleMedium),
         subtitle: Text([
           recording ? 'recording now' : '${h}h ${two(m)}m',
           '${night.epochs} epochs, $good% good',
           '$mb MB',
+          if (night.heartBeats > 0) '${night.heartBeats} heartbeats',
           if (night.repaired) 'repaired after an interruption',
+          if (u != null) 'sent ${u.year}-${two(u.month)}-${two(u.day)} ${two(u.hour)}:${two(u.minute)}',
+          if (account.uploads[night.folder.path] case final line?) line,
         ].join(' · ')),
-        trailing: Platform.isWindows
-            ? IconButton(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!recording)
+              IconButton(
+                tooltip: account.signedIn ? 'Send to the Diary Keeper' : 'Sign in (Settings) to send nights to the Diary Keeper',
+                icon: Icon(u == null ? Icons.cloud_upload_outlined : Icons.cloud_done_outlined),
+                onPressed: account.signedIn
+                    ? () async {
+                        if (await account.upload(night.folder)) onUploaded();
+                      }
+                    : null,
+              ),
+            if (Platform.isWindows)
+              IconButton(
                 tooltip: 'Open the folder',
                 icon: const Icon(Icons.folder_open),
                 onPressed: () => Process.run('explorer', [night.folder.path]),
-              )
-            : null,
+              ),
+          ],
+        ),
+        ),
       ),
     );
   }

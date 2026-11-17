@@ -292,6 +292,32 @@ def test_export_includes_journal_entries_without_night(client: TestClient, db: S
     assert [(e["text"], e["night_id"], e["vividness"]) for e in entries] == [("Flying.", None, 5)]
 
 
+def test_export_includes_heart_data(client: TestClient, alice: RegisteredUser):
+    night_body = {
+        "started_at": START.isoformat(),
+        "device_name": "Muse S",
+        "channels": ["AF7", "AF8"],
+        "sample_rate": 256,
+        "heart_device": "Polar H10 A1B2C3D4",
+    }
+    night = client.post("/nights", json=night_body, headers=alice.headers).json()
+    epochs = [
+        {"index": 0, "started_at": START.isoformat(), "heart_rate": 58.5, "hrv_rmssd": 42.1, "hrv_sdnn": 55.0,
+         "rr_intervals": [1020.0, 1033.5, 998.25]},
+        {"index": 1, "started_at": (START + timedelta(seconds=30)).isoformat()},
+    ]
+    assert client.put(f"/nights/{night['id']}/epochs", json={"epochs": epochs}, headers=alice.headers).status_code == 200
+
+    exported_night = client.get("/me/export", headers=alice.headers).json()["nights"][0]
+    assert exported_night["heart_device"] == "Polar H10 A1B2C3D4"
+    first, second = exported_night["epochs"]
+    assert (first["heart_rate"], first["hrv_rmssd"], first["hrv_sdnn"]) == (58.5, 42.1, 55.0)
+    assert first["rr_intervals"] == [1020.0, 1033.5, 998.25]
+    assert (second["heart_rate"], second["hrv_rmssd"], second["hrv_sdnn"], second["rr_intervals"]) == (
+        None, None, None, None
+    )
+
+
 def test_export_requires_sign_in(client: TestClient):
     assert client.get("/me/export").status_code == 401
 

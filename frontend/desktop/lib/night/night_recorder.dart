@@ -5,6 +5,8 @@ import 'dart:math';
 
 import '../eeg/eeg_source.dart';
 import '../eeg/filters.dart';
+import '../heart/heart_protocol.dart';
+import '../heart/hrv.dart';
 import '../ui/live_plot.dart' show contactScore;
 import 'edf_writer.dart';
 
@@ -18,6 +20,8 @@ class EpochSummary {
     required this.positionChanged,
     required this.quality,
     required this.gapSeconds,
+    this.heart,
+    this.rrMs = const [],
   });
 
   final int index;
@@ -35,6 +39,12 @@ class EpochSummary {
   /// good, okay, poor or gap.
   final String quality;
   final int gapSeconds;
+
+  /// Heart rate and HRV in this epoch, when a heart-rate strap was connected.
+  final HrvSummary? heart;
+
+  /// Every RR interval (ms) whose beat fell in this epoch, as received (artifacts included).
+  final List<double> rrMs;
 }
 
 /// Records a whole night to a BIDS-EEG folder, crash-safe, while the headband streams.
@@ -43,6 +53,7 @@ class EpochSummary {
 ///   <root>/dataset_description.json
 ///   <root>/sub-<id>/ses-<yyyymmddhhmm>/eeg/sub-<id>_ses-<..>_task-sleep_eeg.edf  (+ .json, _channels.tsv, _events.tsv)
 ///   <root>/sub-<id>/ses-<..>/openlucid/epochs.tsv, EEG L.edf, EEG R.edf (Dreamento export)
+///   <root>/sub-<id>/ses-<..>/openlucid/heartbeats.tsv (+ .json), when a heart-rate strap was on
 class NightRecorder {
   NightRecorder._(this.source, this.folder, this.baseName, this.startedAt, this.mainsHz, this.deviceInfo);
 
@@ -87,6 +98,16 @@ class NightRecorder {
   List<double>? _stableGravity;
   int _epochGapSeconds = 0;
   final Map<String, bool> _wasPoor = {};
+
+  // Heartbeats (optional: a strap can come and go during the night). Each beat gets the night's time
+  // when it arrived, goes straight into heartbeats.tsv, and waits here until its epoch is closed.
+  IOSink? _heartTsv;
+  final RrCleaner _heartCleaner = RrCleaner();
+  final List<(double, Beat)> _pendingBeats = [];
+
+  /// The strap's name, once one has been connected during this night.
+  String? heartDevice;
+  int heartBeats = 0;
 
   final List<EdfAnnotation> _pendingAnnotations = [];
   final List<EpochSummary> epochs = [];
@@ -178,6 +199,11 @@ class NightRecorder {
       'position_changed',
       'quality',
       'gap_seconds',
+      'heart_rate_bpm',
+      'hrv_rmssd_ms',
+      'hrv_sdnn_ms',
+      'beats',
+      'clean_beats',
     ].join('\t'));
     _eventsTsv = File('${folder.path}/eeg/${baseName}_events.tsv').openWrite();
     _eventsTsv.writeln('onset\tduration\ttrial_type\tvalue');
@@ -199,7 +225,69 @@ class NightRecorder {
 
   int get _eegBuffered => _eeg.isEmpty ? 0 : _eeg.first.length;
 
+  /// Seconds since the start of the night: the clock, or the data if that is ahead (a test feeding
+  /// a night faster than real time, or a burst after a reconnect).
+  /// Counted from what arrived (not what is written yet, which briefly lags while a record is written).
+  double get _now => max(_stopwatch.elapsedMicroseconds / 1e6, _eegReceived / max(1, _eegRate) + _gapSecondsFilled);
+  int _eegReceived = 0;
+  int _gapSecondsFilled = 0;
+
+  /// Records the heartbeats in one notification from the strap. The last beat happened (about) now;
+  /// each one before it, one interval earlier.
+  void addHeart(HeartSample sample, {required String device}) {
+    if (_closed || sample.rrMs.isEmpty) return;
+    if (heartDevice == null) {
+      heartDevice = device;
+      _openHeartFile(device);
+    }
+    final onsets = List<double>.filled(sample.rrMs.length, 0);
+    var t = _now;
+    for (var i = sample.rrMs.length - 1; i >= 0; i--) {
+      onsets[i] = t;
+      t -= sample.rrMs[i] / 1000;
+    }
+    final contact = sample.sensorContact == null ? 'n/a' : (sample.sensorContact! ? '1' : '0');
+    for (var i = 0; i < sample.rrMs.length; i++) {
+      final beat = _heartCleaner.add(sample.rrMs[i]);
+      _pendingBeats.add((onsets[i], beat));
+      _heartTsv!.writeln([
+        onsets[i].toStringAsFixed(3),
+        beat.rrMs.toStringAsFixed(3),
+        sample.heartRate,
+        beat.clean ? 1 : 0,
+        contact,
+      ].join('\t'));
+      heartBeats++;
+    }
+  }
+
+  /// The strap was connected, lost or found again: an event in the night, and a fresh start for the
+  /// artifact check (the beat before a dropout is no reference for the one after it).
+  void heartLink(String text, {required String type, required String device}) {
+    if (_closed) return;
+    _heartCleaner.reset();
+    addEvent(text, type: type, value: device);
+  }
+
+  void _openHeartFile(String device) {
+    _heartTsv = File('${folder.path}/openlucid/heartbeats.tsv').openWrite()
+      ..writeln(['onset', 'rr_ms', 'heart_rate_bpm', 'clean', 'sensor_contact'].join('\t'));
+    File('${folder.path}/openlucid/heartbeats.json').writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+      'Description': 'Every heartbeat from the heart-rate strap, with the interval since the previous beat (RR).',
+      'Device': device,
+      'onset': {'Description': 'Time of the beat, in seconds since the start of the night (the start of the EEG file).', 'Units': 's'},
+      'rr_ms': {'Description': 'Interval since the previous beat, as sent by the strap (1/1024 s resolution).', 'Units': 'ms'},
+      'heart_rate_bpm': {'Description': 'Heart rate as computed by the strap at that moment.', 'Units': 'beats per minute'},
+      'clean': {
+        'Description': '1 if the interval counts for HRV, 0 if it is an artifact: outside 300-2000 ms, or more than '
+            '20% different from the previous clean interval.',
+      },
+      'sensor_contact': {'Description': '1 if the strap felt skin, 0 if not, n/a if the strap does not say.'},
+    }));
+  }
+
   void _onEeg(EegChunk chunk) {
+    _eegReceived += chunk.length;
     for (var ch = 0; ch < _eeg.length; ch++) {
       _eeg[ch].addAll(chunk.samples[ch]);
     }
@@ -255,6 +343,7 @@ class NightRecorder {
         _pendingAnnotations.add(EdfAnnotation(gapStart, 'OpenLucid gap', duration: behind.toDouble()));
         _eventsTsv.writeln('${gapStart.toStringAsFixed(3)}\t$behind\tgap\tn/a');
         eventCount++;
+        _gapSecondsFilled += behind;
         for (var s = 0; s < behind; s++) {
           await _writeRecord(gap: true);
         }
@@ -373,6 +462,12 @@ class NightRecorder {
                 ? 'okay'
                 : 'good';
 
+    // Heartbeats up to the end of this epoch belong to it.
+    final epochEnd = (index + 1) * 30.0;
+    final beats = [for (final b in _pendingBeats) if (b.$1 < epochEnd) b.$2];
+    _pendingBeats.removeWhere((b) => b.$1 < epochEnd);
+    final heart = beats.isEmpty ? null : HrvSummary.of(beats);
+
     final epoch = EpochSummary(
       index: index,
       onset: index * 30.0,
@@ -381,6 +476,8 @@ class NightRecorder {
       positionChanged: positionChanged,
       quality: quality,
       gapSeconds: _epochGapSeconds,
+      heart: heart,
+      rrMs: [for (final b in beats) b.rrMs],
     );
     epochs.add(epoch);
     _epochGapSeconds = 0;
@@ -392,6 +489,11 @@ class NightRecorder {
       positionChanged ? 1 : 0,
       quality,
       epoch.gapSeconds,
+      heart?.heartRate?.toStringAsFixed(1) ?? 'n/a',
+      heart?.rmssd?.toStringAsFixed(1) ?? 'n/a',
+      heart?.sdnn?.toStringAsFixed(1) ?? 'n/a',
+      heart?.beats ?? 0,
+      heart?.cleanBeats ?? 0,
     ].join('\t'));
 
     if (moving) addEvent('OpenLucid movement', type: 'movement', value: movement!.toStringAsFixed(1), duration: 30);
@@ -441,6 +543,7 @@ class NightRecorder {
     await _dreamentoR.close();
     await _epochsTsv.close();
     await _eventsTsv.close();
+    await _heartTsv?.close();
     await _writeSidecars();
   }
 

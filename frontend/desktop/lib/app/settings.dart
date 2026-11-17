@@ -22,6 +22,38 @@ class Settings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The Diary Keeper account this app is signed in to: its email, the server it belongs to, and the
+  /// long-lived refresh token (the short-lived access token is never stored). Empty when signed out.
+  String? get accountEmail => _prefs.getString('accountEmail');
+  String? get accountServer => _prefs.getString('accountServer');
+  String? get refreshToken => _prefs.getString('refreshToken');
+
+  void saveAccount({required String email, required String server, required String refreshToken}) {
+    _prefs
+      ..setString('accountEmail', email)
+      ..setString('accountServer', server)
+      ..setString('refreshToken', refreshToken);
+    notifyListeners();
+  }
+
+  void saveRefreshToken(String token) => _prefs.setString('refreshToken', token);
+
+  void forgetAccount() {
+    _prefs
+      ..remove('accountEmail')
+      ..remove('accountServer')
+      ..remove('refreshToken');
+    notifyListeners();
+  }
+
+  /// Send every night to the Diary Keeper as soon as it's saved (when signed in).
+  bool get autoUpload => _prefs.getBool('autoUpload') ?? true;
+
+  set autoUpload(bool value) {
+    _prefs.setBool('autoUpload', value);
+    notifyListeners();
+  }
+
   /// The power grid's frequency: 50 Hz in Europe, Africa, most of Asia; 60 Hz in the Americas.
   int get mainsHz => _prefs.getInt('mainsHz') ?? 50;
 

@@ -151,6 +151,7 @@ def test_create_night_returns_it(client, alice):
     assert body["sample_rate"] == 200
     assert body["timezone"] == "Europe/Amsterdam"
     assert body["notes"] == "First try"
+    assert body["heart_device"] is None
     assert "user_id" not in body
 
 
@@ -608,6 +609,7 @@ def test_summary_of_an_empty_night(client, alice, night):
         "event_counts": {},
         "contact_average": {},
         "recordings": 0,
+        "heart": {"epochs": 0, "mean_heart_rate": None, "mean_hrv_rmssd": None},
     }
 
 
@@ -641,6 +643,264 @@ def test_summary_adds_up_the_night(client, alice, night, db):
     assert summary["event_counts"] == {"cue": 2, "lrlr": 1}
     assert summary["contact_average"] == pytest.approx({"Fp1": 0.5, "Fp2": 0.375})
     assert summary["recordings"] == 1
+
+
+# --- heart data from a chest strap (Polar H10) ----------------------------------------------
+
+POLAR = "Polar H10 A1B2C3D4"
+RR = [1012.0, 998.5, 1020.25, 1005.0]
+HEART_FIELDS = ("heart_rate", "hrv_rmssd", "hrv_sdnn", "rr_intervals")
+
+
+def heart_epoch(index: int, **extra) -> dict:
+    return epoch(index, heart_rate=59.3, hrv_rmssd=41.2, hrv_sdnn=52.8, rr_intervals=RR, **extra)
+
+
+def put_epochs(client, user, night, epochs, raw: str | None = None):
+    if raw is not None:
+        return client.put(
+            url(night, "/epochs"), content=raw, headers={**user.headers, "Content-Type": "application/json"}
+        )
+    return client.put(url(night, "/epochs"), json={"epochs": epochs}, headers=user.headers)
+
+
+def heart_of(client, user, night) -> list[tuple]:
+    items = client.get(url(night, "/epochs"), headers=user.headers).json()["items"]
+    return [tuple(item[field] for field in HEART_FIELDS) for item in items]
+
+
+def test_create_night_with_heart_device(client, alice):
+    response = client.post("/nights", json=night_body(heart_device=POLAR), headers=alice.headers)
+    assert response.status_code == 201
+    assert response.json()["heart_device"] == POLAR
+    night_id = response.json()["id"]
+    assert client.get(f"/nights/{night_id}", headers=alice.headers).json()["heart_device"] == POLAR
+    assert client.get("/nights", headers=alice.headers).json()["items"][0]["heart_device"] == POLAR
+
+
+def test_create_night_twice_with_client_id_keeps_the_first_heart_device(client, alice, night):
+    again = client.post("/nights", json=night_body(client_id="night-1", heart_device=POLAR), headers=alice.headers)
+    assert again.status_code == 200
+    assert again.json()["heart_device"] is None
+
+
+def test_patch_night_sets_keeps_and_clears_heart_device(client, alice, night):
+    response = client.patch(url(night), json={"heart_device": POLAR}, headers=alice.headers)
+    assert response.status_code == 200
+    assert response.json()["heart_device"] == POLAR
+    # Leaving it out keeps it; null clears it.
+    assert client.patch(url(night), json={"notes": "n"}, headers=alice.headers).json()["heart_device"] == POLAR
+    assert client.patch(url(night), json={"heart_device": None}, headers=alice.headers).json()["heart_device"] is None
+
+
+@pytest.mark.parametrize("heart_device", ["x" * 101, 7, ["Polar"], "Polar" + chr(0)])  # chr(0) is NUL
+def test_heart_device_validation(client, alice, night, heart_device):
+    assert client.post("/nights", json=night_body(heart_device=heart_device), headers=alice.headers).status_code == 422
+    assert client.patch(url(night), json={"heart_device": heart_device}, headers=alice.headers).status_code == 422
+    assert client.get(url(night), headers=alice.headers).json()["heart_device"] is None
+
+
+def test_heart_device_of_100_characters_is_fine(client, alice):
+    response = client.post("/nights", json=night_body(heart_device="x" * 100), headers=alice.headers)
+    assert response.status_code == 201
+
+
+def test_patch_other_users_heart_device_is_404(client, night, bob, db):
+    response = client.patch(url(night), json={"heart_device": POLAR}, headers=bob.headers)
+    assert response.status_code == 404
+    assert db.get(Night, uuid.UUID(night["id"])).heart_device is None
+
+
+def test_put_epochs_with_heart_data_round_trips(client, alice, night):
+    epochs = [heart_epoch(0, stage="n2"), epoch(1, stage="n2")]
+    response = put_epochs(client, alice, night, epochs)
+    assert response.status_code == 200
+    assert response.json() == {"upserted": 2}
+
+    items = client.get(url(night, "/epochs"), headers=alice.headers).json()["items"]
+    assert items[0]["heart_rate"] == 59.3
+    assert items[0]["hrv_rmssd"] == 41.2
+    assert items[0]["hrv_sdnn"] == 52.8
+    assert items[0]["rr_intervals"] == RR
+    assert items[0]["stage"] == "n2"
+    assert heart_of(client, alice, night)[1] == (None, None, None, None)
+
+
+def test_heart_data_without_eeg_values_is_fine(client, alice, night):
+    """The strap can record while the headband has no contact: heart data alone is a valid epoch."""
+    assert put_epochs(client, alice, night, [epoch(0, heart_rate=72)]).status_code == 200
+    assert heart_of(client, alice, night) == [(72.0, None, None, None)]
+
+
+def test_rr_intervals_are_stored_raw_with_artifacts_and_in_order(client, alice, night):
+    raw = [1000, 480.5, 2950.0, 1001, 1001]  # a missed beat and a doubled one, as the strap sent them
+    assert put_epochs(client, alice, night, [epoch(0, rr_intervals=raw)]).status_code == 200
+    assert heart_of(client, alice, night)[0][3] == [1000.0, 480.5, 2950.0, 1001.0, 1001.0]
+
+
+def test_empty_rr_interval_list_is_kept_apart_from_null(client, alice, night):
+    assert put_epochs(client, alice, night, [epoch(0, rr_intervals=[]), epoch(1)]).status_code == 200
+    assert [row[3] for row in heart_of(client, alice, night)] == [[], None]
+
+
+@pytest.mark.parametrize(
+    ("field", "low", "high"),
+    [("heart_rate", 20, 250), ("hrv_rmssd", 0, 1000), ("hrv_sdnn", 0, 1000)],
+)
+def test_heart_values_at_the_edges_are_fine(client, alice, night, field, low, high):
+    response = put_epochs(client, alice, night, [epoch(0, **{field: low}), epoch(1, **{field: high})])
+    assert response.status_code == 200, response.text
+    items = client.get(url(night, "/epochs"), headers=alice.headers).json()["items"]
+    assert [item[field] for item in items] == [low, high]
+
+
+def test_rr_intervals_at_the_edges_and_200_values_are_fine(client, alice, night):
+    rr = [200, 3000] * 100
+    assert put_epochs(client, alice, night, [epoch(0, rr_intervals=rr)]).status_code == 200
+    assert heart_of(client, alice, night)[0][3] == rr
+
+
+@pytest.mark.parametrize(
+    "bad_epoch",
+    [
+        epoch(0, heart_rate=19.9),
+        epoch(0, heart_rate=250.1),
+        epoch(0, heart_rate=-60),
+        epoch(0, hrv_rmssd=-0.1),
+        epoch(0, hrv_rmssd=1000.1),
+        epoch(0, hrv_sdnn=-1),
+        epoch(0, hrv_sdnn=1001),
+        epoch(0, rr_intervals=[1000, 199.9]),
+        epoch(0, rr_intervals=[3000.1]),
+        epoch(0, rr_intervals=[0]),
+        epoch(0, rr_intervals=[-800]),
+        epoch(0, rr_intervals=[1000] * 201),  # at most 200 per epoch
+        # wrong types
+        epoch(0, heart_rate="fast"),
+        epoch(0, heart_rate=[60]),
+        epoch(0, heart_rate={"bpm": 60}),
+        epoch(0, hrv_rmssd="a lot"),
+        epoch(0, hrv_sdnn=[50]),
+        epoch(0, rr_intervals=1000),
+        epoch(0, rr_intervals="1000,1010"),
+        epoch(0, rr_intervals={"0": 1000}),
+        epoch(0, rr_intervals=[1000, None]),
+        epoch(0, rr_intervals=[1000, "x"]),
+        epoch(0, rr_intervals=[[1000]]),
+    ],
+)
+def test_put_epochs_heart_validation(client, alice, night, db, bad_epoch):
+    # A bad epoch spoils the whole batch: the good one next to it is not stored either.
+    response = put_epochs(client, alice, night, [heart_epoch(1), bad_epoch])
+    assert response.status_code == 422
+    assert db.scalar(select(func.count()).select_from(Epoch)) == 0
+
+
+@pytest.mark.parametrize("token", ["NaN", "Infinity", "-Infinity"])
+@pytest.mark.parametrize(
+    "template",
+    [
+        '"heart_rate": %s',
+        '"hrv_rmssd": %s',
+        '"hrv_sdnn": %s',
+        '"rr_intervals": [1000.0, %s, 1010.0]',
+    ],
+)
+def test_heart_values_refuse_nan_and_infinity(client, alice, night, db, token, template):
+    raw = '{"epochs": [{"index": 0, "started_at": "2026-11-01T23:00:00Z", %s}]}' % (template % token)
+    response = put_epochs(client, alice, night, None, raw=raw)
+    assert response.status_code == 422
+    field = template.split('"')[1]
+    assert response.json()["detail"][0]["loc"][:4] == ["body", "epochs", 0, field]
+    assert db.scalar(select(func.count()).select_from(Epoch)) == 0
+
+
+def test_upsert_without_heart_fields_clears_them_like_every_other_field(client, alice, night, db):
+    """An epoch sent again replaces the stored one as a whole: fields it leaves out become null.
+
+    That is how stage, contact and quality have always behaved, and heart data does the same.
+    """
+    put_epochs(client, alice, night, [heart_epoch(0, stage="n2", contact={"Fp1": 0.9}, quality="good")])
+    first_id = client.get(url(night, "/epochs"), headers=alice.headers).json()["items"][0]["id"]
+
+    response = put_epochs(client, alice, night, [epoch(0, stage="rem")])
+    assert response.json() == {"upserted": 1}
+    item = client.get(url(night, "/epochs"), headers=alice.headers).json()["items"][0]
+    assert item["id"] == first_id  # updated in place
+    assert item["stage"] == "rem"
+    assert (item["contact"], item["quality"]) == (None, None)
+    assert heart_of(client, alice, night) == [(None, None, None, None)]
+    assert db.scalar(select(func.count()).select_from(Epoch)) == 1
+
+
+def test_upsert_with_heart_fields_replaces_them(client, alice, night):
+    put_epochs(client, alice, night, [heart_epoch(0, stage="n2")])
+    put_epochs(client, alice, night, [epoch(0, stage="n2", heart_rate=61, rr_intervals=[990])])
+    assert heart_of(client, alice, night) == [(61.0, None, None, [990.0])]
+
+
+def test_upsert_with_null_heart_fields_clears_them(client, alice, night):
+    put_epochs(client, alice, night, [heart_epoch(0)])
+    put_epochs(client, alice, night, [epoch(0, **dict.fromkeys(HEART_FIELDS))])
+    assert heart_of(client, alice, night) == [(None, None, None, None)]
+
+
+def test_put_heart_epochs_into_other_users_night_is_404(client, night, bob, db):
+    response = put_epochs(client, bob, night, [heart_epoch(0)])
+    assert response.status_code == 404
+    assert db.scalar(select(func.count()).select_from(Epoch)) == 0
+
+
+def test_other_user_cannot_read_heart_data(client, alice, night, bob):
+    put_epochs(client, alice, night, [heart_epoch(0)])
+    assert client.get(url(night, "/epochs"), headers=bob.headers).status_code == 404
+    assert client.get(url(night, "/summary"), headers=bob.headers).status_code == 404
+
+
+def test_heart_data_needs_sign_in(client, night):
+    response = client.put(url(night, "/epochs"), json={"epochs": [heart_epoch(0)]})
+    assert response.status_code == 401
+    assert client.patch(url(night), json={"heart_device": POLAR}).status_code == 401
+    assert client.post("/nights", json=night_body(heart_device=POLAR)).status_code == 401
+
+
+def test_summary_heart_means_are_over_epochs_that_have_the_value(client, alice, night):
+    epochs = [
+        epoch(0, heart_rate=60, hrv_rmssd=40),
+        epoch(1, heart_rate=70),  # no HRV this epoch
+        epoch(2, heart_rate=65.5, hrv_rmssd=45.25),
+        epoch(3, hrv_rmssd=99, rr_intervals=[1000]),  # HRV without heart rate: counted in the HRV mean only
+        epoch(4, stage="n2"),  # no heart data at all
+    ]
+    put_epochs(client, alice, night, epochs)
+    summary = client.get(url(night, "/summary"), headers=alice.headers).json()
+    assert summary["epoch_count"] == 5
+    assert summary["heart"] == {
+        "epochs": 3,
+        "mean_heart_rate": pytest.approx(65.17, abs=0.001),  # (60 + 70 + 65.5) / 3, rounded to 2 decimals
+        "mean_hrv_rmssd": pytest.approx(61.42, abs=0.001),  # (40 + 45.25 + 99) / 3
+    }
+
+
+def test_summary_heart_without_heart_data(client, alice, night):
+    put_epochs(client, alice, night, [epoch(0, stage="wake"), epoch(1, stage="n1")])
+    summary = client.get(url(night, "/summary"), headers=alice.headers).json()
+    assert summary["heart"] == {"epochs": 0, "mean_heart_rate": None, "mean_hrv_rmssd": None}
+
+
+def test_summary_heart_ignores_other_nights(client, alice, night):
+    other = client.post("/nights", json=night_body(), headers=alice.headers).json()
+    put_epochs(client, alice, night, [epoch(0, heart_rate=50, hrv_rmssd=30)])
+    put_epochs(client, alice, other, [epoch(0, heart_rate=90, hrv_rmssd=10)])
+    summary = client.get(url(night, "/summary"), headers=alice.headers).json()
+    assert summary["heart"] == {"epochs": 1, "mean_heart_rate": 50.0, "mean_hrv_rmssd": 30.0}
+
+
+def test_summary_reflects_heart_data_cleared_by_an_upsert(client, alice, night):
+    put_epochs(client, alice, night, [heart_epoch(0), heart_epoch(1)])
+    put_epochs(client, alice, night, [epoch(1)])
+    summary = client.get(url(night, "/summary"), headers=alice.headers).json()
+    assert summary["heart"] == {"epochs": 1, "mean_heart_rate": 59.3, "mean_hrv_rmssd": 41.2}
 
 
 # --- text and number edge cases (must be 422 on SQLite and PostgreSQL alike) -------------------

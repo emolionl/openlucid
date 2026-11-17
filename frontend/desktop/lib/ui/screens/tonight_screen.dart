@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/headband.dart';
 import '../../eeg/muse_source.dart';
 import '../../night/night_recorder.dart';
+import '../heart_card.dart';
 import '../live_plot.dart';
 import '../theme.dart';
 import 'eye_check_screen.dart';
@@ -48,6 +49,10 @@ class TonightScreen extends StatelessWidget {
             const _Header(),
             const SizedBox(height: 12),
             _HeadbandCard(headband: headband, compact: true),
+            if (headband.heart != null) ...[
+              const SizedBox(height: 12),
+              HeartCard(heart: headband.heart!, compact: true),
+            ],
             if (headband.listening) ...[
               const SizedBox(height: 12),
               _NightCard(headband: headband, compact: true),
@@ -86,6 +91,10 @@ class TonightScreen extends StatelessWidget {
                     const _Header(),
                     const SizedBox(height: 16),
                     _HeadbandCard(headband: headband, compact: false),
+                    if (headband.heart != null) ...[
+                      const SizedBox(height: 16),
+                      HeartCard(heart: headband.heart!, compact: false),
+                    ],
                     if (headband.listening) ...[
                       const SizedBox(height: 16),
                       _NightCard(headband: headband, compact: false),
@@ -308,8 +317,9 @@ class _NightCard extends StatelessWidget {
               Text('Night', style: text.titleMedium),
               const SizedBox(height: 4),
               Text(
-                'Records the whole night on this computer: brain signal and movement, in the formats sleep '
-                'research uses (EDF+, BIDS). Keep the laptop plugged in and close to the bed.',
+                'Records the whole night on this computer: brain signal and movement, and every heartbeat '
+                'if a heart-rate strap is connected, in the formats sleep research uses (EDF+, BIDS). '
+                'Keep the laptop plugged in and close to the bed.',
                 style: text.bodySmall,
               ),
               const SizedBox(height: 12),
@@ -400,6 +410,8 @@ class _NightCard extends StatelessWidget {
             row(Icons.screen_rotation_alt, 'Changes of position', '$turned'),
             if (last != null) row(Icons.sensors, 'Last epoch', last.quality),
             if (headband.reconnects > 0) row(Icons.bluetooth_connected, 'Reconnected', '${headband.reconnects}x'),
+            if (night.heartBeats > 0) row(Icons.favorite_border, 'Heartbeats recorded', '${night.heartBeats}'),
+            if (last?.heart?.rmssd != null) row(Icons.monitor_heart_outlined, 'HRV last epoch (RMSSD)', '${last!.heart!.rmssd!.round()} ms'),
             if (!headband.keepingAwake)
               Padding(
                 padding: const EdgeInsets.only(top: 8),

@@ -24,6 +24,7 @@ from app.schemas import (
     EventOut,
     EventsCreateIn,
     EventsCreateOut,
+    HeartSummaryOut,
     NightCreate,
     NightOut,
     NightSummaryOut,
@@ -36,6 +37,7 @@ router = APIRouter(prefix="/nights", tags=["nights"])
 
 NIGHT_NOT_FOUND = "Night not found."
 EPOCH_MINUTES = 0.5  # every epoch is 30 seconds
+HEART_DECIMALS = 2  # summary means of beats per minute and milliseconds
 
 
 def _own_night(db: Session, user: User, night_id: uuid.UUID) -> Night:
@@ -97,7 +99,7 @@ def get_night(night_id: uuid.UUID, user: CurrentUser, db: DbSession) -> Night:
 
 @router.patch("/{night_id}", response_model=NightOut)
 def update_night(night_id: uuid.UUID, body: NightUpdate, user: CurrentUser, db: DbSession) -> Night:
-    """Change the end time, notes or firmware. Only the fields you send are changed."""
+    """Change the end time, notes, firmware or heart-rate strap. Only the fields you send are changed."""
     night = _own_night(db, user, night_id)
     changes = body.model_dump(exclude_unset=True)
     ended_at = changes.get("ended_at")
@@ -124,7 +126,7 @@ def delete_night(night_id: uuid.UUID, user: CurrentUser, db: DbSession, settings
 
 @router.get("/{night_id}/summary", response_model=NightSummaryOut)
 def night_summary(night_id: uuid.UUID, user: CurrentUser, db: DbSession) -> NightSummaryOut:
-    """Totals of one night: minutes per sleep stage, events per type and mean contact per channel."""
+    """Totals of one night: minutes per sleep stage, events per type, mean contact per channel and heart data."""
     night = _own_night(db, user, night_id)
 
     stage_counts = db.execute(
@@ -139,6 +141,13 @@ def night_summary(night_id: uuid.UUID, user: CurrentUser, db: DbSession) -> Nigh
     recording_count = db.scalar(
         select(func.count()).select_from(Recording).where(Recording.night_id == night.id)
     )
+
+    # count() and avg() skip NULLs, so each mean is over the epochs that have that value.
+    heart_epochs, mean_heart_rate, mean_hrv_rmssd = db.execute(
+        select(func.count(Epoch.heart_rate), func.avg(Epoch.heart_rate), func.avg(Epoch.hrv_rmssd)).where(
+            Epoch.night_id == night.id
+        )
+    ).one()
 
     contact_sums: dict[str, float] = defaultdict(float)
     contact_counts: dict[str, int] = defaultdict(int)
@@ -158,6 +167,11 @@ def night_summary(night_id: uuid.UUID, user: CurrentUser, db: DbSession) -> Nigh
             for channel in contact_sums
         },
         recordings=recording_count or 0,
+        heart=HeartSummaryOut(
+            epochs=heart_epochs or 0,
+            mean_heart_rate=None if mean_heart_rate is None else round(float(mean_heart_rate), HEART_DECIMALS),
+            mean_hrv_rmssd=None if mean_hrv_rmssd is None else round(float(mean_hrv_rmssd), HEART_DECIMALS),
+        ),
     )
 
 
@@ -172,6 +186,8 @@ def _upsert_epochs(db: Session, night_id: uuid.UUID, body: EpochsUpsertIn) -> in
         for epoch in db.scalars(select(Epoch).where(Epoch.night_id == night_id, Epoch.index.in_(incoming)))
     }
     for index, epoch_in in incoming.items():
+        # Every field is written, also the ones left out: an epoch sent again replaces the stored one,
+        # so a field it does not carry (stage, contact, heart_rate, rr_intervals...) becomes null.
         values = epoch_in.model_dump()
         row = existing.get(index)
         if row is None:
@@ -185,7 +201,8 @@ def _upsert_epochs(db: Session, night_id: uuid.UUID, body: EpochsUpsertIn) -> in
 
 @router.put("/{night_id}/epochs", response_model=EpochsUpsertOut)
 def upsert_epochs(night_id: uuid.UUID, body: EpochsUpsertIn, user: CurrentUser, db: DbSession) -> EpochsUpsertOut:
-    """Add or replace up to 1000 epochs. An epoch with an index that already exists is updated."""
+    """Add or replace up to 1000 epochs. An epoch with an index that already exists is replaced as a whole:
+    fields you leave out become null, so send the heart data again together with the stage and vice versa."""
     night_id = _own_night(db, user, night_id).id
     try:
         upserted = _upsert_epochs(db, night_id, body)

@@ -44,9 +44,20 @@ All ids are UUID4 (stored as `Uuid` type, works on SQLite and PostgreSQL). All t
 
 **refresh_tokens**: `id`, `user_id` (FK users, cascade delete), `token_hash` (sha256 hex of the opaque token, unique), `expires_at`, `revoked_at` (nullable), `created_at`, `replaced_by_id` (nullable FK refresh_tokens).
 
-**nights**: `id`, `user_id` (FK, cascade), `client_id` (string max 64, nullable; unique together with user_id when set), `started_at`, `ended_at` (nullable), `device_name` (max 100), `device_firmware` (nullable), `channels` (JSON list of strings), `sample_rate` (float), `timezone` (IANA name, nullable), `notes` (text, nullable, max 5000), `created_at`, `updated_at`.
+**nights**: `id`, `user_id` (FK, cascade), `client_id` (string max 64, nullable; unique together with user_id when set), `started_at`, `ended_at` (nullable), `device_name` (max 100), `device_firmware` (nullable), `channels` (JSON list of strings), `sample_rate` (float), `timezone` (IANA name, nullable), `notes` (text, nullable, max 5000), `heart_device` (nullable, max 100: the heart-rate chest strap, e.g. `Polar H10 A1B2C3D4`), `created_at`, `updated_at`.
 
-**epochs**: `id`, `night_id` (FK, cascade), `index` (int ≥ 0, epoch number, 30 s each; unique with night_id), `started_at`, `stage` (nullable: `wake` | `n1` | `n2` | `n3` | `rem` | `unknown`), `stage_confidence` (nullable float 0–1), `contact` (JSON object channel → score 0–1, nullable), `quality` (nullable: `good` | `okay` | `poor` | `gap`), `created_at`, `updated_at`.
+**epochs**: `id`, `night_id` (FK, cascade), `index` (int ≥ 0, epoch number, 30 s each; unique with night_id), `started_at`, `stage` (nullable: `wake` | `n1` | `n2` | `n3` | `rem` | `unknown`), `stage_confidence` (nullable float 0–1), `contact` (JSON object channel → score 0–1, nullable), `quality` (nullable: `good` | `okay` | `poor` | `gap`), heart data (below), `created_at`, `updated_at`.
+
+Heart data per epoch, from a chest strap such as the Polar H10 (all nullable; an epoch may carry heart data without any EEG values and the other way round):
+
+| Column | Type | Valid | Meaning |
+|---|---|---|---|
+| `heart_rate` | float | 20–250 | Mean beats per minute over the epoch |
+| `hrv_rmssd` | float | 0–1000 | RMSSD in milliseconds |
+| `hrv_sdnn` | float | 0–1000 | SDNN in milliseconds |
+| `rr_intervals` | JSON list of floats | each 200–3000, at most 200 values | Every RR interval (ms) whose beat fell in this epoch, raw as received, in order, artifacts included. The app computes `heart_rate` and HRV from cleaned intervals; the raw list is kept so they can be recomputed. `[]` (no beats) is stored apart from `null` (not measured) |
+
+All bounds are inclusive. NaN and Infinity in any of these fields are 422, like everywhere else. Added in migration `0002`.
 
 **events**: `id`, `night_id` (FK, cascade), `client_id` (nullable, unique with night_id when set), `at`, `type` (string max 40, e.g. `cue`, `lrlr`, `woke_up`, `reconnect`, `contact_lost`, `note`), `details` (JSON object, nullable, max 10 kB serialized), `created_at`.
 
@@ -81,12 +92,12 @@ JSON everywhere except uploads (multipart) and downloads (file). Errors: `{"deta
 
 ### Nights
 - `GET /nights` → own nights, newest first
-- `POST /nights` `{client_id?, started_at, device_name, device_firmware?, channels, sample_rate, timezone?, notes?}` → 201; if `client_id` already exists for this user → 200 with the existing night
-- `GET /nights/{id}`, `PATCH /nights/{id}` `{ended_at?, notes?, device_firmware?}`, `DELETE /nights/{id}` → 204
-- `GET /nights/{id}/summary` → `{night, epoch_count, stage_minutes: {stage: minutes}, event_counts: {type: n}, contact_average: {channel: mean score}, recordings: n}`
+- `POST /nights` `{client_id?, started_at, device_name, device_firmware?, channels, sample_rate, timezone?, notes?, heart_device?}` → 201; if `client_id` already exists for this user → 200 with the existing night
+- `GET /nights/{id}`, `PATCH /nights/{id}` `{ended_at?, notes?, device_firmware?, heart_device?}` (fields left out are kept, `null` clears), `DELETE /nights/{id}` → 204
+- `GET /nights/{id}/summary` → `{night, epoch_count, stage_minutes: {stage: minutes}, event_counts: {type: n}, contact_average: {channel: mean score}, recordings: n, heart: {epochs, mean_heart_rate, mean_hrv_rmssd}}`. `heart.epochs` counts the epochs with a `heart_rate`; each mean is over the epochs that have that value (rounded to 2 decimals), `null` when none has it
 
 ### Epochs
-- `PUT /nights/{id}/epochs` `{epochs: [{index, started_at, stage?, stage_confidence?, contact?, quality?}]}` (max 1000 per call) → 200 `{upserted: n}`; existing indexes are updated
+- `PUT /nights/{id}/epochs` `{epochs: [{index, started_at, stage?, stage_confidence?, contact?, quality?, heart_rate?, hrv_rmssd?, hrv_sdnn?, rr_intervals?}]}` (max 1000 per call) → 200 `{upserted: n}`; an existing index is **replaced as a whole**: every field the epoch leaves out (EEG or heart) becomes `null`, so the app sends an epoch's stage and heart data together. The same index twice in one call: the last one wins
 - `GET /nights/{id}/epochs?from_index=&to_index=` → items ordered by index (pagination limit max 2000 here)
 
 ### Events

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/account.dart';
 import '../app/headband.dart';
 import '../app/settings.dart';
 import 'screens/journal_screen.dart';
@@ -35,10 +36,11 @@ const _destinations = [
 
 /// The app's frame: a bottom bar on phones, a side rail on tablets and laptops.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.settings, required this.headband});
+  const AppShell({super.key, required this.settings, required this.headband, required this.account});
 
   final Settings settings;
   final Headband headband;
+  final Account account;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -49,9 +51,9 @@ class _AppShellState extends State<AppShell> {
 
   Widget _page() => switch (_index) {
         0 => TonightScreen(headband: widget.headband),
-        1 => NightsScreen(headband: widget.headband),
+        1 => NightsScreen(headband: widget.headband, account: widget.account),
         2 => const JournalScreen(),
-        _ => SettingsScreen(settings: widget.settings),
+        _ => SettingsScreen(settings: widget.settings, account: widget.account),
       };
 
   @override

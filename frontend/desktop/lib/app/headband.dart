@@ -8,8 +8,10 @@ import 'package:universal_ble/universal_ble.dart';
 import '../eeg/eeg_source.dart';
 import '../eeg/fake_moose.dart';
 import '../eeg/muse_source.dart';
+import '../heart/heart_protocol.dart';
 import '../night/night_recorder.dart';
 import '../ui/live_plot.dart';
+import 'heart_strap.dart';
 import 'keep_awake.dart';
 import 'settings.dart';
 
@@ -17,9 +19,25 @@ enum DeviceChoice { fakeMoose, muse }
 
 /// Everything about the headband connection. Lives as long as the app, so switching tabs never disconnects.
 class Headband extends ChangeNotifier {
-  Headband(this.settings);
+  Headband(this.settings, {this.heart}) {
+    // The heart-rate strap is optional and independent: whatever it sends while a night is being
+    // recorded goes into that night, whenever it was connected.
+    final strap = heart;
+    if (strap != null) {
+      _heartSamples = strap.samples.listen(_onHeart);
+      _heartEvents = strap.events.listen(_onHeartLink);
+    }
+  }
 
   final Settings settings;
+
+  /// Called with the night's folder after a night was saved (the app sends it to the Diary Keeper).
+  void Function(String folder)? onNightSaved;
+
+  /// The heart-rate strap (Polar H10), if the app has one.
+  final HeartStrap? heart;
+  StreamSubscription<HeartSample>? _heartSamples;
+  StreamSubscription<HeartLinkEvent>? _heartEvents;
 
   DeviceChoice choice = DeviceChoice.fakeMoose;
   final List<BleDevice> found = [];
@@ -150,6 +168,8 @@ class Headband extends ChangeNotifier {
           if (muse?.firmware != null) 'firmware': '${muse!.firmware} preset ${muse.preset ?? 'n/a'}',
         },
       );
+      final strap = heart?.source;
+      if (strap != null) night!.heartLink('OpenLucid heart strap connected', type: 'heart_connected', device: strap.name);
       keepingAwake = KeepAwake.enable();
       // Connection watching already started in _listen(); just keep the counters from carrying over
       // a pre-night reconnect into tonight's event log.
@@ -178,6 +198,7 @@ class Headband extends ChangeNotifier {
     try {
       await current.stop();
       status = 'Night saved: ${current.folder.path}';
+      onNightSaved?.call(current.folder.path);
     } catch (error) {
       status = 'Problem while saving the night: $error';
     } finally {
@@ -188,6 +209,27 @@ class Headband extends ChangeNotifier {
       notifyListeners();
     }
     return current.folder.path;
+  }
+
+  void _onHeart(HeartSample sample) {
+    final device = heart?.source?.name;
+    if (device != null) night?.addHeart(sample, device: device);
+  }
+
+  void _onHeartLink(HeartLinkEvent event) {
+    final current = night;
+    if (current == null) return;
+    final device = heart?.source?.name ?? current.heartDevice ?? 'heart strap';
+    switch (event) {
+      case HeartLinkEvent.connected:
+        current.heartLink('OpenLucid heart strap connected', type: 'heart_connected', device: device);
+      case HeartLinkEvent.lost:
+        current.heartLink('OpenLucid heart strap lost', type: 'heart_lost', device: device);
+      case HeartLinkEvent.reconnected:
+        current.heartLink('OpenLucid heart strap reconnected', type: 'heart_reconnected', device: device);
+      case HeartLinkEvent.stopped:
+        current.heartLink('OpenLucid heart strap disconnected', type: 'heart_disconnected', device: device);
+    }
   }
 
   // A lost Bluetooth link is not the end, whether or not a night is being recorded: mark it (if a
@@ -265,6 +307,8 @@ class Headband extends ChangeNotifier {
 
   @override
   void dispose() {
+    _heartSamples?.cancel();
+    _heartEvents?.cancel();
     night?.stop();
     KeepAwake.disable();
     _nightTicker?.cancel();

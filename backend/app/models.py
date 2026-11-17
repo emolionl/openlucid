@@ -82,6 +82,7 @@ class Night(Base):
     sample_rate: Mapped[float] = mapped_column(Float)
     timezone: Mapped[str | None] = mapped_column(String(64))
     notes: Mapped[str | None] = mapped_column(Text)
+    heart_device: Mapped[str | None] = mapped_column(String(100))  # e.g. "Polar H10 A1B2C3D4"
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 
@@ -98,7 +99,11 @@ class Night(Base):
 
 
 class Epoch(Base):
-    """One 30-second slice of a night: stage, electrode contact and signal quality."""
+    """One 30-second slice of a night: stage, electrode contact, signal quality and heart data.
+
+    The heart columns come from a chest strap (Polar H10). `rr_intervals` are the raw beat-to-beat intervals
+    in milliseconds as received, artifacts included; the app computes `heart_rate` and HRV from cleaned ones.
+    """
 
     __tablename__ = "epochs"
     __table_args__ = (UniqueConstraint("night_id", "index"),)
@@ -111,6 +116,10 @@ class Epoch(Base):
     stage_confidence: Mapped[float | None] = mapped_column(Float)
     contact: Mapped[dict[str, float] | None] = mapped_column(JSON)
     quality: Mapped[str | None] = mapped_column(String(10))
+    heart_rate: Mapped[float | None] = mapped_column(Float)  # mean beats per minute over the epoch
+    hrv_rmssd: Mapped[float | None] = mapped_column(Float)  # milliseconds
+    hrv_sdnn: Mapped[float | None] = mapped_column(Float)  # milliseconds
+    rr_intervals: Mapped[list[float] | None] = mapped_column(JSON)  # milliseconds, raw
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, onupdate=utcnow)
 

@@ -81,6 +81,10 @@ void main() {
     expect(find.text('Wave at the Diary Keeper'), findsOneWidget);
     expect(find.text('Not asked yet.'), findsOneWidget);
 
+    // On a phone the power-grid setting sits below the Diary Keeper account fields.
+    await tester.scrollUntilVisible(find.text('60 Hz'), 200, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text('60 Hz')); // fully on screen, not under the bottom bar
+    await tester.pumpAndSettle();
     await tester.tap(find.text('60 Hz'));
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();

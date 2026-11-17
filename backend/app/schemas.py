@@ -106,6 +106,11 @@ ClientId = Annotated[str, Field(min_length=1, max_length=64)]
 TimezoneName = Annotated[str, Field(max_length=64), AfterValidator(_check_timezone)]
 Score = Annotated[float, Field(ge=0, le=1)]
 ChannelName = Annotated[str, Field(min_length=1, max_length=40)]
+# Heart data from a chest strap. allow_inf_nan=False makes NaN and Infinity a clean 422 (they are not strict JSON).
+HeartRate = Annotated[float, Field(ge=20, le=250, allow_inf_nan=False)]  # beats per minute
+HrvMilliseconds = Annotated[float, Field(ge=0, le=1000, allow_inf_nan=False)]
+RRInterval = Annotated[float, Field(ge=200, le=3000, allow_inf_nan=False)]  # milliseconds, bounds included
+MAX_RR_INTERVALS_PER_EPOCH = 200  # 30 s at 250 bpm is 125 beats; this leaves room for artifacts
 PlainText = Annotated[str, AfterValidator(_no_nul)]  # for query parameters; bodies are checked by RequestModel
 
 
@@ -225,12 +230,15 @@ class NightCreate(RequestModel):
     sample_rate: Annotated[float, Field(gt=0, le=100_000)]
     timezone: TimezoneName | None = None
     notes: Annotated[str, Field(max_length=5000)] | None = None
+    # The heart-rate chest strap, e.g. "Polar H10 A1B2C3D4".
+    heart_device: Annotated[str, Field(max_length=100)] | None = None
 
 
 class NightUpdate(RequestModel):
     ended_at: UTCDatetime | None = None
     notes: Annotated[str, Field(max_length=5000)] | None = None
     device_firmware: Annotated[str, Field(max_length=100)] | None = None
+    heart_device: Annotated[str, Field(max_length=100)] | None = None
 
 
 class NightOut(OrmModel):
@@ -244,8 +252,17 @@ class NightOut(OrmModel):
     sample_rate: float
     timezone: str | None
     notes: str | None
+    heart_device: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class HeartSummaryOut(BaseModel):
+    """Heart data of a night: how many epochs have a heart rate, and means over the epochs that have the value."""
+
+    epochs: int
+    mean_heart_rate: float | None
+    mean_hrv_rmssd: float | None
 
 
 class NightSummaryOut(BaseModel):
@@ -255,6 +272,7 @@ class NightSummaryOut(BaseModel):
     event_counts: dict[str, int]
     contact_average: dict[str, float]
     recordings: int
+    heart: HeartSummaryOut
 
 
 # --- epochs -------------------------------------------------------------------------------
@@ -267,6 +285,12 @@ class EpochIn(RequestModel):
     stage_confidence: Score | None = None
     contact: dict[ChannelName, Score] | None = None
     quality: Quality | None = None
+    heart_rate: HeartRate | None = Field(default=None, description="Mean beats per minute over the epoch.")
+    hrv_rmssd: HrvMilliseconds | None = Field(default=None, description="RMSSD in milliseconds.")
+    hrv_sdnn: HrvMilliseconds | None = Field(default=None, description="SDNN in milliseconds.")
+    rr_intervals: Annotated[list[RRInterval], Field(max_length=MAX_RR_INTERVALS_PER_EPOCH)] | None = Field(
+        default=None, description="Every RR interval (ms) whose beat fell in this epoch, raw as received."
+    )
 
 
 class EpochsUpsertIn(RequestModel):
@@ -285,6 +309,10 @@ class EpochOut(OrmModel):
     stage_confidence: float | None
     contact: dict[str, float] | None
     quality: Quality | None
+    heart_rate: float | None
+    hrv_rmssd: float | None
+    hrv_sdnn: float | None
+    rr_intervals: list[float] | None
     created_at: datetime
     updated_at: datetime
 

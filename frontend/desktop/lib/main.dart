@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'app/account.dart';
 import 'app/headband.dart';
+import 'app/heart_strap.dart';
 import 'app/settings.dart';
 import 'ui/shell.dart';
 import 'ui/theme.dart';
@@ -8,14 +10,17 @@ import 'ui/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final settings = await Settings.load();
-  runApp(OpenLucidApp(settings: settings, headband: Headband(settings)));
+  final account = Account(settings);
+  final headband = Headband(settings, heart: HeartStrap())..onNightSaved = account.nightSaved;
+  runApp(OpenLucidApp(settings: settings, headband: headband, account: account));
 }
 
 class OpenLucidApp extends StatelessWidget {
-  const OpenLucidApp({super.key, required this.settings, required this.headband});
+  const OpenLucidApp({super.key, required this.settings, required this.headband, this.account});
 
   final Settings settings;
   final Headband headband;
+  final Account? account;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +28,7 @@ class OpenLucidApp extends StatelessWidget {
       title: 'OpenLucid',
       debugShowCheckedModeBanner: false,
       theme: nightTheme(),
-      home: AppShell(settings: settings, headband: headband),
+      home: AppShell(settings: settings, headband: headband, account: account ?? Account(settings)),
     );
   }
 }

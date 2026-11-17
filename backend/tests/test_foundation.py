@@ -171,7 +171,7 @@ def test_migrations_create_exactly_the_models(empty_database):
     with empty_database.connect() as connection:
         context = MigrationContext.configure(connection, opts={"compare_type": True})
         assert compare_metadata(context, Base.metadata) == []
-        assert context.get_current_revision() == "0001"
+        assert context.get_current_revision() == "0002"
 
 
 def test_migrations_downgrade_to_nothing(empty_database):
@@ -179,6 +179,71 @@ def test_migrations_downgrade_to_nothing(empty_database):
     with empty_database.begin() as connection:
         command.downgrade(alembic_config(connection), "base")
     assert not ALL_TABLES & set(inspect(empty_database).get_table_names())
+
+
+HEART_EPOCH_COLUMNS = {"heart_rate", "hrv_rmssd", "hrv_sdnn", "rr_intervals"}
+
+
+def column_names(engine, table: str) -> set[str]:
+    return {column["name"] for column in inspect(engine).get_columns(table)}
+
+
+def test_migration_0002_adds_heart_columns_and_keeps_existing_rows(empty_database):
+    run_migrations(empty_database, "0001")
+    assert "heart_device" not in column_names(empty_database, "nights")
+    assert not HEART_EPOCH_COLUMNS & column_names(empty_database, "epochs")
+    now = datetime.now(timezone.utc)
+    user_id, night_id = uuid.uuid4(), uuid.uuid4()
+    with empty_database.begin() as connection:  # only 0001's columns: values() leaves the new ones out
+        connection.execute(
+            User.__table__.insert().values(
+                id=user_id, email="old@example.com", password_hash="x", role="user", is_active=True,
+                consent_version="2026-11", consent_at=now, created_at=now, updated_at=now,
+            )
+        )
+        connection.execute(
+            Night.__table__.insert().values(
+                id=night_id, user_id=user_id, started_at=now, device_name="d", channels=["Fp1"],
+                sample_rate=250, created_at=now, updated_at=now,
+            )
+        )
+        connection.execute(
+            Epoch.__table__.insert().values(night_id=night_id, index=0, started_at=now, stage="n2")
+        )
+
+    run_migrations(empty_database)
+    assert "heart_device" in column_names(empty_database, "nights")
+    assert HEART_EPOCH_COLUMNS <= column_names(empty_database, "epochs")
+    with Session(empty_database) as session:
+        epoch = session.scalars(select(Epoch)).one()
+        assert (epoch.night_id, epoch.stage, epoch.heart_rate, epoch.rr_intervals) == (night_id, "n2", None, None)
+        assert session.get(Night, night_id).heart_device is None
+
+
+def test_migration_0002_downgrade_removes_heart_columns_and_keeps_rows(empty_database):
+    run_migrations(empty_database)
+    add_user_with_a_night(empty_database)
+    with Session(empty_database) as session:
+        night = session.scalars(select(Night)).one()
+        night.heart_device = "Polar H10 A1B2C3D4"
+        session.add(Epoch(night_id=night.id, index=0, started_at=night.started_at, stage="rem", heart_rate=60.0,
+                          rr_intervals=[1000.0]))
+        session.commit()
+
+    with migration_connection(empty_database) as connection:
+        command.downgrade(alembic_config(connection), "0001")
+    assert "heart_device" not in column_names(empty_database, "nights")
+    assert not HEART_EPOCH_COLUMNS & column_names(empty_database, "epochs")
+    assert count_nights(empty_database) == 1
+    with empty_database.connect() as connection:
+        assert connection.exec_driver_sql("SELECT stage FROM epochs").scalar_one() == "rem"
+        assert MigrationContext.configure(connection).get_current_revision() == "0001"
+    # The unique (night_id, index) constraint survived the rebuild.
+    uniques = {tuple(u["column_names"]) for u in inspect(empty_database).get_unique_constraints("epochs")}
+    assert ("night_id", "index") in uniques
+
+    run_migrations(empty_database)  # and back up again
+    assert HEART_EPOCH_COLUMNS <= column_names(empty_database, "epochs")
 
 
 def test_startup_runs_migrations_when_auto_migrate(empty_database, make_settings, register_user):

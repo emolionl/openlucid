@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:openlucid/eeg/eeg_source.dart';
 import 'package:openlucid/eeg/fake_moose.dart';
+import 'package:openlucid/heart/heart_protocol.dart';
 import 'package:openlucid/night/edf_writer.dart';
 import 'package:openlucid/night/night_recorder.dart';
 
@@ -186,5 +187,66 @@ void main() {
     final events = File(recorder.edfPath.replaceFirst('_eeg.edf', '_events.tsv')).readAsStringSync();
     expect(events, contains('\tgap\t'));
     expect(recorder.recordsWritten, greaterThanOrEqualTo(3 + 3 + 2)); // data + filled-in gap seconds
+  });
+
+  test('heartbeats from a strap go into heartbeats.tsv and give each epoch its heart rate and HRV', () async {
+    final source = HandFedSource();
+    final recorder = await NightRecorder.start(source: source, root: tmp, subjectId: 'h1', mainsHz: 50, now: DateTime(2026, 11, 17, 23, 0));
+    recorder.heartLink('OpenLucid heart strap connected', type: 'heart_connected', device: 'Polar H10 TEST');
+    // 65 seconds, one beat per second with a small breathing rhythm; one missed beat at second 40.
+    for (var s = 0; s < 65; s++) {
+      await source.feed(1);
+      final rr = s == 40 ? 2000.0 : 1000 + 40 * sin(s * 1.4);
+      recorder.addHeart(HeartSample(heartRate: 60, rrMs: [rr], sensorContact: true), device: 'Polar H10 TEST');
+    }
+    // A notification with no RR (the strap does that) adds nothing.
+    recorder.addHeart(HeartSample(heartRate: 60, rrMs: const []), device: 'Polar H10 TEST');
+    await recorder.stop();
+
+    final night = '${tmp.path}/sub-h1/ses-202611172300';
+    final beats = File('$night/openlucid/heartbeats.tsv').readAsLinesSync();
+    expect(beats.first, 'onset\trr_ms\theart_rate_bpm\tclean\tsensor_contact');
+    expect(beats.length, 1 + 65);
+    expect(recorder.heartBeats, 65);
+    expect(beats.where((l) => l.split('\t')[3] == '0').length, 1); // the missed beat
+    final onsets = beats.skip(1).map((l) => double.parse(l.split('\t').first)).toList();
+    for (var i = 1; i < onsets.length; i++) {
+      expect(onsets[i], greaterThan(onsets[i - 1]), reason: 'beats in time order');
+    }
+    final meta = jsonDecode(File('$night/openlucid/heartbeats.json').readAsStringSync()) as Map<String, dynamic>;
+    expect(meta['Device'], 'Polar H10 TEST');
+
+    expect(recorder.epochs.length, 2);
+    final first = recorder.epochs.first;
+    expect(first.heart, isNotNull);
+    expect(first.heart!.heartRate, closeTo(60, 3));
+    expect(first.heart!.rmssd, isNotNull);
+    expect(first.rrMs.length, inInclusiveRange(28, 31));
+    final second = recorder.epochs[1];
+    expect(second.heart!.cleanBeats, second.heart!.beats - 1);
+    // Every beat is in at most one epoch.
+    expect(first.rrMs.length + second.rrMs.length, lessThanOrEqualTo(65));
+
+    final epochsTsv = File('$night/openlucid/epochs.tsv').readAsLinesSync();
+    final head = epochsTsv.first.split('\t');
+    expect(head, containsAll(['heart_rate_bpm', 'hrv_rmssd_ms', 'hrv_sdnn_ms', 'beats', 'clean_beats']));
+    final row = epochsTsv[1].split('\t');
+    expect(double.parse(row[head.indexOf('heart_rate_bpm')]), closeTo(60, 3));
+
+    final events = File(recorder.edfPath.replaceFirst('_eeg.edf', '_events.tsv')).readAsStringSync();
+    expect(events, contains('heart_connected'));
+  });
+
+  test('a night without a strap writes no heartbeat file and n/a for heart in the epochs', () async {
+    final source = HandFedSource();
+    final recorder = await NightRecorder.start(source: source, root: tmp, subjectId: 'h2', mainsHz: 50, now: DateTime(2026, 11, 17, 23, 0));
+    await source.feed(31);
+    await recorder.stop();
+    final night = '${tmp.path}/sub-h2/ses-202611172300';
+    expect(File('$night/openlucid/heartbeats.tsv').existsSync(), isFalse);
+    expect(recorder.epochs.single.heart, isNull);
+    final epochsTsv = File('$night/openlucid/epochs.tsv').readAsLinesSync();
+    final head = epochsTsv.first.split('\t');
+    expect(epochsTsv[1].split('\t')[head.indexOf('heart_rate_bpm')], 'n/a');
   });
 }
